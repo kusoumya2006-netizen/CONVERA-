@@ -12,7 +12,7 @@ import {
   ReviewStatus,
   NavTab
 } from '../types';
-import { loadInitialData, saveDataToStorage, resetStorage } from '../services/storageService';
+import { loadInitialData, saveDataToStorage, resetStorage, getStorageService, isSupabaseConfigured } from '../services/storageService';
 import { detectCrossBureauOverlaps } from '../engine/overlapDetector';
 
 interface CaseWatchContextType {
@@ -45,6 +45,8 @@ interface CaseWatchContextType {
   reviewOverlapAlert: (alertId: string, reviewStatus: ReviewStatus, remarks: string, leadBureau?: Bureau, reviewer?: string) => void;
   resetToSeedData: () => void;
   isDemoMode: boolean;
+  storageMode: 'supabase' | 'local';
+  isLoadingCloudData: boolean;
   toastMessage: { text: string; type: 'success' | 'info' | 'warning' } | null;
   showToast: (text: string, type?: 'success' | 'info' | 'warning') => void;
 }
@@ -72,6 +74,32 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [selectedInstitutionId, setSelectedInstitutionId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'info' | 'warning' } | null>(null);
+  const [storageMode, setStorageMode] = useState<'supabase' | 'local'>(() => isSupabaseConfigured() ? 'supabase' : 'local');
+  const [isLoadingCloudData, setIsLoadingCloudData] = useState<boolean>(false);
+
+  // Sync with Supabase on mount if configured
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      setIsLoadingCloudData(true);
+      getStorageService()
+        .loadInitialData()
+        .then(cloudData => {
+          if (cloudData.cases && cloudData.cases.length > 0) {
+            setInstitutions(cloudData.institutions);
+            setCases(cloudData.cases);
+            setActions(cloudData.actions);
+            setAlerts(cloudData.alerts);
+            setStorageMode('supabase');
+          }
+        })
+        .catch(err => {
+          console.warn('Could not sync with Supabase cloud on initial load:', err);
+        })
+        .finally(() => {
+          setIsLoadingCloudData(false);
+        });
+    }
+  }, []);
 
   const showToast = useCallback((text: string, type: 'success' | 'info' | 'warning' = 'info') => {
     setToastMessage({ text, type });
@@ -735,7 +763,9 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         unmergeCase,
         reviewOverlapAlert,
         resetToSeedData,
-        isDemoMode: true,
+        isDemoMode: storageMode === 'local',
+        storageMode,
+        isLoadingCloudData,
         toastMessage,
         showToast
       }}

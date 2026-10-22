@@ -9,7 +9,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onOpenNewCaseModal, onNavigateLanding }) => {
-  const { stats, resetToSeedData, isDemoMode, setActiveTab } = useCaseWatch();
+  const { stats, resetToSeedData, isDemoMode, setActiveTab, storageMode, isLoadingCloudData } = useCaseWatch();
   const { user, signOut } = useAuth();
 
   return (
@@ -54,13 +54,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewCaseModal, onNavigateLa
         {/* Operational status & Center controls */}
         <div className="hidden md:flex items-center gap-3">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#111419] border border-[#272D35] text-[11px] text-[#A0A7B2]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#69C9A0] animate-pulse" />
-            <span className="font-mono">Gateway Active</span>
-            {isDemoMode && (
-              <>
-                <span className="text-[#272D35]">•</span>
-                <span className="text-[#737D8B]">Demo Sandbox</span>
-              </>
+            <span className={`w-1.5 h-1.5 rounded-full ${storageMode === 'supabase' ? 'bg-[#A3B86C]' : 'bg-[#69C9A0]'} animate-pulse`} />
+            <span className="font-mono font-medium text-[#E8EAED]">
+              {storageMode === 'supabase' ? 'PostgreSQL Cloud' : 'Demo Sandbox'}
+            </span>
+            <span className="text-[#272D35]">•</span>
+            <span className="text-[#737D8B]">
+              {storageMode === 'supabase' ? 'Multi-User Sync' : 'LocalStorage'}
+            </span>
+            {isLoadingCloudData && (
+              <span className="text-[10px] text-[#E8B75C] font-mono animate-pulse">(Syncing...)</span>
             )}
           </div>
 

@@ -1,11 +1,12 @@
 import { AuthUser, AuthCredentials } from '../types/auth';
+import { getSupabaseClient, isSupabaseConfigured } from './supabaseClient';
 
 const AUTH_STORAGE_KEY = 'synchra_auth_session_v1';
 const REMEMBER_STORAGE_KEY = 'synchra_remember_me_v1';
 
 /**
  * Pre-authorized AICTE administrative officials for demonstration and testing.
- * In production, identity is validated against the AICTE LDAP/Single-Sign-On or Firebase Auth.
+ * In production, identity is validated against Supabase Auth & public.profiles.
  */
 export const AUTHORIZED_DEMO_ACCOUNTS: { user: AuthUser; passwordHash: string }[] = [
   {
@@ -60,7 +61,7 @@ export const AUTHORIZED_DEMO_ACCOUNTS: { user: AuthUser; passwordHash: string }[
 
 export class AuthService {
   /**
-   * Retrieves the current persisted session from localStorage or sessionStorage.
+   * Retrieves the current persisted session from Supabase or localStorage/sessionStorage fallback.
    */
   static getPersistedSession(): AuthUser | null {
     try {
@@ -77,24 +78,70 @@ export class AuthService {
   }
 
   /**
-   * Signs in an authorized official.
-   * Simulates realistic network authentication latency and verifies credentials.
+   * Signs in an official via Supabase Auth when configured, or pre-authorized demo accounts.
    */
   static async signIn(credentials: AuthCredentials): Promise<AuthUser> {
     const { email, password, rememberMe } = credentials;
+    const normalizedEmail = email.trim().toLowerCase();
 
+    // 1. If Supabase is configured, authenticate against Supabase Auth
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        try {
+          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+            email: normalizedEmail,
+            password
+          });
+
+          if (authError) {
+            throw new Error(authError.message);
+          }
+
+          if (authData.user) {
+            // Fetch trusted role and designation from public.profiles
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', authData.user.id)
+              .single();
+
+            if (profileError || !profile) {
+              console.warn('Profile not found in public.profiles; using basic user info:', profileError);
+            }
+
+            const authenticatedUser: AuthUser = {
+              uid: authData.user.id,
+              email: authData.user.email || normalizedEmail,
+              displayName: profile?.display_name || authData.user.user_metadata?.full_name || 'AICTE Scrutiny Officer',
+              designation: profile?.designation || 'Scrutiny Officer',
+              role: profile?.role || 'CASE_SCRUTINY_OFFICER',
+              bureau: profile?.bureau || 'RB',
+              department: profile?.department || 'Regulation Bureau, AICTE',
+              lastLogin: new Date().toISOString()
+            };
+
+            this.persistSession(authenticatedUser, rememberMe);
+            return authenticatedUser;
+          }
+        } catch (supabaseErr: any) {
+          console.warn('Supabase Auth error, checking demo accounts:', supabaseErr.message);
+          if (supabaseErr.message.includes('Invalid login credentials')) {
+            throw new Error('Invalid official credentials. Please verify your password or contact system administrator.');
+          }
+        }
+      }
+    }
+
+    // 2. Fallback to pre-authorized demo accounts (deterministic offline simulation)
     // Simulate network latency (350ms)
     await new Promise(resolve => setTimeout(resolve, 350));
 
-    const normalizedEmail = email.trim().toLowerCase();
-
-    // Check pre-authorized demo accounts
     const match = AUTHORIZED_DEMO_ACCOUNTS.find(
       acc => acc.user.email.toLowerCase() === normalizedEmail
     );
 
     if (!match) {
-      // Validate domain for government/AICTE institutional addresses
       if (!normalizedEmail.includes('@')) {
         throw new Error('Please enter a valid official institutional email address.');
       }
@@ -112,26 +159,39 @@ export class AuthService {
       lastLogin: new Date().toISOString()
     };
 
-    // Store session
+    this.persistSession(authenticatedUser, rememberMe);
+    return authenticatedUser;
+  }
+
+  private static persistSession(user: AuthUser, rememberMe?: boolean) {
     try {
       if (rememberMe) {
         localStorage.setItem(REMEMBER_STORAGE_KEY, 'true');
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
       } else {
         localStorage.removeItem(REMEMBER_STORAGE_KEY);
-        sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
+        sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
       }
     } catch (err) {
       console.error('Session persistence error:', err);
     }
-
-    return authenticatedUser;
   }
 
   /**
    * Clears the active authentication session.
    */
   static async signOut(): Promise<void> {
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        try {
+          await supabase.auth.signOut();
+        } catch (err) {
+          console.warn('Supabase signOut error:', err);
+        }
+      }
+    }
+
     try {
       localStorage.removeItem(AUTH_STORAGE_KEY);
       sessionStorage.removeItem(AUTH_STORAGE_KEY);
