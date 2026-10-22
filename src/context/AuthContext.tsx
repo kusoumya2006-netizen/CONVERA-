@@ -15,23 +15,16 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [authError, setAuthError] = useState<string | null>(null);
-
-  // Initialize session on mount
-  useEffect(() => {
+  const [user, setUser] = useState<AuthUser | null>(() => {
     try {
-      const existingUser = AuthService.getPersistedSession();
-      if (existingUser) {
-        setUser(existingUser);
-      }
+      return AuthService.getPersistedSession();
     } catch (e) {
-      console.warn('Error loading initial auth session:', e);
-    } finally {
-      setIsLoading(false);
+      console.warn('Error reading initial auth session:', e);
+      return null;
     }
-  }, []);
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const clearError = useCallback(() => {
     setAuthError(null);

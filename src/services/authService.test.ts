@@ -83,4 +83,47 @@ describe('AuthService Authentication Engine', () => {
     await AuthService.signOut();
     expect(AuthService.getPersistedSession()).toBeNull();
   });
+
+  it('Scenario 6: Authenticates all authorized demo accounts across distinct bureaus', async () => {
+    for (const acc of AUTHORIZED_DEMO_ACCOUNTS) {
+      localStorage.clear();
+      sessionStorage.clear();
+
+      const user = await AuthService.signIn({
+        email: acc.user.email,
+        password: acc.passwordHash,
+        rememberMe: true
+      });
+
+      expect(user.uid).toBe(acc.user.uid);
+      expect(user.role).toBe(acc.user.role);
+      expect(user.bureau).toBe(acc.user.bureau);
+      expect(user.displayName).toBe(acc.user.displayName);
+      expect(AuthService.getPersistedSession()?.email).toBe(acc.user.email);
+    }
+  });
+
+  it('Scenario 7: Stores in sessionStorage when rememberMe is false, and clears correctly', async () => {
+    const pgrcDirector = AUTHORIZED_DEMO_ACCOUNTS[1];
+    const user = await AuthService.signIn({
+      email: pgrcDirector.user.email,
+      password: pgrcDirector.passwordHash,
+      rememberMe: false
+    });
+
+    expect(user.role).toBe('PGRC_DIRECTOR');
+    expect(localStorage.getItem('synchra_remember_me_v1')).toBeNull();
+    expect(sessionStorage.getItem('synchra_auth_session_v1')).not.toBeNull();
+
+    const restored = AuthService.getPersistedSession();
+    expect(restored?.email).toBe(pgrcDirector.user.email);
+
+    await AuthService.signOut();
+    expect(AuthService.getPersistedSession()).toBeNull();
+    expect(sessionStorage.getItem('synchra_auth_session_v1')).toBeNull();
+  });
+
+  it('Scenario 8: Initial unauthenticated state returns null session without throwing', () => {
+    expect(AuthService.getPersistedSession()).toBeNull();
+  });
 });
