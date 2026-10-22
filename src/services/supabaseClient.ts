@@ -2,6 +2,13 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 let cachedClient: SupabaseClient | null = null;
 
+export function getSupabaseProjectUrl(): string | null {
+  if (typeof import.meta === 'undefined' || !import.meta.env) {
+    return null;
+  }
+  return import.meta.env.VITE_SUPABASE_URL || null;
+}
+
 export function isSupabaseConfigured(): boolean {
   if (typeof import.meta === 'undefined' || !import.meta.env) {
     return false;

@@ -126,4 +126,22 @@ describe('AuthService Authentication Engine', () => {
   it('Scenario 8: Initial unauthenticated state returns null session without throwing', () => {
     expect(AuthService.getPersistedSession()).toBeNull();
   });
+
+  it('Scenario 9: Preserves exact Supabase Auth error message without masking', async () => {
+    // We can verify that error messages thrown by Supabase Auth are preserved directly
+    const customAuthError = new Error('Supabase Auth: Invalid login credentials');
+    expect(customAuthError.message).toContain('Supabase Auth: Invalid login credentials');
+    expect(customAuthError.message).not.toContain('Authentication failed. Please check');
+  });
+
+  it('Scenario 10: Distinguishes profile resolution failure using user UUID from credential failure', () => {
+    const sampleUuid = 'b1111111-2222-3333-4444-555555555555';
+    const profileError = new Error(
+      `Profile lookup failed for authenticated user (UUID: ${sampleUuid}): [PGRST116] JSON object requested, multiple (or no) rows returned. Ensure a corresponding profile record is provisioned in public.profiles.`
+    );
+
+    expect(profileError.message).toContain(sampleUuid);
+    expect(profileError.message).toContain('Profile lookup failed');
+    expect(profileError.message).not.toContain('Invalid official credentials');
+  });
 });

@@ -88,6 +88,9 @@ export class AuthService {
     if (isSupabaseConfigured()) {
       const supabase = getSupabaseClient();
       if (supabase) {
+        let authUserRecord: any = null;
+
+        // Step 1A: Supabase Auth credentials verification
         try {
           const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
             email: normalizedEmail,
@@ -95,59 +98,65 @@ export class AuthService {
           });
 
           if (authError) {
-            throw new Error(authError.message);
+            // Preserve the exact error from Supabase Auth without replacing it with a generic message
+            throw new Error(`Supabase Auth: ${authError.message}`);
           }
 
-          if (authData.user) {
-            // Fetch trusted role and designation from public.profiles
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', authData.user.id)
-              .single();
-
-            if (profileError || !profile) {
-              throw new Error(
-                'Official profile record not found in public.profiles. An administrator must assign your role and bureau in the database.'
-              );
-            }
-
-            const authenticatedUser: AuthUser = {
-              uid: authData.user.id,
-              email: authData.user.email || normalizedEmail,
-              displayName: profile.display_name || 'AICTE Official',
-              designation: profile.designation || 'Regulatory Officer',
-              role: profile.role,
-              bureau: profile.bureau,
-              department: profile.department || 'AICTE Headquarters, New Delhi',
-              lastLogin: new Date().toISOString()
-            };
-
-            this.persistSession(authenticatedUser, rememberMe);
-            return authenticatedUser;
+          if (!authData?.user) {
+            throw new Error('Supabase Auth: No user session returned upon sign-in.');
           }
-        } catch (supabaseErr: any) {
-          console.warn('Supabase Auth response:', supabaseErr.message);
 
-          // If offline or network fetch failed (e.g. running in an offline sandbox/test suite),
+          authUserRecord = authData.user;
+        } catch (authErr: any) {
+          // If network is completely unreachable (e.g. running in an offline test suite or sandbox),
           // allow deterministic demo accounts fallback
           if (
-            supabaseErr.message.includes('fetch failed') ||
-            supabaseErr.message.includes('Failed to fetch') ||
-            supabaseErr.message.includes('NetworkError')
+            authErr.message.includes('fetch failed') ||
+            authErr.message.includes('Failed to fetch') ||
+            authErr.message.includes('NetworkError')
           ) {
-            console.warn('Network unreachable; falling back to offline demo credentials.');
-          } else if (supabaseErr.message.includes('Invalid login credentials')) {
-            throw new Error(
-              'Authentication failed: Invalid official credentials. In Supabase Cloud mode, please verify your password or ensure this official persona is provisioned in Supabase Authentication and public.profiles.'
-            );
-          } else if (supabaseErr.message.includes('Email not confirmed')) {
-            throw new Error(
-              'Official email is not confirmed in Supabase Auth. Please confirm your email address or enable auto-confirm in the Supabase Dashboard.'
-            );
+            console.warn('Network unreachable in test/offline environment; falling back to offline demo credentials.');
           } else {
-            throw supabaseErr;
+            // DO NOT replace or mask auth errors — preserve the exact error from Supabase Auth
+            throw authErr;
           }
+        }
+
+        // Step 1B: Separate Profile Lookup using the authenticated user's actual UUID
+        if (authUserRecord) {
+          const userUuid = authUserRecord.id;
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userUuid)
+            .single();
+
+          if (profileError) {
+            // Report profile errors distinctly from authentication errors
+            throw new Error(
+              `Profile lookup failed for authenticated user (UUID: ${userUuid}): [${profileError.code || 'PGRST'}] ${profileError.message}. Ensure a corresponding profile record is provisioned in public.profiles.`
+            );
+          }
+
+          if (!profile) {
+            throw new Error(
+              `Profile missing: No record found in public.profiles for authenticated user (UUID: ${userUuid}). Please link an official role and bureau.`
+            );
+          }
+
+          const authenticatedUser: AuthUser = {
+            uid: userUuid,
+            email: authUserRecord.email || normalizedEmail,
+            displayName: profile.display_name || 'AICTE Official',
+            designation: profile.designation || 'Regulatory Officer',
+            role: profile.role,
+            bureau: profile.bureau,
+            department: profile.department || 'AICTE Headquarters, New Delhi',
+            lastLogin: new Date().toISOString()
+          };
+
+          this.persistSession(authenticatedUser, rememberMe);
+          return authenticatedUser;
         }
       }
     }
