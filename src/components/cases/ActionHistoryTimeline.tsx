@@ -42,30 +42,30 @@ export const ActionHistoryTimeline: React.FC<ActionHistoryTimelineProps> = ({ ac
 
   if (sortedActions.length === 0) {
     return (
-      <div className="p-6 text-center text-xs text-slate-500 bg-slate-50 rounded-lg border border-slate-200">
+      <div className="p-6 text-center text-xs text-slate-400 bg-obsidian-950 rounded-lg border border-slate-800">
         No formal administrative actions recorded yet.
       </div>
     );
   }
 
   return (
-    <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+    <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
       {sortedActions.map(action => (
         <div key={action.actionId} className="relative group">
           {/* Dot / Icon */}
-          <div className="absolute -left-6 top-1 p-1 rounded-full bg-white border border-slate-300 shadow-sm">
+          <div className="absolute -left-6 top-1 p-1 rounded-full bg-obsidian-950 border border-slate-700 shadow-sm">
             {getActionIcon(action.actionType)}
           </div>
 
-          <div className="bg-slate-50/70 p-3.5 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+          <div className="bg-obsidian-900 p-3.5 rounded-lg border border-slate-800 hover:border-slate-700 transition-colors">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5 text-xs">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-900 tracking-tight">
+                <span className="font-bold text-slate-100 tracking-tight">
                   {action.actionType.replace(/_/g, ' ')}
                 </span>
                 <BureauBadge bureau={action.bureau} size="sm" />
               </div>
-              <div className="flex items-center gap-1 text-[11px] text-slate-500">
+              <div className="flex items-center gap-1 text-[11px] text-slate-400">
                 <Clock className="w-3 h-3" />
                 <span>
                   {new Date(action.timestamp).toLocaleDateString('en-IN', {
@@ -79,11 +79,11 @@ export const ActionHistoryTimeline: React.FC<ActionHistoryTimelineProps> = ({ ac
               </div>
             </div>
 
-            <p className="text-xs text-slate-800 leading-relaxed">{action.remarks}</p>
+            <p className="text-xs text-slate-200 leading-relaxed">{action.remarks}</p>
 
-            <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-500">
-              <span>Authorized Officer: <strong>{action.officer}</strong></span>
-              <span className="font-mono text-[10px]">ID: {action.actionId}</span>
+            <div className="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+              <span>Authorized Officer: <strong className="text-slate-200">{action.officer}</strong></span>
+              <span className="font-mono text-[10px] text-slate-500">ID: {action.actionId}</span>
             </div>
           </div>
         </div>

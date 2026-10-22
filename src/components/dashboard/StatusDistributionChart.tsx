@@ -21,11 +21,11 @@ export const StatusDistributionChart: React.FC = () => {
     }
 
     const COLORS = {
-      'Pending': '#f59e0b',
-      'Under Process': '#3b82f6',
-      'Disposed': '#10b981',
-      'Transferred': '#a855f7',
-      'Escalated': '#f43f5e'
+      'Pending': '#d97706',
+      'Under Process': '#2563eb',
+      'Disposed': '#059669',
+      'Transferred': '#64748b',
+      'Escalated': '#dc2626'
     };
 
     return Object.entries(counts).map(([name, value]) => ({
@@ -36,11 +36,11 @@ export const StatusDistributionChart: React.FC = () => {
   }, [cases]);
 
   return (
-    <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+    <div className="bg-obsidian-850 p-5 rounded-xl border border-slate-800 shadow-md">
       <div className="flex items-center justify-between mb-2">
         <div>
-          <h3 className="text-sm font-bold text-slate-900">Case Status Composition</h3>
-          <p className="text-xs text-slate-500">Live proportion of complaint stages</p>
+          <h3 className="text-sm font-bold text-slate-100">Case Status Composition</h3>
+          <p className="text-xs text-slate-400">Live proportion of complaint stages</p>
         </div>
       </div>
       <div className="h-64">
@@ -59,18 +59,19 @@ export const StatusDistributionChart: React.FC = () => {
             </Pie>
             <Tooltip
               contentStyle={{
-                backgroundColor: '#0f172a',
-                color: '#fff',
+                backgroundColor: '#0F172A',
+                color: '#F8FAFC',
                 borderRadius: '8px',
                 fontSize: '12px',
-                border: 'none'
+                border: '1px solid #334155',
+                boxShadow: '0 8px 16px -2px rgba(0, 0, 0, 0.5)'
               }}
             />
             <Legend
               layout="vertical"
               align="right"
               verticalAlign="middle"
-              wrapperStyle={{ fontSize: '11px' }}
+              wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}
             />
           </PieChart>
         </ResponsiveContainer>

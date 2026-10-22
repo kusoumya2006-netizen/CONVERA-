@@ -49,23 +49,23 @@ export const InstitutionDetailModal: React.FC<InstitutionDetailModalProps> = ({
       <div className="space-y-6">
         {/* Top Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-            <span className="text-[10px] font-semibold text-slate-500 uppercase">Institution Type</span>
-            <p className="text-xs font-bold text-slate-800 mt-0.5">{institution.type}</p>
+          <div className="p-3 bg-obsidian-950 rounded-lg border border-slate-800">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase">Institution Type</span>
+            <p className="text-xs font-bold text-slate-200 mt-0.5">{institution.type}</p>
           </div>
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-            <span className="text-[10px] font-semibold text-slate-500 uppercase">Accreditation</span>
-            <p className="text-xs font-bold text-slate-800 mt-0.5">{institution.accreditationGrade || 'AICTE Approved'}</p>
+          <div className="p-3 bg-obsidian-950 rounded-lg border border-slate-800">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase">Accreditation</span>
+            <p className="text-xs font-bold text-slate-200 mt-0.5">{institution.accreditationGrade || 'AICTE Approved'}</p>
           </div>
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-            <span className="text-[10px] font-semibold text-slate-500 uppercase">Active Matters</span>
-            <p className="text-xs font-bold text-blue-700 mt-0.5">
+          <div className="p-3 bg-obsidian-950 rounded-lg border border-slate-800">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase">Active Matters</span>
+            <p className="text-xs font-bold text-blue-300 mt-0.5">
               {activeCases.length} Open ({rbActiveCases.length} RB, {pgrcActiveCases.length} PGRC)
             </p>
           </div>
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-            <span className="text-[10px] font-semibold text-slate-500 uppercase">Disposed Matters</span>
-            <p className="text-xs font-bold text-emerald-700 mt-0.5">{disposedCases.length} Resolved</p>
+          <div className="p-3 bg-obsidian-950 rounded-lg border border-slate-800">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase">Disposed Matters</span>
+            <p className="text-xs font-bold text-emerald-400 mt-0.5">{disposedCases.length} Resolved</p>
           </div>
         </div>
 
@@ -90,32 +90,32 @@ export const InstitutionDetailModal: React.FC<InstitutionDetailModalProps> = ({
         )}
 
         {/* Address and Geographics */}
-        <div className="p-3.5 bg-slate-50/70 rounded-lg border border-slate-200 text-xs flex items-start gap-2">
-          <MapPin className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+        <div className="p-3.5 bg-obsidian-950 rounded-lg border border-slate-800 text-xs flex items-start gap-2">
+          <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
           <div>
-            <span className="font-semibold text-slate-800">Campus Location: </span>
-            <span className="text-slate-600">{institution.address}</span>
+            <span className="font-semibold text-slate-200">Campus Location: </span>
+            <span className="text-slate-400">{institution.address}</span>
           </div>
         </div>
 
         {/* Overlap Alerts if any */}
         {instAlerts.length > 0 && (
-          <div className="p-4 rounded-lg bg-rose-50 border border-rose-300 space-y-2">
-            <div className="flex items-center gap-2 text-rose-900 font-bold text-xs">
-              <GitCompare className="w-4 h-4 text-rose-600" />
+          <div className="p-4 rounded-lg bg-rose-950/40 border border-rose-800/80 space-y-2">
+            <div className="flex items-center gap-2 text-rose-300 font-bold text-xs">
+              <GitCompare className="w-4 h-4 text-rose-400" />
               <span>Cross-Bureau Coordination Overlap Alert Active</span>
             </div>
             {instAlerts.map(alert => (
-              <div key={alert.alertId} className="text-xs text-rose-800 bg-white/70 p-3 rounded border border-rose-200">
+              <div key={alert.alertId} className="text-xs text-rose-200 bg-obsidian-950 p-3 rounded border border-rose-900/60">
                 <p className="font-medium">{alert.reason}</p>
                 <div className="mt-2 flex items-center justify-between text-[11px]">
-                  <span>Review State: <strong className="uppercase">{alert.reviewStatus}</strong></span>
+                  <span>Review State: <strong className="uppercase text-white">{alert.reviewStatus}</strong></span>
                   <button
                     onClick={() => {
                       onClose();
                       setActiveTab('overlaps');
                     }}
-                    className="text-rose-900 font-bold hover:underline"
+                    className="text-rose-300 font-bold hover:underline"
                   >
                     View Coordination Console →
                   </button>
@@ -128,13 +128,13 @@ export const InstitutionDetailModal: React.FC<InstitutionDetailModalProps> = ({
         {/* Consolidated Case History */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-bold text-slate-900">Consolidated Complaint & Regulatory History</h4>
-            <span className="text-xs text-slate-500">{instCases.length} Total Matters Logged</span>
+            <h4 className="text-sm font-bold text-slate-100">Consolidated Complaint & Regulatory History</h4>
+            <span className="text-xs text-slate-400 font-mono">{instCases.length} Total Matters Logged</span>
           </div>
 
           <div className="space-y-2 max-h-72 overflow-y-auto">
             {instCases.length === 0 ? (
-              <p className="text-xs text-slate-500 py-6 text-center">No complaints recorded for this institution.</p>
+              <p className="text-xs text-slate-400 py-6 text-center">No complaints recorded for this institution.</p>
             ) : (
               instCases.map(c => (
                 <div
@@ -143,17 +143,17 @@ export const InstitutionDetailModal: React.FC<InstitutionDetailModalProps> = ({
                     onClose();
                     setSelectedCaseId(c.caseId);
                   }}
-                  className="p-3 bg-white rounded-lg border border-slate-200 hover:border-gov-olive hover:shadow-sm cursor-pointer transition-all flex items-start justify-between gap-3 text-xs"
+                  className="p-3 bg-obsidian-950 rounded-lg border border-slate-800 hover:border-slate-700 hover:bg-slate-800/40 cursor-pointer transition-all flex items-start justify-between gap-3 text-xs"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-slate-900">{c.caseId}</span>
+                      <span className="font-mono font-bold text-slate-100">{c.caseId}</span>
                       <BureauBadge bureau={c.bureau} size="sm" />
                       <StatusBadge status={c.status} size="sm" />
                       <PriorityBadge priority={c.priority} />
                     </div>
-                    <p className="font-medium text-slate-800">{c.category}</p>
-                    <p className="text-slate-500 text-[11px] line-clamp-1">{c.description}</p>
+                    <p className="font-medium text-slate-200">{c.category}</p>
+                    <p className="text-slate-400 text-[11px] line-clamp-1">{c.description}</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 mt-2" />
                 </div>

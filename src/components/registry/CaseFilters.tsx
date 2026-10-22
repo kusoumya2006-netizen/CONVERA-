@@ -38,7 +38,7 @@ export const CaseFilters: React.FC = () => {
   ];
 
   return (
-    <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm space-y-3 mb-4">
+    <div className="bg-obsidian-850 p-4 rounded-lg border border-slate-800 shadow-sm space-y-3 mb-4">
       {/* Search Input Row */}
       <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
         <div className="relative flex-1">
@@ -48,20 +48,20 @@ export const CaseFilters: React.FC = () => {
             value={filters.searchQuery}
             onChange={e => setFilters({ searchQuery: e.target.value })}
             placeholder="Search by Case ID, Permanent Inst. ID (e.g. 1-4392811), College Name, Officer..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-gov-olive/20 focus:border-gov-olive"
+            className="w-full pl-9 pr-4 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
           />
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={resetFilters}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 text-xs font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 text-xs font-medium transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset</span>
           </button>
           <button
             onClick={handleExport}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100 text-xs font-semibold shadow-sm transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV ({filteredCases.length})</span>
@@ -70,17 +70,17 @@ export const CaseFilters: React.FC = () => {
       </div>
 
       {/* Multi-Facet Dropdowns */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 pt-2 border-t border-slate-100">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 pt-2 border-t border-slate-800">
         {/* Bureau */}
         <div>
-          <label className="block text-[10px] font-semibold text-slate-500 uppercase mb-1">Bureau / Cell</label>
+          <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Bureau / Cell</label>
           <select
             value={filters.bureau}
             onChange={e => setFilters({ bureau: e.target.value as any })}
-            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-700 focus:outline-none focus:border-gov-olive"
+            className="w-full px-2.5 py-1.5 bg-obsidian-950 border border-slate-700/80 rounded-md text-xs font-medium text-slate-200 focus:outline-none focus:border-slate-500"
           >
             {bureaus.map(b => (
-              <option key={b} value={b}>
+              <option key={b} value={b} className="bg-obsidian-900 text-slate-200">
                 {b === 'ALL' ? 'All Bureaus' : b}
               </option>
             ))}
@@ -89,14 +89,14 @@ export const CaseFilters: React.FC = () => {
 
         {/* Status */}
         <div>
-          <label className="block text-[10px] font-semibold text-slate-500 uppercase mb-1">Status</label>
+          <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Status</label>
           <select
             value={filters.status}
             onChange={e => setFilters({ status: e.target.value as any })}
-            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-700 focus:outline-none focus:border-gov-olive"
+            className="w-full px-2.5 py-1.5 bg-obsidian-950 border border-slate-700/80 rounded-md text-xs font-medium text-slate-200 focus:outline-none focus:border-slate-500"
           >
             {statuses.map(s => (
-              <option key={s} value={s}>
+              <option key={s} value={s} className="bg-obsidian-900 text-slate-200">
                 {s === 'ALL' ? 'All Statuses' : s}
               </option>
             ))}
@@ -105,14 +105,14 @@ export const CaseFilters: React.FC = () => {
 
         {/* Region */}
         <div>
-          <label className="block text-[10px] font-semibold text-slate-500 uppercase mb-1">AICTE Region</label>
+          <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">AICTE Region</label>
           <select
             value={filters.region}
             onChange={e => setFilters({ region: e.target.value as any })}
-            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-700 focus:outline-none focus:border-gov-olive"
+            className="w-full px-2.5 py-1.5 bg-obsidian-950 border border-slate-700/80 rounded-md text-xs font-medium text-slate-200 focus:outline-none focus:border-slate-500"
           >
             {regions.map(r => (
-              <option key={r} value={r}>
+              <option key={r} value={r} className="bg-obsidian-900 text-slate-200">
                 {r === 'ALL' ? 'All Regions' : r}
               </option>
             ))}
@@ -121,14 +121,14 @@ export const CaseFilters: React.FC = () => {
 
         {/* Category */}
         <div>
-          <label className="block text-[10px] font-semibold text-slate-500 uppercase mb-1">Complaint Category</label>
+          <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Complaint Category</label>
           <select
             value={filters.category}
             onChange={e => setFilters({ category: e.target.value as any })}
-            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-700 focus:outline-none focus:border-gov-olive"
+            className="w-full px-2.5 py-1.5 bg-obsidian-950 border border-slate-700/80 rounded-md text-xs font-medium text-slate-200 focus:outline-none focus:border-slate-500"
           >
             {categories.map(c => (
-              <option key={c} value={c}>
+              <option key={c} value={c} className="bg-obsidian-900 text-slate-200">
                 {c === 'ALL' ? 'All Categories' : c}
               </option>
             ))}
@@ -137,18 +137,18 @@ export const CaseFilters: React.FC = () => {
 
         {/* Date / SLA */}
         <div>
-          <label className="block text-[10px] font-semibold text-slate-500 uppercase mb-1">Timeline / SLA</label>
+          <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Timeline / SLA</label>
           <select
             value={filters.dateRange}
             onChange={e => setFilters({ dateRange: e.target.value as any })}
-            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-700 focus:outline-none focus:border-gov-olive"
+            className="w-full px-2.5 py-1.5 bg-obsidian-950 border border-slate-700/80 rounded-md text-xs font-medium text-slate-200 focus:outline-none focus:border-slate-500"
           >
-            <option value="ALL">All Records</option>
-            <option value="OVERDUE">Overdue SLA Cases</option>
-            <option value="COMPLETED_14_DAYS">Completed — Last 14 Days</option>
-            <option value="7_DAYS">Received Past 7 Days</option>
-            <option value="30_DAYS">Received Past 30 Days</option>
-            <option value="90_DAYS">Received Past 90 Days</option>
+            <option value="ALL" className="bg-obsidian-900 text-slate-200">All Records</option>
+            <option value="OVERDUE" className="bg-obsidian-900 text-slate-200">Overdue SLA Cases</option>
+            <option value="COMPLETED_14_DAYS" className="bg-obsidian-900 text-slate-200">Completed — Last 14 Days</option>
+            <option value="7_DAYS" className="bg-obsidian-900 text-slate-200">Received Past 7 Days</option>
+            <option value="30_DAYS" className="bg-obsidian-900 text-slate-200">Received Past 30 Days</option>
+            <option value="90_DAYS" className="bg-obsidian-900 text-slate-200">Received Past 90 Days</option>
           </select>
         </div>
       </div>

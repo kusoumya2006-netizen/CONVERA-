@@ -30,22 +30,22 @@ export const RecentActivityFeed: React.FC = () => {
   const recentActions = actions.slice(0, 7);
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-      <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-        <h3 className="text-sm font-bold text-slate-900">Recent Regulatory Action Stream</h3>
-        <span className="text-[11px] text-slate-500">Live Audit Trail</span>
+    <div className="bg-obsidian-850 rounded-lg border border-slate-800 shadow-sm overflow-hidden">
+      <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h3 className="text-sm font-bold text-slate-100">Recent Regulatory Action Stream</h3>
+        <span className="text-[11px] text-slate-400 font-mono">Live Audit Trail</span>
       </div>
-      <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto">
+      <div className="divide-y divide-slate-800/60 max-h-96 overflow-y-auto">
         {recentActions.map(action => (
           <div
             key={action.actionId}
             onClick={() => setSelectedCaseId(action.caseId)}
-            className="p-3 hover:bg-slate-50/80 cursor-pointer transition-colors"
+            className="p-3 hover:bg-slate-800/40 cursor-pointer transition-colors"
           >
             <div className="flex items-center justify-between text-[11px] mb-1">
-              <div className="flex items-center gap-1.5 font-medium text-slate-700">
-                <span className="p-1 rounded bg-slate-100">{getActionIcon(action.actionType)}</span>
-                <span className="font-mono font-semibold text-slate-900">{action.caseId}</span>
+              <div className="flex items-center gap-1.5 font-medium text-slate-300">
+                <span className="p-1 rounded bg-obsidian-950 border border-slate-800">{getActionIcon(action.actionType)}</span>
+                <span className="font-mono font-semibold text-slate-100">{action.caseId}</span>
                 <BureauBadge bureau={action.bureau} size="sm" />
               </div>
               <span className="text-slate-400">
@@ -57,7 +57,7 @@ export const RecentActivityFeed: React.FC = () => {
                 })}
               </span>
             </div>
-            <p className="text-xs text-slate-800 line-clamp-2 pl-6">{action.remarks}</p>
+            <p className="text-xs text-slate-200 line-clamp-2 pl-6">{action.remarks}</p>
             <p className="text-[10px] text-slate-400 pl-6 mt-1">Officer: {action.officer}</p>
           </div>
         ))}

@@ -37,37 +37,37 @@ export const BureauWorkloadChart: React.FC = () => {
   }, [cases]);
 
   return (
-    <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+    <div className="bg-obsidian-850 p-5 rounded-xl border border-slate-800 shadow-md">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-bold text-slate-900">Bureau-wise Workload Distribution</h3>
-          <p className="text-xs text-slate-500">Active vs disposed cases across AICTE cells</p>
+          <h3 className="text-sm font-bold text-slate-100">Bureau-wise Workload Distribution</h3>
+          <p className="text-xs text-slate-400">Active vs disposed cases across AICTE cells</p>
         </div>
-        <span className="text-xs font-medium px-2 py-1 rounded bg-slate-100 text-slate-600">
+        <span className="text-xs font-medium px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700 font-mono">
           Stacked Overview
         </span>
       </div>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={{ stroke: '#cbd5e1' }} />
-            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={{ stroke: '#cbd5e1' }} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+            <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} />
+            <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#0f172a',
-                color: '#fff',
+                backgroundColor: '#0F172A',
+                color: '#F8FAFC',
                 borderRadius: '8px',
                 fontSize: '12px',
-                border: 'none',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                border: '1px solid #334155',
+                boxShadow: '0 8px 16px -2px rgba(0, 0, 0, 0.5)'
               }}
             />
             <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-            <Bar dataKey="Pending" stackId="a" fill="#f59e0b" />
-            <Bar dataKey="Under Process" stackId="a" fill="#3b82f6" />
-            <Bar dataKey="Disposed" stackId="a" fill="#10b981" />
-            <Bar dataKey="Transferred/Escalated" stackId="a" fill="#8b5cf6" />
+            <Bar dataKey="Pending" stackId="a" fill="#d97706" />
+            <Bar dataKey="Under Process" stackId="a" fill="#2563eb" />
+            <Bar dataKey="Disposed" stackId="a" fill="#059669" />
+            <Bar dataKey="Transferred/Escalated" stackId="a" fill="#64748b" />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -107,12 +107,12 @@ export const ReportsView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-obsidian-850 p-5 rounded-lg border border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-base font-bold text-slate-900">
+          <h2 className="text-base font-bold text-slate-100">
             Administrative Reports & Grievance Disposal Analytics
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             Aggregated institutional performance, SLA compliance metrics, and downloadable statutory registers.
           </p>
         </div>
@@ -120,14 +120,14 @@ export const ReportsView: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={handleExportFiltered}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-gov-olive hover:bg-gov-olive-light text-white text-xs font-semibold shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold shadow-sm transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Download Cases Register (CSV)</span>
           </button>
           <button
             onClick={handleExportAllOverlaps}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold shadow-sm transition-colors"
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
             <span>Download Overlaps Audit (CSV)</span>
@@ -137,94 +137,96 @@ export const ReportsView: React.FC = () => {
 
       {/* KPI Highlights */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="p-4 bg-white rounded-lg border border-slate-200">
+        <div className="p-4 bg-obsidian-850 rounded-lg border border-slate-800">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-semibold text-slate-500 uppercase">National Disposal Rate</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span className="text-[10px] font-semibold text-slate-400 uppercase">National Disposal Rate</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           </div>
-          <p className="text-2xl font-bold text-slate-900">{stats.disposalRate}%</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">{stats.disposedCases} of {stats.totalComplaints} cases resolved</p>
+          <p className="text-2xl font-bold font-mono text-slate-100">{stats.disposalRate}%</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">{stats.disposedCases} of {stats.totalComplaints} cases resolved</p>
         </div>
 
-        <div className="p-4 bg-white rounded-lg border border-slate-200">
+        <div className="p-4 bg-obsidian-850 rounded-lg border border-slate-800">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-semibold text-slate-500 uppercase">Active Under Process</span>
-            <Clock className="w-4 h-4 text-blue-600" />
+            <span className="text-[10px] font-semibold text-slate-400 uppercase">Active Under Process</span>
+            <Clock className="w-4 h-4 text-blue-400" />
           </div>
-          <p className="text-2xl font-bold text-blue-700">{stats.underProcessCases}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Formal inquiry or hearing in progress</p>
+          <p className="text-2xl font-bold font-mono text-blue-300">{stats.underProcessCases}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Formal inquiry or hearing in progress</p>
         </div>
 
-        <div className="p-4 bg-white rounded-lg border border-slate-200">
+        <div className="p-4 bg-obsidian-850 rounded-lg border border-slate-800">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-semibold text-rose-700 uppercase">SLA Overdue Ageing</span>
-            <AlertTriangle className="w-4 h-4 text-rose-600" />
+            <span className="text-[10px] font-semibold text-rose-300 uppercase">SLA Overdue Ageing</span>
+            <AlertTriangle className="w-4 h-4 text-rose-400" />
           </div>
-          <p className="text-2xl font-bold text-rose-700">{stats.overdueCases}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Exceeded expected disposal cutoff</p>
+          <p className="text-2xl font-bold font-mono text-rose-300">{stats.overdueCases}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Exceeded expected disposal cutoff</p>
         </div>
 
-        <div className="p-4 bg-white rounded-lg border border-slate-200">
+        <div className="p-4 bg-obsidian-850 rounded-lg border border-slate-800">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-semibold text-slate-500 uppercase">Cross-Bureau Coordinated</span>
-            <GitCompare className="w-4 h-4 text-gov-olive" />
+            <span className="text-[10px] font-semibold text-slate-400 uppercase">Cross-Bureau Coordinated</span>
+            <GitCompare className="w-4 h-4 text-slate-300" />
           </div>
-          <p className="text-2xl font-bold text-gov-olive">
+          <p className="text-2xl font-bold font-mono text-slate-100">
             {stats.potentialOverlaps - stats.unresolvedOverlaps} / {stats.potentialOverlaps}
           </p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Alerts reviewed & coordinated</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Alerts reviewed & coordinated</p>
         </div>
       </div>
 
       {/* Analytics Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Overdue Ageing Breakdown */}
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+        <div className="bg-obsidian-850 p-5 rounded-lg border border-slate-800 shadow-sm">
           <div className="mb-4">
-            <h3 className="text-sm font-bold text-slate-900">Overdue Case Ageing Analysis</h3>
-            <p className="text-xs text-slate-500">Number of active cases exceeding SLA cutoff by duration bracket</p>
+            <h3 className="text-sm font-bold text-slate-100">Overdue Case Ageing Analysis</h3>
+            <p className="text-xs text-slate-400">Number of active cases exceeding SLA cutoff by duration bracket</p>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={ageingData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="bracket" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={{ stroke: '#cbd5e1' }} />
-                <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={{ stroke: '#cbd5e1' }} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                <XAxis dataKey="bracket" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} allowDecimals={false} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0f172a',
-                    color: '#fff',
+                    backgroundColor: '#0F172A',
+                    borderColor: '#334155',
+                    color: '#F8FAFC',
                     borderRadius: '8px',
                     fontSize: '12px'
                   }}
                 />
-                <Bar dataKey="Overdue Cases" fill="#e11d48" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Overdue Cases" fill="#f43f5e" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Bureau Disposal Rates */}
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+        <div className="bg-obsidian-850 p-5 rounded-lg border border-slate-800 shadow-sm">
           <div className="mb-4">
-            <h3 className="text-sm font-bold text-slate-900">Disposal Efficiency by Bureau / Cell</h3>
-            <p className="text-xs text-slate-500">Percentage of complaints resolved and closed by cell</p>
+            <h3 className="text-sm font-bold text-slate-100">Disposal Efficiency by Bureau / Cell</h3>
+            <p className="text-xs text-slate-400">Percentage of complaints resolved and closed by cell</p>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={bureauDisposalData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="bureau" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={{ stroke: '#cbd5e1' }} />
-                <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={{ stroke: '#cbd5e1' }} unit="%" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                <XAxis dataKey="bureau" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} unit="%" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0f172a',
-                    color: '#fff',
+                    backgroundColor: '#0F172A',
+                    borderColor: '#334155',
+                    color: '#F8FAFC',
                     borderRadius: '8px',
                     fontSize: '12px'
                   }}
                 />
-                <Bar dataKey="Disposal Rate (%)" fill="#4d7c0f" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Disposal Rate (%)" fill="#64748b" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -232,28 +234,29 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {/* Region-wise Table & Chart */}
-      <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+      <div className="bg-obsidian-850 p-5 rounded-lg border border-slate-800 shadow-sm">
         <div className="mb-4">
-          <h3 className="text-sm font-bold text-slate-900">Regional Grievance Workload Comparison</h3>
-          <p className="text-xs text-slate-500">Active vs resolved complaints across AICTE Regional Offices</p>
+          <h3 className="text-sm font-bold text-slate-100">Regional Grievance Workload Comparison</h3>
+          <p className="text-xs text-slate-400">Active vs resolved complaints across AICTE Regional Offices</p>
         </div>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={regionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="region" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={{ stroke: '#cbd5e1' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={{ stroke: '#cbd5e1' }} allowDecimals={false} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+              <XAxis dataKey="region" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} />
+              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} allowDecimals={false} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#0f172a',
-                  color: '#fff',
+                  backgroundColor: '#0F172A',
+                  borderColor: '#334155',
+                  color: '#F8FAFC',
                   borderRadius: '8px',
                   fontSize: '12px'
                 }}
               />
               <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-              <Bar dataKey="Active Cases" fill="#3b82f6" />
-              <Bar dataKey="Disposed Cases" fill="#10b981" />
+              <Bar dataKey="Active Cases" fill="#38bdf8" />
+              <Bar dataKey="Disposed Cases" fill="#34d399" />
             </BarChart>
           </ResponsiveContainer>
         </div>

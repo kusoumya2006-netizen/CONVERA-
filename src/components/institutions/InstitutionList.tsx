@@ -83,7 +83,7 @@ export const InstitutionList: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Search & Filter Header */}
-      <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-obsidian-850 p-4 rounded-lg border border-slate-800 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -91,7 +91,7 @@ export const InstitutionList: React.FC = () => {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search institutions by name, permanent AICTE ID, city..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-gov-olive/20 focus:border-gov-olive"
+            className="w-full pl-9 pr-4 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-500"
           />
         </div>
 
@@ -99,18 +99,18 @@ export const InstitutionList: React.FC = () => {
           <select
             value={selectedRegion}
             onChange={e => setSelectedRegion(e.target.value as any)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700"
+            className="px-3 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-xs font-medium text-slate-200"
           >
-            <option value="ALL">All AICTE Regions</option>
-            <option value="Northern">Northern Region</option>
-            <option value="Western">Western Region</option>
-            <option value="Southern">Southern Region</option>
-            <option value="Eastern">Eastern Region</option>
-            <option value="Central">Central Region</option>
-            <option value="North-Western">North-Western Region</option>
-            <option value="South-Western">South-Western Region</option>
+            <option value="ALL" className="bg-obsidian-900 text-slate-200">All AICTE Regions</option>
+            <option value="Northern" className="bg-obsidian-900 text-slate-200">Northern Region</option>
+            <option value="Western" className="bg-obsidian-900 text-slate-200">Western Region</option>
+            <option value="Southern" className="bg-obsidian-900 text-slate-200">Southern Region</option>
+            <option value="Eastern" className="bg-obsidian-900 text-slate-200">Eastern Region</option>
+            <option value="Central" className="bg-obsidian-900 text-slate-200">Central Region</option>
+            <option value="North-Western" className="bg-obsidian-900 text-slate-200">North-Western Region</option>
+            <option value="South-Western" className="bg-obsidian-900 text-slate-200">South-Western Region</option>
           </select>
-          <span className="text-xs text-slate-500 whitespace-nowrap">
+          <span className="text-xs text-slate-400 whitespace-nowrap">
             Showing {filteredInstitutions.length} institutions
           </span>
         </div>
@@ -132,45 +132,45 @@ export const InstitutionList: React.FC = () => {
             <div
               key={inst.institutionId}
               onClick={() => setSelectedInstitutionId(inst.institutionId)}
-              className={`p-5 rounded-lg border transition-all duration-150 cursor-pointer bg-white flex flex-col justify-between shadow-sm hover:shadow-md hover:border-slate-300 ${
-                stats.hasOverlap ? 'border-rose-300 ring-1 ring-rose-200' : 'border-slate-200'
+              className={`p-5 rounded-lg border transition-all duration-150 cursor-pointer bg-obsidian-850 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-slate-600 ${
+                stats.hasOverlap ? 'border-rose-800/80 ring-1 ring-rose-900/60' : 'border-slate-800'
               }`}
             >
               <div>
                 {/* Header Strip */}
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200">
+                  <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-obsidian-950 text-slate-300 border border-slate-800">
                     PID: {inst.institutionId}
                   </span>
                   {stats.hasOverlap ? (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-300">
-                      <GitCompare className="w-3 h-3 text-rose-600" />
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-800/80">
+                      <GitCompare className="w-3 h-3 text-rose-400" />
                       RB + PGRC Overlap
                     </span>
                   ) : (
-                    <span className="text-[10px] font-medium text-slate-500">{inst.type}</span>
+                    <span className="text-[10px] font-medium text-slate-400">{inst.type}</span>
                   )}
                 </div>
 
                 {/* Institution Name */}
-                <h4 className="text-sm font-bold text-slate-900 line-clamp-2 mb-2 hover:text-gov-olive">
+                <h4 className="text-sm font-bold text-slate-100 line-clamp-2 mb-2 hover:text-white">
                   {inst.name}
                 </h4>
 
                 {/* Location and Metadata */}
-                <div className="space-y-1 text-xs text-slate-500 mb-4">
+                <div className="space-y-1 text-xs text-slate-400 mb-4">
                   <div className="flex items-start gap-1.5 line-clamp-1">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                    <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
                     <span className="text-[11px] truncate">{inst.address}</span>
                   </div>
                   <div className="flex items-center gap-3 text-[11px]">
                     <span className="inline-flex items-center gap-1">
-                      <Award className="w-3 h-3 text-amber-500" />
+                      <Award className="w-3 h-3 text-amber-400" />
                       {inst.accreditationGrade || 'AICTE Approved'}
                     </span>
                     <span>•</span>
                     <span className="inline-flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-slate-400" />
+                      <Calendar className="w-3 h-3 text-slate-500" />
                       Est. {inst.establishedYear}
                     </span>
                   </div>
@@ -178,16 +178,16 @@ export const InstitutionList: React.FC = () => {
               </div>
 
               {/* Case Counts Footer */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+              <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-blue-50 text-blue-800">
+                  <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-blue-950/70 text-blue-300 border border-blue-800/60">
                     {stats.active} Active
                   </span>
-                  <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-emerald-50 text-emerald-800">
+                  <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-emerald-950/70 text-emerald-300 border border-emerald-800/60">
                     {stats.disposed} Disposed
                   </span>
                 </div>
-                <button className="text-gov-olive font-semibold text-xs inline-flex items-center gap-0.5 hover:underline">
+                <button className="text-slate-300 font-semibold text-xs inline-flex items-center gap-0.5 hover:text-white">
                   <span>Profile</span>
                   <ArrowRight className="w-3 h-3" />
                 </button>

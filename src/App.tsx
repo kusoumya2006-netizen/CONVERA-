@@ -21,7 +21,7 @@ const MainLayout: React.FC = () => {
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-900">
+    <div className="min-h-screen bg-obsidian-950 flex flex-col text-slate-100 selection:bg-slate-700 selection:text-white">
       {/* Header with National/AICTE branding & Controls */}
       <Header onOpenNewCaseModal={() => setIsNewCaseModalOpen(true)} />
 
@@ -41,10 +41,10 @@ const MainLayout: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900">
+                      <h2 className="text-base font-bold text-slate-100">
                         Integrated Institution Complaint Registry
                       </h2>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-400">
                         Central repository of institution grievances and regulatory proceedings across all AICTE cells.
                       </p>
                     </div>
@@ -59,10 +59,10 @@ const MainLayout: React.FC = () => {
           {activeTab === 'institutions' && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-base font-bold text-slate-900">
+                <h2 className="text-base font-bold text-slate-100">
                   Technical Institution Profiles & Consolidated History
                 </h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-400">
                   Comprehensive directory of AICTE approved technical colleges with consolidated cross-bureau case histories.
                 </p>
               </div>

@@ -111,14 +111,14 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
       {/* =========================================================================
           RIGHT PANEL — Login Form & Authenticated Access
           ========================================================================= */}
-      <div className="flex-1 bg-slate-50 flex flex-col justify-between p-6 sm:p-10 lg:p-16 text-slate-900">
+      <div className="flex-1 bg-obsidian-900 border-l border-slate-800/80 flex flex-col justify-between p-6 sm:p-10 lg:p-16 text-slate-100">
         {/* Top Government Micro-strip */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200/80 text-[11px] text-slate-500">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-800 text-[11px] text-slate-400 font-mono">
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-gov-olive"></span>
-            <span className="font-semibold text-slate-700">Official AICTE Administrative Gateway</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span className="font-semibold text-slate-300">Official AICTE Administrative Gateway</span>
           </div>
-          <span className="font-mono text-slate-500 hidden sm:inline">Portal Security Level: Tier-3 Gov</span>
+          <span className="text-slate-500 hidden sm:inline">Portal Security Level: Tier-3 Gov</span>
         </div>
 
         {/* Centered Form */}
@@ -127,14 +127,14 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
         </div>
 
         {/* Bottom Compliance Strip */}
-        <div className="pt-4 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500">
+        <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500 font-mono">
           <span>© 2026 All India Council for Technical Education (AICTE)</span>
           <div className="flex items-center gap-3">
-            <span className="hover:text-slate-800 cursor-pointer">Security Protocol</span>
+            <span className="hover:text-slate-300 cursor-pointer">Security Protocol</span>
             <span>•</span>
-            <span className="hover:text-slate-800 cursor-pointer">Terms of Use</span>
+            <span className="hover:text-slate-300 cursor-pointer">Terms of Use</span>
             <span>•</span>
-            <span className="hover:text-slate-800 cursor-pointer">Cyber Cell</span>
+            <span className="hover:text-slate-300 cursor-pointer">Cyber Cell</span>
           </div>
         </div>
       </div>

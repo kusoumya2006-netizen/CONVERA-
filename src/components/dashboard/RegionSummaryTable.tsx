@@ -44,16 +44,16 @@ export const RegionSummaryTable: React.FC = () => {
   }, [institutions, cases, alerts]);
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-      <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+    <div className="bg-obsidian-850 rounded-xl border border-slate-800 shadow-md overflow-hidden">
+      <div className="p-4 border-b border-slate-800 bg-obsidian-900/60 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-slate-900">Regional Case Footprint</h3>
-          <p className="text-xs text-slate-500">Summary across 7 AICTE administrative regions</p>
+          <h3 className="text-sm font-bold text-slate-100">Regional Case Footprint</h3>
+          <p className="text-xs text-slate-400">Summary across 7 AICTE administrative regions</p>
         </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+          <thead className="bg-obsidian-950 text-slate-400 font-semibold border-b border-slate-800 font-mono text-[10px]">
             <tr>
               <th className="px-4 py-2.5">Region</th>
               <th className="px-3 py-2.5 text-center">Institutions</th>
@@ -63,24 +63,24 @@ export const RegionSummaryTable: React.FC = () => {
               <th className="px-3 py-2.5 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-800/60">
             {regionData.map(r => (
-              <tr key={r.region} className="hover:bg-slate-50/80 transition-colors">
-                <td className="px-4 py-2 font-medium text-slate-900">{r.region}</td>
-                <td className="px-3 py-2 text-center text-slate-600">{r.institutionsCount}</td>
+              <tr key={r.region} className="hover:bg-slate-800/40 transition-colors">
+                <td className="px-4 py-2 font-medium text-slate-200">{r.region}</td>
+                <td className="px-3 py-2 text-center text-slate-400">{r.institutionsCount}</td>
                 <td className="px-3 py-2 text-center">
-                  <span className="font-semibold text-blue-700">{r.activeCases}</span>
+                  <span className="font-semibold text-blue-400 font-mono">{r.activeCases}</span>
                 </td>
-                <td className="px-3 py-2 text-center text-emerald-700 font-medium">
+                <td className="px-3 py-2 text-center text-emerald-400 font-medium font-mono">
                   {r.disposedCases}
                 </td>
                 <td className="px-3 py-2 text-center">
                   {r.overlaps > 0 ? (
-                    <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">
+                    <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-800 font-mono">
                       {r.overlaps} Flagged
                     </span>
                   ) : (
-                    <span className="text-slate-400">—</span>
+                    <span className="text-slate-600">—</span>
                   )}
                 </td>
                 <td className="px-3 py-2 text-right">
@@ -89,9 +89,9 @@ export const RegionSummaryTable: React.FC = () => {
                       setFilters({ region: r.region });
                       setActiveTab('registry');
                     }}
-                    className="text-gov-olive hover:underline text-[11px] font-medium"
+                    className="text-emerald-400 hover:text-emerald-300 hover:underline text-[11px] font-medium"
                   >
-                    View Cases
+                    View
                   </button>
                 </td>
               </tr>
