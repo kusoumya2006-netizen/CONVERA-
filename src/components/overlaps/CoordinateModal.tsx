@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useCaseWatch } from '../../context/CaseWatchContext';
 import { OverlapAlert, Bureau, ReviewStatus } from '../../types';
 import { Modal } from '../common/Modal';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2, Sparkles } from 'lucide-react';
 
 interface CoordinateModalProps {
   isOpen: boolean;
@@ -98,6 +98,30 @@ export const CoordinateModal: React.FC<CoordinateModalProps> = ({ isOpen, onClos
             <strong className="text-[#E8B75C]">Administrative Rule:</strong> Recording a coordination decision coordinates regulatory actions across bureaus. In compliance with AICTE guidelines, reviewing an alert does <strong>NOT</strong> automatically dispose, merge, or dismiss individual complaints.
           </div>
         </div>
+
+        {/* Experimental Description Similarity if available */}
+        {overlapAlert.semanticComparisons && overlapAlert.semanticComparisons.length > 0 && (
+          <div className="p-3 bg-[#111419] border border-[#272D35] rounded-lg space-y-1.5">
+            <div className="flex items-center gap-1.5 text-[#86A9FF] font-semibold text-xs">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Experimental Description Similarity ({overlapAlert.semanticComparisons[0]?.modelName})</span>
+            </div>
+            {overlapAlert.semanticComparisons.map((sc, idx) => (
+              <div key={idx} className="text-[11px] text-[#A0A7B2] flex flex-col gap-0.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[#E8EAED]">{sc.caseId1} ↔ {sc.caseId2}</span>
+                  <span className={`font-mono font-semibold ${sc.label === 'HIGH_SEMANTIC_SIMILARITY' ? 'text-[#86A9FF]' : sc.label === 'MODERATE_SEMANTIC_SIMILARITY' ? 'text-[#E8B75C]' : 'text-[#737D8B]'}`}>
+                    {sc.similarityPercentage}% ({sc.label.replace(/_/g, ' ')})
+                  </span>
+                </div>
+                <div className="text-[10px] text-[#737D8B]">{sc.interpretation}</div>
+              </div>
+            ))}
+            <div className="text-[10px] text-[#A0A7B2] pt-1 border-t border-[#1C2129] leading-relaxed">
+              Uses a predefined domain vocabulary to estimate thematic similarity. May miss differently worded complaints outside its vocabulary. Not a duplicate probability; human review required.
+            </div>
+          </div>
+        )}
 
         {validationError && (
           <div className="p-2.5 bg-[#F16D75]/10 text-[#F16D75] rounded-md border border-[#F16D75]/30 text-xs">

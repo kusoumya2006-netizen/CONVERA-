@@ -15,7 +15,8 @@ import {
   Link2,
   Clock,
   XCircle,
-  Activity
+  Activity,
+  Sparkles
 } from 'lucide-react';
 
 interface OverlapAlertCardProps {
@@ -150,6 +151,36 @@ export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => 
             <span>
               <strong className="text-[#E8EAED]">Recommended Action:</strong> {alert.recommendedAction}
             </span>
+          </div>
+        )}
+
+        {/* Experimental Description Similarity (Domain-Based Vocabulary Heuristic) */}
+        {alert.semanticComparisons && alert.semanticComparisons.length > 0 && (
+          <div className="flex flex-col gap-1.5 pl-6 pt-1 text-[11px] border-t border-[#1C2129] mt-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-[#86A9FF] flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-[#86A9FF]" />
+                Experimental Description Similarity:
+              </span>
+              {alert.semanticComparisons.map((sc, idx) => (
+                <span
+                  key={idx}
+                  className={`font-mono text-[10px] px-2 py-0.5 rounded border ${
+                    sc.label === 'HIGH_SEMANTIC_SIMILARITY'
+                      ? 'bg-[#86A9FF]/15 text-[#86A9FF] border-[#86A9FF]/30'
+                      : sc.label === 'MODERATE_SEMANTIC_SIMILARITY'
+                      ? 'bg-[#E8B75C]/15 text-[#E8B75C] border-[#E8B75C]/30'
+                      : 'bg-[#272D35] text-[#A0A7B2] border-[#38414D]'
+                  }`}
+                  title={sc.interpretation}
+                >
+                  {sc.caseId1} ↔ {sc.caseId2}: {sc.similarityPercentage}% ({sc.label.replace(/_/g, ' ')})
+                </span>
+              ))}
+            </div>
+            <div className="text-[10px] text-[#A0A7B2] leading-relaxed">
+              Uses a predefined domain vocabulary to estimate thematic similarity. May miss differently worded complaints outside its vocabulary. Not a duplicate probability; human review required.
+            </div>
           </div>
         )}
       </div>
