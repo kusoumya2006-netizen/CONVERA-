@@ -98,10 +98,17 @@ export interface CaseAction {
   bureau: Bureau;
   officer: string;
   timestamp: string;
+  previousValue?: string;
+  newValue?: string;
+  fieldChanged?: string;
+  justification?: string;
+  relatedCaseId?: string;
 }
 
 export type AlertConfidence = 'HIGH' | 'MEDIUM';
 export type ReviewStatus = 'PENDING_REVIEW' | 'COORDINATED' | 'DISMISSED';
+export type MatchingStrategy = 'EXACT_PID' | 'NORMALIZED_NAME';
+export type CategoryCorrelation = 'IDENTICAL_CATEGORY' | 'RELATED_THEME' | 'DISTINCT_MATTERS';
 
 export interface OverlapAlert {
   alertId: string;
@@ -111,6 +118,9 @@ export interface OverlapAlert {
   involvedBureaus: Bureau[];
   reason: string;
   confidence: AlertConfidence;
+  matchingStrategy?: MatchingStrategy;
+  categoryCorrelation?: CategoryCorrelation;
+  matchingEvidence?: string;
   reviewStatus: ReviewStatus;
   detectedAt: string;
   coordinationRemarks?: string;

@@ -8,7 +8,9 @@ import {
   ArrowRightLeft,
   CheckCircle,
   MessageSquare,
-  Clock
+  Clock,
+  ArrowRight,
+  GitMerge
 } from 'lucide-react';
 
 interface ActionHistoryTimelineProps {
@@ -31,6 +33,9 @@ export const ActionHistoryTimeline: React.FC<ActionHistoryTimelineProps> = ({ ac
         return <ArrowRightLeft className="w-3.5 h-3.5 text-[#A0A7B2]" />;
       case 'CASE_DISPOSED':
         return <CheckCircle className="w-3.5 h-3.5 text-[#69C9A0]" />;
+      case 'CASES_MERGED':
+      case 'CASE_UNMERGED':
+        return <GitMerge className="w-3.5 h-3.5 text-[#A3B86C]" />;
       default:
         return <MessageSquare className="w-3.5 h-3.5 text-[#737D8B]" />;
     }
@@ -57,8 +62,8 @@ export const ActionHistoryTimeline: React.FC<ActionHistoryTimelineProps> = ({ ac
             {getActionIcon(action.actionType)}
           </div>
 
-          <div className="bg-[#161A20] p-3.5 rounded-lg border border-[#272D35] hover:border-[#38414D] transition-colors">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5 text-xs">
+          <div className="bg-[#161A20] p-3.5 rounded-lg border border-[#272D35] hover:border-[#38414D] transition-colors space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-[#E8EAED] tracking-tight">
                   {action.actionType.replace(/_/g, ' ')}
@@ -81,7 +86,25 @@ export const ActionHistoryTimeline: React.FC<ActionHistoryTimelineProps> = ({ ac
 
             <p className="text-xs text-[#E8EAED] leading-relaxed">{action.remarks}</p>
 
-            <div className="mt-2 pt-2 border-t border-[#272D35] flex items-center justify-between text-[11px] text-[#737D8B]">
+            {/* Value Transition Chip (e.g. status or bureau changed) */}
+            {action.previousValue && action.newValue && (
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#0B0D10] border border-[#272D35] text-[10px] font-mono">
+                <span className="text-[#737D8B] uppercase">{action.fieldChanged || 'Shift'}:</span>
+                <span className="text-[#A0A7B2] line-through">{action.previousValue}</span>
+                <ArrowRight className="w-2.5 h-2.5 text-[#A3B86C]" />
+                <span className="text-[#A3B86C] font-semibold">{action.newValue}</span>
+              </div>
+            )}
+
+            {/* Reason or Justification if provided */}
+            {action.justification && (
+              <div className="text-[11px] text-[#A0A7B2] bg-[#0B0D10]/50 p-2 rounded border border-[#272D35]/50">
+                <strong className="text-[#737D8B] font-mono text-[10px] uppercase">Justification: </strong>
+                <span>{action.justification}</span>
+              </div>
+            )}
+
+            <div className="pt-2 border-t border-[#272D35] flex items-center justify-between text-[11px] text-[#737D8B]">
               <span>Authorized Officer: <strong className="text-[#A0A7B2]">{action.officer}</strong></span>
               <span className="font-mono text-[10px] text-[#737D8B]">ID: {action.actionId}</span>
             </div>

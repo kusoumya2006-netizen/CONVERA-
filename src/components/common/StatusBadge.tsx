@@ -51,7 +51,7 @@ export const BureauBadge: React.FC<{ bureau: Bureau; size?: 'sm' | 'md' }> = ({ 
   );
 };
 
-export const PriorityBadge: React.FC<{ priority: Priority }> = ({ priority }) => {
+export const PriorityBadge: React.FC<{ priority: Priority; size?: 'sm' | 'md' }> = ({ priority, size = 'md' }) => {
   const styles: Record<Priority, string> = {
     'LOW': 'text-[#737D8B] bg-[#111419] border-[#272D35]',
     'MEDIUM': 'text-[#E8B75C] bg-[#E8B75C]/10 border-[#E8B75C]/30',
@@ -59,8 +59,10 @@ export const PriorityBadge: React.FC<{ priority: Priority }> = ({ priority }) =>
     'CRITICAL': 'text-[#F16D75] bg-[#F16D75]/15 border-[#F16D75]/40 font-bold'
   };
 
+  const sizeClasses = size === 'sm' ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-0.5 text-[10px]';
+
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-mono rounded border ${styles[priority]}`}>
+    <span className={`inline-flex items-center font-mono rounded border ${styles[priority]} ${sizeClasses}`}>
       {priority}
     </span>
   );

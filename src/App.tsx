@@ -54,7 +54,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ onNavigateLanding }) => {
 
         <main className="flex-1 p-5 sm:p-6 max-w-7xl mx-auto w-full overflow-x-hidden">
           {/* View Routing */}
-          {activeTab === 'dashboard' && <OverviewDashboard />}
+          {activeTab === 'dashboard' && (
+            <OverviewDashboard onOpenNewCaseModal={() => setIsNewCaseModalOpen(true)} />
+          )}
 
           {activeTab === 'registry' && (
             <div>

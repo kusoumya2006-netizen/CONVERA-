@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { useCaseWatch } from '../../context/CaseWatchContext';
 import { OverlapAlert } from '../../types';
-import { BureauBadge, StatusBadge, OverlapReviewBadge } from '../common/StatusBadge';
+import { BureauBadge, StatusBadge, OverlapReviewBadge, PriorityBadge } from '../common/StatusBadge';
 import { CoordinateModal } from './CoordinateModal';
 import {
   GitCompare,
   AlertOctagon,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Calendar,
+  Layers,
+  FileText
 } from 'lucide-react';
 
 interface OverlapAlertCardProps {
@@ -50,6 +53,11 @@ export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => 
                 CRITICAL RB + PGRC
               </span>
             )}
+            {alert.categoryCorrelation && (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#161A20] text-[#A3B86C] border border-[#272D35]">
+                {alert.categoryCorrelation.replace('_', ' ')}
+              </span>
+            )}
             <OverlapReviewBadge status={alert.reviewStatus} />
           </div>
 
@@ -75,13 +83,24 @@ export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => 
         </button>
       </div>
 
-      {/* Detection Engine Analysis: Crisp graphite subpanel */}
-      <div className="px-4 py-2.5 bg-[#0B0D10] border-b border-[#272D35] text-xs flex items-start gap-2">
-        <AlertOctagon className="w-4 h-4 text-[#F16D75] shrink-0 mt-0.5" />
-        <div className="text-[#E8EAED] leading-relaxed">
-          <span className="font-semibold text-[#A0A7B2]">Detection Engine Analysis: </span>
-          <span>{alert.reason}</span>
+      {/* Detection Engine Analysis & Evidence */}
+      <div className="px-4 py-3 bg-[#0B0D10] border-b border-[#272D35] text-xs space-y-1.5">
+        <div className="flex items-start gap-2">
+          <AlertOctagon className="w-4 h-4 text-[#F16D75] shrink-0 mt-0.5" />
+          <div className="text-[#E8EAED] leading-relaxed">
+            <span className="font-semibold text-[#A0A7B2]">Detection Analysis: </span>
+            <span>{alert.reason}</span>
+          </div>
         </div>
+
+        {alert.matchingEvidence && (
+          <div className="flex items-start gap-2 pl-6 text-[11px] text-[#A0A7B2]">
+            <Layers className="w-3.5 h-3.5 text-[#A3B86C] shrink-0 mt-0.5" />
+            <span>
+              <strong className="text-[#E8EAED]">Matching Evidence:</strong> {alert.matchingEvidence}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Side-by-side Case Comparison */}
@@ -96,35 +115,54 @@ export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => 
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {involvedCaseRecords.map(c => (
-            <div
-              key={c.caseId}
-              onClick={() => setSelectedCaseId(c.caseId)}
-              className="p-3.5 rounded-md border border-[#272D35] bg-[#111419] hover:bg-[#161A20] hover:border-[#38414D] cursor-pointer transition-all space-y-2"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-[#E8EAED]">{c.caseId}</span>
-                  <BureauBadge bureau={c.bureau} size="sm" />
+          {involvedCaseRecords.map(c => {
+            const diffDays = Math.ceil((new Date(c.expectedDisposalDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+            const isOverdue = diffDays < 0;
+
+            return (
+              <div
+                key={c.caseId}
+                onClick={() => setSelectedCaseId(c.caseId)}
+                className="p-3.5 rounded-md border border-[#272D35] bg-[#111419] hover:bg-[#161A20] hover:border-[#38414D] cursor-pointer transition-all space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-[#E8EAED]">{c.caseId}</span>
+                    <BureauBadge bureau={c.bureau} size="sm" />
+                    <PriorityBadge priority={c.priority} size="sm" />
+                  </div>
+                  <StatusBadge status={c.status} size="sm" />
                 </div>
-                <StatusBadge status={c.status} size="sm" />
-              </div>
 
-              <div>
-                <p className="text-xs font-semibold text-[#E8EAED] truncate">{c.category}</p>
-                <p className="text-[11px] text-[#A0A7B2] line-clamp-2 mt-0.5 leading-relaxed">{c.description}</p>
-              </div>
+                <div>
+                  <p className="text-xs font-semibold text-[#E8EAED] truncate">{c.category}</p>
+                  <p className="text-[11px] text-[#A0A7B2] line-clamp-2 mt-0.5 leading-relaxed">{c.description}</p>
+                </div>
 
-              <div className="pt-2 border-t border-[#272D35] flex items-center justify-between text-[11px] text-[#737D8B]">
-                <span>
-                  Officer: <strong className="text-[#A0A7B2] font-medium">{c.assignedOfficer.split('(')[0]}</strong>
-                </span>
-                <span className="text-[#A3B86C] hover:text-[#B7CA82] font-semibold flex items-center gap-0.5">
-                  Dossier <ChevronRight className="w-3 h-3" />
-                </span>
+                <div className="grid grid-cols-2 gap-2 text-[10px] font-mono pt-1 text-[#737D8B]">
+                  <div>
+                    <span>Received: </span>
+                    <span className="text-[#A0A7B2]">{c.receivedAt.split('T')[0]}</span>
+                  </div>
+                  <div className="text-right">
+                    <span>Deadline: </span>
+                    <span className={isOverdue ? 'text-[#F16D75] font-bold' : 'text-[#E8B75C]'}>
+                      {c.expectedDisposalDate.split('T')[0]} ({isOverdue ? `Overdue ${Math.abs(diffDays)}d` : `Due in ${diffDays}d`})
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-[#272D35] flex items-center justify-between text-[11px] text-[#737D8B]">
+                  <span className="truncate max-w-[200px]">
+                    Officer: <strong className="text-[#A0A7B2] font-medium">{c.assignedOfficer.split('(')[0]}</strong>
+                  </span>
+                  <span className="text-[#A3B86C] hover:text-[#B7CA82] font-semibold flex items-center gap-0.5 shrink-0">
+                    Inspect Dossier <ChevronRight className="w-3 h-3" />
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { CaseRecord, Institution, OverlapAlert, Bureau } from '../types';
+import { CaseRecord, Institution, OverlapAlert, Bureau, MatchingStrategy, CategoryCorrelation } from '../types';
 
 /**
  * Normalizes an institution ID for deterministic matching.
@@ -31,6 +31,45 @@ export function isCaseActive(status: string): boolean {
   return status !== 'Disposed';
 }
 
+/**
+ * Analyzes whether complaint categories share direct or thematic correlation.
+ * Prevents treating the same institution alone as proof that two complaints concern the same issue.
+ */
+export function evaluateCategoryCorrelation(categories: string[]): {
+  correlation: CategoryCorrelation;
+  summary: string;
+} {
+  const unique = Array.from(new Set(categories));
+  if (unique.length === 1) {
+    return {
+      correlation: 'IDENTICAL_CATEGORY',
+      summary: `Identical complaint category across bureaus: "${unique[0]}". Direct procedural overlap.`
+    };
+  }
+
+  const feeCategories = ['Unlawful Fee Demands', 'Capitation Fee Allegation'];
+  const infraCategories = ['Infrastructure Non-Compliance', 'Substandard Lab / Workshop Equipment'];
+  const academicCategories = ['Unauthorized Course / Intake', 'Affiliation & Land Discrepancy'];
+  const studentCategories = ['Harassment / Discriminatory Conduct', 'Withholding Original Certificates'];
+
+  const allFee = unique.every(c => feeCategories.includes(c));
+  const allInfra = unique.every(c => infraCategories.includes(c));
+  const allAcademic = unique.every(c => academicCategories.includes(c));
+  const allStudent = unique.every(c => studentCategories.includes(c));
+
+  if (allFee || allInfra || allAcademic || allStudent) {
+    return {
+      correlation: 'RELATED_THEME',
+      summary: `Thematically related grievances (${unique.join(' & ')}). Potential shared factual basis.`
+    };
+  }
+
+  return {
+    correlation: 'DISTINCT_MATTERS',
+    summary: `Distinct complaint matters (${unique.join(' vs. ')}). Independent proceedings sharing target institution.`
+  };
+}
+
 export interface OverlapDetectionOptions {
   existingAlerts?: OverlapAlert[];
 }
@@ -40,7 +79,7 @@ export interface OverlapDetectionOptions {
  * 
  * Analyzes case records and identifies cross-bureau overlaps per institution.
  * Prioritizes normalized Institution IDs, falls back to normalized Institution Names,
- * and highlights critical RB + PGRC overlaps.
+ * evaluates category correlation, and highlights critical RB + PGRC overlaps.
  */
 export function detectCrossBureauOverlaps(
   cases: CaseRecord[],
@@ -53,7 +92,7 @@ export function detectCrossBureauOverlaps(
     existingAlertMap.set(alert.alertId, alert);
   }
 
-  // Filter to active cases only
+  // Filter to active cases only (disposed cases are excluded from active alerts)
   const activeCases = cases.filter(c => isCaseActive(c.status));
 
   // Build lookup maps for institutions
@@ -152,6 +191,14 @@ export function detectCrossBureauOverlaps(
     // If alert already existed previously, preserve reviewStatus and user coordination remarks
     const previous = existingAlertMap.get(alertId);
 
+    // Explainable category correlation analysis
+    const categories = groupCases.map(c => c.category);
+    const catAnalysis = evaluateCategoryCorrelation(categories);
+    const matchingStrategy: MatchingStrategy = group.isNameMatchedFallback ? 'NORMALIZED_NAME' : 'EXACT_PID';
+    const matchingEvidence = matchingStrategy === 'EXACT_PID'
+      ? `Authoritative Permanent Institute ID (PID: ${group.institutionId}) verified across ${distinctBureaus.join(' & ')} intake records.`
+      : `Normalized Institution Name match ("${group.institutionName}") applied due to missing Permanent Institute ID on intake.`;
+
     // Construct human-readable explainable reason
     let reason = '';
     if (hasRbAndPgrc) {
@@ -172,6 +219,9 @@ export function detectCrossBureauOverlaps(
       involvedBureaus: distinctBureaus,
       reason,
       confidence: group.isNameMatchedFallback ? 'MEDIUM' : 'HIGH',
+      matchingStrategy,
+      categoryCorrelation: catAnalysis.correlation,
+      matchingEvidence: `${matchingEvidence} ${catAnalysis.summary} Notice: Concurrent proceedings at the same institution require coordination, but are not automatically identical matters.`,
       reviewStatus: previous ? previous.reviewStatus : 'PENDING_REVIEW',
       detectedAt: previous ? previous.detectedAt : new Date().toISOString(),
       coordinationRemarks: previous?.coordinationRemarks,

@@ -178,10 +178,12 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   ) => {
     const now = new Date().toISOString();
     let bureau: Bureau = 'RB';
+    let oldStatus: CaseStatus = 'Pending';
 
     const updatedCases = cases.map(c => {
       if (c.caseId === caseId) {
         bureau = c.bureau;
+        oldStatus = c.status;
         const isDisposing = status === 'Disposed';
         return {
           ...c,
@@ -211,7 +213,11 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         : `Status changed to [${status}]. Remarks: ${remarks}`,
       bureau,
       officer,
-      timestamp: now
+      timestamp: now,
+      previousValue: oldStatus,
+      newValue: status,
+      fieldChanged: 'status',
+      justification: resolutionSummary || remarks
     };
 
     const updatedActions = [newAction, ...actions];
@@ -250,7 +256,11 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       remarks: `Case reopened by ${officer}. Reopen Reason: ${reopenReason}`,
       bureau,
       officer,
-      timestamp: now
+      timestamp: now,
+      previousValue: 'Disposed',
+      newValue: 'Under Process',
+      fieldChanged: 'status',
+      justification: reopenReason
     };
 
     const updatedActions = [newAction, ...actions];
@@ -335,7 +345,11 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       remarks: `Merged into primary case ${primaryCaseId} by ${officer}. Reason: ${mergeReason}`,
       bureau: childCase.bureau,
       officer,
-      timestamp: now
+      timestamp: now,
+      previousValue: 'Standalone Case',
+      newValue: `Merged into ${primaryCaseId}`,
+      fieldChanged: 'isMerged',
+      justification: mergeReason
     };
 
     const actionPrimary: CaseAction = {
@@ -345,7 +359,11 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       remarks: `Consolidated child case ${childCaseId} merged into this dossier by ${officer}. Reason: ${mergeReason}`,
       bureau: primaryCase.bureau,
       officer,
-      timestamp: now
+      timestamp: now,
+      previousValue: primaryCase.mergedCaseIds?.length ? `${primaryCase.mergedCaseIds.length} merged cases` : 'None',
+      newValue: `${(primaryCase.mergedCaseIds || []).length + 1} merged cases (added ${childCaseId})`,
+      fieldChanged: 'mergedCaseIds',
+      justification: mergeReason
     };
 
     setCases(updatedCases);
@@ -396,7 +414,11 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       remarks: `Unmerged from ${primaryCaseId} by ${officer}. Reason: ${reason}`,
       bureau: childCase.bureau,
       officer,
-      timestamp: now
+      timestamp: now,
+      previousValue: `Merged into ${primaryCaseId}`,
+      newValue: 'Standalone Case',
+      fieldChanged: 'isMerged',
+      justification: reason
     };
 
     setCases(updatedCases);
@@ -473,7 +495,11 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       remarks: `Transferred from ${oldBureau} to ${newBureau}. Remarks: ${remarks}`,
       bureau: newBureau,
       officer,
-      timestamp: now
+      timestamp: now,
+      previousValue: oldBureau,
+      newValue: newBureau,
+      fieldChanged: 'bureau',
+      justification: remarks
     };
 
     setCases(updatedCases);
@@ -486,10 +512,12 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const recordEscalation = (caseId: string, remarks: string, officer: string) => {
     const now = new Date().toISOString();
     let bureau: Bureau = 'RB';
+    let oldPriority = 'HIGH';
 
     const updatedCases = cases.map(c => {
       if (c.caseId === caseId) {
         bureau = c.bureau;
+        oldPriority = c.priority;
         return {
           ...c,
           status: 'Escalated' as CaseStatus,
@@ -509,7 +537,11 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       remarks: `Escalated to Higher Authority. Remarks: ${remarks}`,
       bureau,
       officer,
-      timestamp: now
+      timestamp: now,
+      previousValue: oldPriority,
+      newValue: 'CRITICAL',
+      fieldChanged: 'priority',
+      justification: remarks
     };
 
     setCases(updatedCases);

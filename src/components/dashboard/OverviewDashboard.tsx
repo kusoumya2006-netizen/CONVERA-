@@ -6,15 +6,23 @@ import { StatusDistributionChart } from './StatusDistributionChart';
 import { RegionSummaryTable } from './RegionSummaryTable';
 import { ApproachingDeadlines } from './ApproachingDeadlines';
 import { RecentActivityFeed } from './RecentActivityFeed';
+import { SIHDemoGuide } from './SIHDemoGuide';
 import { AlertOctagon, ArrowRight } from 'lucide-react';
 
-export const OverviewDashboard: React.FC = () => {
+interface OverviewDashboardProps {
+  onOpenNewCaseModal?: () => void;
+}
+
+export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({ onOpenNewCaseModal }) => {
   const { alerts, setActiveTab } = useCaseWatch();
 
   const unresolvedAlerts = alerts.filter(a => a.reviewStatus === 'PENDING_REVIEW');
 
   return (
     <div className="space-y-6">
+      {/* SIH Demonstration Walkthrough Guide */}
+      <SIHDemoGuide onOpenNewCaseModal={onOpenNewCaseModal} />
+
       {/* Critical Overlap Notification Banner if alerts exist */}
       {unresolvedAlerts.length > 0 && (
         <div className="bg-[#161A20] border-l-4 border-l-[#F16D75] border-y border-r border-[#272D35] rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
