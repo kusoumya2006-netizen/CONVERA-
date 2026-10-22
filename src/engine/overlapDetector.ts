@@ -1,5 +1,6 @@
-import { CaseRecord, Institution, OverlapAlert, Bureau, MatchingStrategy, CategoryCorrelation } from '../types';
+import { CaseRecord, Institution, OverlapAlert, Bureau, MatchingStrategy, CategoryCorrelation, SemanticComparisonResult } from '../types';
 import { calculateDeterministicUrgency } from './urgencyCalculator';
+import { computeAlertSemanticComparisons } from './semanticComparator';
 
 /**
  * Normalizes an institution ID for deterministic matching.
@@ -249,6 +250,14 @@ export function detectCrossBureauOverlaps(
       }
     }
 
+    // Optional description similarity comparison (safely isolated)
+    let semanticComparisons: SemanticComparisonResult[] = [];
+    try {
+      semanticComparisons = computeAlertSemanticComparisons(groupCases);
+    } catch {
+      semanticComparisons = [];
+    }
+
     const alert: OverlapAlert = {
       alertId,
       institutionId: group.institutionId,
@@ -269,7 +278,8 @@ export function detectCrossBureauOverlaps(
       dismissalReason: previous?.dismissalReason,
       recommendedAction,
       isConfirmedRelated,
-      highestUrgency
+      highestUrgency,
+      semanticComparisons
     };
 
     detectedAlerts.push(alert);

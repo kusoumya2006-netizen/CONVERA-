@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCaseWatch } from '../../context/CaseWatchContext';
-import { OverlapAlert } from '../../types';
+import { OverlapAlert, SemanticComparisonResult } from '../../types';
 import { BureauBadge, StatusBadge, OverlapReviewBadge, PriorityBadge } from '../common/StatusBadge';
 import { CoordinateModal } from './CoordinateModal';
 import { calculateDeterministicUrgency } from '../../engine/urgencyCalculator';
@@ -162,7 +162,7 @@ export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => 
                 <Sparkles className="w-3 h-3 text-[#86A9FF]" />
                 Experimental Description Similarity:
               </span>
-              {alert.semanticComparisons.map((sc, idx) => (
+              {alert.semanticComparisons.map((sc: SemanticComparisonResult, idx: number) => (
                 <span
                   key={idx}
                   className={`font-mono text-[10px] px-2 py-0.5 rounded border ${

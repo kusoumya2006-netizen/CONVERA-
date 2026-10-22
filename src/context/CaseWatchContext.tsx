@@ -943,7 +943,8 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       leadBureau,
       reviewedBy: actingReviewer,
       reviewedAt: now,
-      dismissalReason: reviewStatus === 'DISMISSED' ? (dismissalReason || remarks) : undefined
+      dismissalReason: reviewStatus === 'DISMISSED' ? (dismissalReason || remarks) : undefined,
+      semanticComparisons: targetAlert.semanticComparisons || []
     };
 
     const coordActions: CaseAction[] = targetAlert.caseIds.map((cid, idx) => ({

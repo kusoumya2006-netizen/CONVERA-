@@ -127,7 +127,8 @@ export class SupabaseStorageService implements IStorageService {
         coordinationRemarks: r.coordination_remarks || undefined,
         leadBureau: r.lead_bureau || undefined,
         reviewedBy: r.reviewed_by || undefined,
-        reviewedAt: r.reviewed_at || undefined
+        reviewedAt: r.reviewed_at || undefined,
+        semanticComparisons: []
       }));
 
       // If no persisted alerts exist in cloud database or table access is restricted,

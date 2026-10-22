@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCaseWatch } from '../../context/CaseWatchContext';
-import { OverlapAlert, Bureau, ReviewStatus } from '../../types';
+import { OverlapAlert, Bureau, ReviewStatus, SemanticComparisonResult } from '../../types';
 import { Modal } from '../common/Modal';
 import { AlertTriangle, Loader2, Sparkles } from 'lucide-react';
 
@@ -106,7 +106,7 @@ export const CoordinateModal: React.FC<CoordinateModalProps> = ({ isOpen, onClos
               <Sparkles className="w-3.5 h-3.5" />
               <span>Experimental Description Similarity ({overlapAlert.semanticComparisons[0]?.modelName})</span>
             </div>
-            {overlapAlert.semanticComparisons.map((sc, idx) => (
+            {overlapAlert.semanticComparisons.map((sc: SemanticComparisonResult, idx: number) => (
               <div key={idx} className="text-[11px] text-[#A0A7B2] flex flex-col gap-0.5">
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-[#E8EAED]">{sc.caseId1} ↔ {sc.caseId2}</span>

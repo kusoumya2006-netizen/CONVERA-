@@ -110,6 +110,18 @@ export type ReviewStatus = 'PENDING_REVIEW' | 'COORDINATED' | 'DISMISSED';
 export type MatchingStrategy = 'EXACT_PID' | 'NORMALIZED_NAME';
 export type CategoryCorrelation = 'IDENTICAL_CATEGORY' | 'RELATED_THEME' | 'DISTINCT_MATTERS';
 
+export interface SemanticComparisonResult {
+  caseId1: string;
+  caseId2: string;
+  semanticSimilarity: number; // 0.00 to 1.00
+  similarityPercentage: number; // 0 to 100
+  label: 'HIGH_SEMANTIC_SIMILARITY' | 'MODERATE_SEMANTIC_SIMILARITY' | 'LOW_SEMANTIC_SIMILARITY';
+  interpretation: string;
+  scoreType: 'SEMANTIC_SIMILARITY'; // Explicitly labeled as semantic similarity, NOT probability of duplication
+  disclaimer: string;
+  modelName: string;
+}
+
 export interface OverlapAlert {
   alertId: string;
   institutionId: string;
@@ -131,6 +143,7 @@ export interface OverlapAlert {
   isConfirmedRelated?: boolean;
   dismissalReason?: string;
   highestUrgency?: 'OVERDUE' | 'DUE_SOON' | 'HIGH' | 'NORMAL';
+  semanticComparisons?: SemanticComparisonResult[];
 }
 
 export interface FilterState {
