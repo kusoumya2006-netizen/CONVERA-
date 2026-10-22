@@ -19,7 +19,7 @@ export const AUTHORIZED_DEMO_ACCOUNTS: { user: AuthUser; passwordHash: string }[
       bureau: 'RB',
       department: 'Regulation Bureau, AICTE New Delhi'
     },
-    passwordHash: 'Regulation@2026'
+    passwordHash: '123456'
   },
   {
     user: {
@@ -31,7 +31,7 @@ export const AUTHORIZED_DEMO_ACCOUNTS: { user: AuthUser; passwordHash: string }[
       bureau: 'PGRC',
       department: 'Grievance Redressal Cell, AICTE New Delhi'
     },
-    passwordHash: 'Grievance@2026'
+    passwordHash: '123456'
   },
   {
     user: {
@@ -43,7 +43,7 @@ export const AUTHORIZED_DEMO_ACCOUNTS: { user: AuthUser; passwordHash: string }[
       bureau: 'ALL',
       department: 'Central Monitoring & Inter-Bureau Coordination'
     },
-    passwordHash: 'Synchra@2026'
+    passwordHash: '123456'
   },
   {
     user: {
@@ -55,7 +55,7 @@ export const AUTHORIZED_DEMO_ACCOUNTS: { user: AuthUser; passwordHash: string }[
       bureau: 'RB',
       department: 'AICTE Western Regional Office, Mumbai'
     },
-    passwordHash: 'Western@2026'
+    passwordHash: '123456'
   }
 ];
 

@@ -101,14 +101,10 @@ export const LoginForm: React.FC = () => {
     if (acc) {
       setAuthMode('LOGIN');
       setEmail(acc.user.email);
-      // Keep email quick-fill, but do not automatically populate a hardcoded password
-      setPassword('');
+      setPassword(acc.passwordHash); // Automatically populates email & password (123456)
       setEmailError('');
       setPasswordError('');
       clearError();
-      setTimeout(() => {
-        document.getElementById('official-password')?.focus();
-      }, 50);
     }
   };
 
@@ -295,9 +291,9 @@ export const LoginForm: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-semibold text-[#737D8B] uppercase tracking-wider flex items-center gap-1 font-mono">
                 <UserCheck className="w-3 h-3 text-[#A3B86C]" />
-                <span>Official Personas (Pre-fill Email)</span>
+                <span>Demo Personas (Click to Pre-fill)</span>
               </span>
-              <span className="text-[10px] text-[#737D8B] font-mono">AICTE Logins</span>
+              <span className="text-[10px] text-[#737D8B] font-mono">SIH 2026</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-left">
