@@ -28,10 +28,12 @@ export const MergeCasesModal: React.FC<MergeCasesModalProps> = ({
   const eligibleChildCases = cases.filter(
     c => !c.isMerged && c.caseId !== primaryId
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorText(null);
+    if (isSubmitting) return;
 
     if (!primaryId) {
       setErrorText('Please select a master (primary) complaint.');
@@ -50,9 +52,16 @@ export const MergeCasesModal: React.FC<MergeCasesModalProps> = ({
       return;
     }
 
-    const success = mergeCases(primaryId, childId, mergeReason.trim(), officerName.trim());
-    if (success) {
-      onClose();
+    setIsSubmitting(true);
+    try {
+      const success = await mergeCases(primaryId, childId, mergeReason.trim(), officerName.trim());
+      setIsSubmitting(false);
+      if (success) {
+        onClose();
+      }
+    } catch (err: any) {
+      setErrorText(err?.message || 'Merger failed.');
+      setIsSubmitting(false);
     }
   };
 
@@ -159,15 +168,24 @@ export const MergeCasesModal: React.FC<MergeCasesModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-3.5 py-1.5 rounded-md border border-[#272D35] text-[#A0A7B2] hover:bg-[#161A20] hover:text-[#E8EAED] font-medium transition-colors"
+            disabled={isSubmitting}
+            className="px-3.5 py-1.5 rounded-md border border-[#272D35] text-[#A0A7B2] hover:bg-[#161A20] hover:text-[#E8EAED] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-3.5 py-1.5 rounded-md bg-[#A3B86C] hover:bg-[#B7CA82] text-[#08090B] font-semibold shadow-sm transition-colors"
+            disabled={isSubmitting}
+            className="px-3.5 py-1.5 rounded-md bg-[#A3B86C] hover:bg-[#B7CA82] text-[#08090B] font-semibold shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            Execute Consolidation
+            {isSubmitting ? (
+              <>
+                <span className="w-3 h-3 border-2 border-[#08090B] border-t-transparent rounded-full animate-spin" />
+                <span>Executing Merger...</span>
+              </>
+            ) : (
+              'Execute Consolidation'
+            )}
           </button>
         </div>
       </form>

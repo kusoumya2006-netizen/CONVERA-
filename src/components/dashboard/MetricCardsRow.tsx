@@ -8,7 +8,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   GitCompare,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Flame
 } from 'lucide-react';
 
 export const MetricCardsRow: React.FC = () => {
@@ -19,7 +20,7 @@ export const MetricCardsRow: React.FC = () => {
       <StatCard
         title="Total Cases"
         value={stats.totalComplaints}
-        subtitle="All logged complaints"
+        subtitle={`${stats.totalActiveComplaints} active • ${stats.disposedCases} resolved`}
         icon={FolderKanban}
         variant="default"
         onClick={() => {
@@ -28,13 +29,37 @@ export const MetricCardsRow: React.FC = () => {
         }}
       />
       <StatCard
-        title="Pending"
-        value={stats.pendingCases}
-        subtitle="Awaiting scrutiny"
+        title="Overdue (SLA)"
+        value={stats.overdueCases}
+        subtitle={`${stats.overdueHighPriorityOverlap} high/critical overlap`}
+        icon={AlertTriangle}
+        variant="rose"
+        badge={stats.overdueCases > 0 ? "URGENT" : undefined}
+        onClick={() => {
+          setFilters({ dateRange: 'OVERDUE' });
+          setActiveTab('registry');
+        }}
+      />
+      <StatCard
+        title="Due Soon (<24h)"
+        value={stats.dueWithin24Hours}
+        subtitle="Expiring in ≤ 24h"
         icon={Clock}
         variant="amber"
+        badge={stats.dueWithin24Hours > 0 ? "ACTION" : undefined}
         onClick={() => {
-          setFilters({ status: 'Pending' });
+          setFilters({ dateRange: 'ALL' });
+          setActiveTab('registry');
+        }}
+      />
+      <StatCard
+        title="High / Critical"
+        value={stats.highCriticalActive}
+        subtitle={`${stats.overdueHighPriorityOverlap} already overdue`}
+        icon={Flame}
+        variant={stats.highCriticalActive > 0 ? "amber" : "default"}
+        onClick={() => {
+          setFilters({ status: 'ALL' });
           setActiveTab('registry');
         }}
       />
@@ -57,29 +82,6 @@ export const MetricCardsRow: React.FC = () => {
         variant="olive"
         onClick={() => {
           setFilters({ status: 'Disposed' });
-          setActiveTab('registry');
-        }}
-      />
-      <StatCard
-        title="Transferred / Esc."
-        value={stats.transferredEscalatedCases}
-        subtitle="Inter-agency referral"
-        icon={ArrowRightLeft}
-        variant="default"
-        onClick={() => {
-          setFilters({ status: 'Escalated' });
-          setActiveTab('registry');
-        }}
-      />
-      <StatCard
-        title="Overdue (SLA)"
-        value={stats.overdueCases}
-        subtitle="Exceeded disposal date"
-        icon={AlertTriangle}
-        variant="rose"
-        badge={stats.overdueCases > 0 ? "URGENT" : undefined}
-        onClick={() => {
-          setFilters({ dateRange: 'OVERDUE' });
           setActiveTab('registry');
         }}
       />

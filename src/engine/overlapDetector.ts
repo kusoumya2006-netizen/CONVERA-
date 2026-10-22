@@ -1,4 +1,5 @@
 import { CaseRecord, Institution, OverlapAlert, Bureau, MatchingStrategy, CategoryCorrelation } from '../types';
+import { calculateDeterministicUrgency } from './urgencyCalculator';
 
 /**
  * Normalizes an institution ID for deterministic matching.
@@ -211,6 +212,43 @@ export function detectCrossBureauOverlaps(
       reason += ' [Matched via normalized institution name due to missing Permanent ID - medium confidence].';
     }
 
+    // Recommended coordination action based on bureau pair and category correlation
+    let recommendedAction = 'Review concurrent dossiers and coordinate inspection timelines.';
+    if (hasRbAndPgrc) {
+      if (catAnalysis.correlation === 'IDENTICAL_CATEGORY') {
+        recommendedAction = 'Convene joint RB & PGRC directive hearing; designate lead bureau to issue unified compliance notice.';
+      } else if (catAnalysis.correlation === 'RELATED_THEME') {
+        recommendedAction = 'Cross-reference case records, synchronize hearing dates, and share inspection findings before issuing orders.';
+      } else {
+        recommendedAction = 'Coordinate hearing schedules to avoid conflicting institution appearance dates; maintain separate proceedings.';
+      }
+    } else {
+      if (catAnalysis.correlation === 'IDENTICAL_CATEGORY' || catAnalysis.correlation === 'RELATED_THEME') {
+        recommendedAction = 'Align inter-bureau inquiries and cross-link case registry dossiers.';
+      } else {
+        recommendedAction = 'Review concurrent dossiers; coordinate inspection timelines if institutional audits overlap.';
+      }
+    }
+
+    // Check if cases are already confirmed related (mutually linked in registry)
+    const isConfirmedRelated = groupCases.some(c1 =>
+      groupCases.some(c2 => c1.caseId !== c2.caseId && c1.relatedCaseIds?.includes(c2.caseId))
+    );
+
+    // Compute highest urgency across active cases in this alert
+    let highestUrgency: 'OVERDUE' | 'DUE_SOON' | 'HIGH' | 'NORMAL' = 'NORMAL';
+    for (const c of groupCases) {
+      const u = calculateDeterministicUrgency(c);
+      if (u.isOverdue) {
+        highestUrgency = 'OVERDUE';
+        break;
+      } else if (u.isDueWithin24h || u.daysUntilDue <= 2 || u.urgencyLevel === 'IMMINENT') {
+        highestUrgency = 'DUE_SOON';
+      } else if ((u.urgencyLevel === 'HIGH' || c.priority === 'CRITICAL') && highestUrgency !== 'DUE_SOON') {
+        highestUrgency = 'HIGH';
+      }
+    }
+
     const alert: OverlapAlert = {
       alertId,
       institutionId: group.institutionId,
@@ -227,7 +265,11 @@ export function detectCrossBureauOverlaps(
       coordinationRemarks: previous?.coordinationRemarks,
       leadBureau: previous?.leadBureau,
       reviewedBy: previous?.reviewedBy,
-      reviewedAt: previous?.reviewedAt
+      reviewedAt: previous?.reviewedAt,
+      dismissalReason: previous?.dismissalReason,
+      recommendedAction,
+      isConfirmedRelated,
+      highestUrgency
     };
 
     detectedAlerts.push(alert);

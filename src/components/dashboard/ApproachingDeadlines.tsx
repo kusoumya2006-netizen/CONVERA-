@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { useCaseWatch } from '../../context/CaseWatchContext';
-import { BureauBadge, PriorityBadge, StatusBadge } from '../common/StatusBadge';
-import { calculateDeterministicUrgency } from '../../engine/urgencyCalculator';
+import { BureauBadge, PriorityBadge, UrgencyBadgeView } from '../common/StatusBadge';
+import { calculateDeterministicUrgency, compareCasesByUrgency } from '../../engine/urgencyCalculator';
 import {
   Clock,
   AlertTriangle,
   ChevronRight,
   UserX,
   Flame,
-  Layers,
-  ArrowRight
+  ArrowRight,
+  ListOrdered
 } from 'lucide-react';
 
-type CommandTab = 'OVERDUE' | 'DUE_SOON' | 'APPROACHING' | 'CRITICAL' | 'UNASSIGNED';
+type CommandTab = 'OVERDUE' | 'DUE_24H' | 'APPROACHING' | 'CRITICAL' | 'ALL_RANKED';
 
 export const ApproachingDeadlines: React.FC = () => {
   const { cases, alerts, setSelectedCaseId, setActiveTab } = useCaseWatch();
@@ -29,31 +29,32 @@ export const ApproachingDeadlines: React.FC = () => {
     .filter(c => c.status !== 'Disposed')
     .map(c => ({
       ...c,
-      analysis: calculateDeterministicUrgency(c, activeOverlapCaseIds)
+      analysis: calculateDeterministicUrgency(c, activeOverlapCaseIds),
+      urgency: calculateDeterministicUrgency(c, activeOverlapCaseIds)
     }));
 
   const overdueList = activeCases.filter(c => c.analysis.isOverdue);
-  const dueSoonList = activeCases.filter(c => !c.analysis.isOverdue && (c.analysis.isDueToday || c.analysis.daysUntilDue <= 2));
-  const approachingList = activeCases.filter(c => c.analysis.isApproaching && c.analysis.daysUntilDue > 2);
+  const due24hList = activeCases.filter(c => !c.analysis.isOverdue && c.analysis.isDueWithin24h);
+  const approachingList = activeCases.filter(c => !c.analysis.isOverdue && !c.analysis.isDueWithin24h && c.analysis.isApproaching);
   const criticalList = activeCases.filter(c => c.priority === 'CRITICAL' || c.status === 'Escalated');
-  const unassignedList = activeCases.filter(c => c.analysis.isUnassigned);
+  const allRankedList = [...activeCases].sort(compareCasesByUrgency);
 
   const getFilteredList = () => {
     switch (activeTabFilter) {
       case 'OVERDUE':
-        return overdueList;
-      case 'DUE_SOON':
-        return dueSoonList;
+        return [...overdueList].sort(compareCasesByUrgency);
+      case 'DUE_24H':
+        return [...due24hList].sort(compareCasesByUrgency);
       case 'APPROACHING':
-        return approachingList;
+        return [...approachingList].sort(compareCasesByUrgency);
       case 'CRITICAL':
-        return criticalList;
-      case 'UNASSIGNED':
-        return unassignedList;
+        return [...criticalList].sort(compareCasesByUrgency);
+      case 'ALL_RANKED':
+        return allRankedList;
     }
   };
 
-  const displayedList = getFilteredList().sort((a, b) => b.analysis.urgencyScore - a.analysis.urgencyScore).slice(0, 6);
+  const displayedList = getFilteredList().slice(0, 6);
 
   return (
     <div className="bg-[#111419] rounded-lg border border-[#272D35] shadow-sm overflow-hidden flex flex-col h-full">
@@ -86,16 +87,17 @@ export const ApproachingDeadlines: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveTabFilter('DUE_SOON')}
+          onClick={() => setActiveTabFilter('DUE_24H')}
           className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 shrink-0 ${
-            activeTabFilter === 'DUE_SOON'
+            activeTabFilter === 'DUE_24H'
               ? 'bg-[#E8B75C]/15 text-[#E8B75C] border border-[#E8B75C]/35 font-bold'
               : 'text-[#737D8B] hover:text-[#A0A7B2]'
           }`}
         >
-          <span>Due &lt;48h</span>
+          <Clock className="w-3 h-3" />
+          <span>Due &le;24h</span>
           <span className="px-1 py-0.2 rounded text-[10px] bg-[#161A20] text-[#E8EAED]">
-            {dueSoonList.length}
+            {due24hList.length}
           </span>
         </button>
 
@@ -107,7 +109,7 @@ export const ApproachingDeadlines: React.FC = () => {
               : 'text-[#737D8B] hover:text-[#A0A7B2]'
           }`}
         >
-          <span>&lt;7 Days</span>
+          <span>&le;7 Days</span>
           <span className="px-1 py-0.2 rounded text-[10px] bg-[#161A20] text-[#E8EAED]">
             {approachingList.length}
           </span>
@@ -129,17 +131,17 @@ export const ApproachingDeadlines: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveTabFilter('UNASSIGNED')}
+          onClick={() => setActiveTabFilter('ALL_RANKED')}
           className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 shrink-0 ${
-            activeTabFilter === 'UNASSIGNED'
+            activeTabFilter === 'ALL_RANKED'
               ? 'bg-[#161A20] text-[#E8EAED] border border-[#38414D] font-bold'
               : 'text-[#737D8B] hover:text-[#A0A7B2]'
           }`}
         >
-          <UserX className="w-3 h-3" />
-          <span>Unassigned</span>
+          <ListOrdered className="w-3 h-3" />
+          <span>Priority Queue</span>
           <span className="px-1 py-0.2 rounded text-[10px] bg-[#161A20] text-[#E8EAED]">
-            {unassignedList.length}
+            {allRankedList.length}
           </span>
         </button>
       </div>
@@ -153,8 +155,6 @@ export const ApproachingDeadlines: React.FC = () => {
           </div>
         ) : (
           displayedList.map(c => {
-            const isOverdue = c.analysis.isOverdue;
-
             return (
               <div
                 key={c.caseId}
@@ -172,20 +172,8 @@ export const ApproachingDeadlines: React.FC = () => {
                     <BureauBadge bureau={c.bureau} size="sm" />
                     <PriorityBadge priority={c.priority} size="sm" />
                     
-                    {isOverdue ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#F16D75]/15 text-[#F16D75] border border-[#F16D75]/35">
-                        <AlertTriangle className="w-2.5 h-2.5 text-[#F16D75]" />
-                        OVERDUE {Math.abs(c.analysis.daysUntilDue)}D
-                      </span>
-                    ) : c.analysis.isDueToday ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#E8B75C]/15 text-[#E8B75C] border border-[#E8B75C]/35">
-                        DUE TODAY
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#161A20] text-[#A0A7B2] border border-[#272D35]">
-                        Due in {c.analysis.daysUntilDue}d
-                      </span>
-                    )}
+                    {/* Feature 2: Explainable Urgency Badge with Countdown */}
+                    <UrgencyBadgeView analysis={c.analysis} size="sm" showCountdown />
 
                     {c.analysis.hasPendingOverlap && (
                       <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#F16D75]/10 text-[#F16D75] border border-[#F16D75]/30">
@@ -204,8 +192,8 @@ export const ApproachingDeadlines: React.FC = () => {
                   </div>
 
                   <div className="pt-0.5 text-[10px] font-mono text-[#737D8B] flex items-center justify-between">
-                    <span className="text-[#A3B86C] truncate">
-                      Basis: {c.analysis.primaryReason.split('•')[0]}
+                    <span className="text-[#A3B86C] truncate" title={c.analysis.indicatorText}>
+                      Reason: {c.analysis.indicatorText}
                     </span>
                     <span className="text-[#A0A7B2] shrink-0">
                       Officer: {c.assignedOfficer.split('(')[0]}
@@ -224,7 +212,7 @@ export const ApproachingDeadlines: React.FC = () => {
 
       {/* Footer Strip */}
       <div className="p-2.5 bg-[#0B0D10] border-t border-[#272D35] flex items-center justify-between text-[11px] font-mono text-[#737D8B]">
-        <span>Total Active In Queue: {displayedList.length}</span>
+        <span>Showing {displayedList.length} of {allRankedList.length} Active Cases</span>
         <button
           onClick={() => setActiveTab('registry')}
           className="text-[#A3B86C] hover:text-[#B7CA82] font-semibold flex items-center gap-1 transition-colors"

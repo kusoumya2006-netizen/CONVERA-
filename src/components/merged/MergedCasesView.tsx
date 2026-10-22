@@ -45,10 +45,10 @@ export const MergedCasesView: React.FC = () => {
     setIsMergeModalOpen(true);
   };
 
-  const handleConfirmUnmerge = (childId: string) => {
+  const handleConfirmUnmerge = async (childId: string) => {
     const officerName = user?.displayName || 'Authorized Bureau Officer';
     const reason = unmergeReason.trim() || 'Administrative separation of grievance proceedings';
-    unmergeCase(childId, officerName, reason);
+    await unmergeCase(childId, officerName, reason);
     setUnmergingChildId(null);
     setUnmergeReason('');
   };

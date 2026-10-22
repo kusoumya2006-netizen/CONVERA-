@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useCaseWatch } from '../../context/CaseWatchContext';
-import { StatusBadge, BureauBadge, PriorityBadge } from '../common/StatusBadge';
+import { StatusBadge, BureauBadge, PriorityBadge, UrgencyBadgeView } from '../common/StatusBadge';
+import { calculateDeterministicUrgency } from '../../engine/urgencyCalculator';
 import { ActionHistoryTimeline } from './ActionHistoryTimeline';
 import { ActionFormModal } from './ActionFormModal';
 import { ReopenCaseModal } from './ReopenCaseModal';
@@ -57,10 +58,11 @@ export const CaseDetailView: React.FC = () => {
     a => a.caseIds.includes(caseRecord.caseId) && a.reviewStatus !== 'DISMISSED'
   );
 
-  const nowMs = Date.now();
-  const dueMs = new Date(caseRecord.expectedDisposalDate).getTime();
-  const diffDays = Math.ceil((dueMs - nowMs) / (1000 * 60 * 60 * 24));
-  const isOverdue = caseRecord.status !== 'Disposed' && diffDays < 0;
+  const activeOverlapCaseIds = new Set(
+    alerts.filter(a => a.reviewStatus === 'PENDING_REVIEW').flatMap(a => a.caseIds)
+  );
+  const urgency = calculateDeterministicUrgency(caseRecord, activeOverlapCaseIds);
+  const isOverdue = urgency.isOverdue;
 
   return (
     <div className="space-y-5">
@@ -243,24 +245,25 @@ export const CaseDetailView: React.FC = () => {
           </div>
 
           {/* SLA Pill */}
-          <div className="p-3 bg-[#0B0D10] rounded-lg border border-[#272D35] text-right min-w-[170px]">
+          <div className="p-3 bg-[#0B0D10] rounded-lg border border-[#272D35] text-right min-w-[200px]">
             <span className="text-[10px] font-semibold text-[#737D8B] uppercase font-mono block">Expected Disposal</span>
             <span className={`font-mono text-sm font-bold block mt-0.5 ${isOverdue ? 'text-[#F16D75]' : 'text-[#E8EAED]'}`}>
               {caseRecord.expectedDisposalDate ? caseRecord.expectedDisposalDate.split('T')[0] : 'N/A'}
             </span>
-            <span className={`text-[10px] font-mono font-semibold inline-block px-1.5 py-0.2 rounded mt-1 border ${
-              caseRecord.status === 'Disposed'
-                ? 'bg-[#69C9A0]/10 text-[#69C9A0] border-[#69C9A0]/30'
-                : isOverdue
-                ? 'bg-[#F16D75]/15 text-[#F16D75] border-[#F16D75]/35 font-bold'
-                : 'bg-[#E8B75C]/10 text-[#E8B75C] border-[#E8B75C]/30'
-            }`}>
-              {caseRecord.status === 'Disposed'
-                ? 'Resolved'
-                : isOverdue
-                ? `Overdue by ${Math.abs(diffDays)}D`
-                : `Target in ${diffDays}D`}
-            </span>
+            <div className="mt-1.5 flex flex-col items-end gap-1">
+              {caseRecord.status !== 'Disposed' ? (
+                <>
+                  <UrgencyBadgeView analysis={urgency} size="sm" showCountdown />
+                  <span className="text-[10px] text-[#A0A7B2] font-mono text-right" title={urgency.indicatorText}>
+                    {urgency.indicatorText}
+                  </span>
+                </>
+              ) : (
+                <span className="text-[10px] font-mono font-semibold inline-block px-1.5 py-0.2 rounded border bg-[#69C9A0]/10 text-[#69C9A0] border-[#69C9A0]/30">
+                  Resolved & Disposed
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

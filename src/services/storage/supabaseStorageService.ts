@@ -2,6 +2,7 @@ import { Institution, CaseRecord, CaseAction, OverlapAlert } from '../../types';
 import { IStorageService, AppStorageData, StorageMode } from './types';
 import { getSupabaseClient, isSupabaseConfigured } from '../supabaseClient';
 import { LocalStorageService } from './localStorageService';
+import { detectCrossBureauOverlaps } from '../../engine/overlapDetector';
 
 export class SupabaseStorageService implements IStorageService {
   readonly mode: StorageMode = 'supabase';
@@ -49,12 +50,13 @@ export class SupabaseStorageService implements IStorageService {
         .select('*')
         .order('detected_at', { ascending: false });
 
-      if (alertsError) throw alertsError;
+      if (alertsError) {
+        console.warn('Could not fetch overlap_alerts from Supabase (may require table grant):', alertsError.message);
+      }
 
-      // If database is completely empty, bootstrap with seed fallback
+      // If database has no institutions, fail loudly in cloud mode instead of falling back to synthetic seed
       if (!instData || instData.length === 0) {
-        console.info('Supabase database empty; bootstrapping from local seed baseline.');
-        return this.fallbackService.loadInitialData();
+        throw new Error('Supabase public.institutions table returned 0 rows. Target institutions must be present in the database.');
       }
 
       const institutions: Institution[] = instData.map(r => ({
@@ -112,7 +114,7 @@ export class SupabaseStorageService implements IStorageService {
         timestamp: r.timestamp
       }));
 
-      const alerts: OverlapAlert[] = (alertsData || []).map(r => ({
+      let alerts: OverlapAlert[] = (alertsData || []).map(r => ({
         alertId: r.alert_id,
         institutionId: r.institution_id,
         institutionName: r.institution_name,
@@ -128,6 +130,12 @@ export class SupabaseStorageService implements IStorageService {
         reviewedAt: r.reviewed_at || undefined
       }));
 
+      // If no persisted alerts exist in cloud database or table access is restricted,
+      // dynamically compute authoritative cross-bureau overlap alerts using the detection engine
+      if (alerts.length === 0 && cases.length > 0) {
+        alerts = detectCrossBureauOverlaps(cases, institutions);
+      }
+
       return {
         institutions,
         cases,
@@ -136,9 +144,9 @@ export class SupabaseStorageService implements IStorageService {
         isDemoMode: false,
         storageMode: 'supabase'
       };
-    } catch (err) {
-      console.error('Error fetching data from Supabase; falling back to local storage:', err);
-      return this.fallbackService.loadInitialData();
+    } catch (err: any) {
+      console.error('Error fetching data from Supabase:', err);
+      throw new Error(`Failed to load cloud data from Supabase: ${err?.message || 'Unknown error'}`);
     }
   }
 
@@ -151,7 +159,7 @@ export class SupabaseStorageService implements IStorageService {
     const payload = {
       case_id: record.caseId,
       institution_id: record.institutionId,
-      institution_name: record.institutionName,
+      institution_name: record.institutionName || null,
       category: record.category,
       description: record.description,
       bureau: record.bureau,
@@ -164,7 +172,7 @@ export class SupabaseStorageService implements IStorageService {
       next_action: record.nextAction,
       last_action_at: record.lastActionAt,
       expected_disposal_date: record.expectedDisposalDate,
-      related_case_ids: record.relatedCaseIds,
+      related_case_ids: record.relatedCaseIds || [],
       created_at: record.createdAt,
       updated_at: record.updatedAt,
       completed_at: record.completedAt || null,
@@ -184,9 +192,8 @@ export class SupabaseStorageService implements IStorageService {
 
     const { error } = await supabase.from('cases').upsert(payload, { onConflict: 'case_id' });
     if (error) {
-      console.error('Failed to upsert case in Supabase:', error);
-      // Keep local store synchronized as backup
-      await this.fallbackService.saveCase(record);
+      console.error('Failed to upsert case in Supabase:', error.message);
+      throw new Error(`Failed to save case [${record.caseId}] in Supabase: ${error.message}${error.code ? ` (Code: ${error.code})` : ''}`);
     }
   }
 
@@ -207,24 +214,24 @@ export class SupabaseStorageService implements IStorageService {
     if (updates.nextAction !== undefined) dbPayload.next_action = updates.nextAction;
     if (updates.lastActionAt !== undefined) dbPayload.last_action_at = updates.lastActionAt;
     if (updates.relatedCaseIds !== undefined) dbPayload.related_case_ids = updates.relatedCaseIds;
-    if (updates.completedAt !== undefined) dbPayload.completed_at = updates.completedAt;
-    if (updates.completedBy !== undefined) dbPayload.completed_by = updates.completedBy;
-    if (updates.completedByOfficerId !== undefined) dbPayload.completed_by_officer_id = updates.completedByOfficerId;
-    if (updates.resolutionSummary !== undefined) dbPayload.resolution_summary = updates.resolutionSummary;
-    if (updates.reopenedAt !== undefined) dbPayload.reopened_at = updates.reopenedAt;
-    if (updates.reopenedBy !== undefined) dbPayload.reopened_by = updates.reopenedBy;
-    if (updates.reopenReason !== undefined) dbPayload.reopen_reason = updates.reopenReason;
+    if (updates.completedAt !== undefined) dbPayload.completed_at = updates.completedAt || null;
+    if (updates.completedBy !== undefined) dbPayload.completed_by = updates.completedBy || null;
+    if (updates.completedByOfficerId !== undefined) dbPayload.completed_by_officer_id = updates.completedByOfficerId || null;
+    if (updates.resolutionSummary !== undefined) dbPayload.resolution_summary = updates.resolutionSummary || null;
+    if (updates.reopenedAt !== undefined) dbPayload.reopened_at = updates.reopenedAt || null;
+    if (updates.reopenedBy !== undefined) dbPayload.reopened_by = updates.reopenedBy || null;
+    if (updates.reopenReason !== undefined) dbPayload.reopen_reason = updates.reopenReason || null;
     if (updates.isMerged !== undefined) dbPayload.is_merged = updates.isMerged;
-    if (updates.mergedIntoCaseId !== undefined) dbPayload.merged_into_case_id = updates.mergedIntoCaseId;
+    if (updates.mergedIntoCaseId !== undefined) dbPayload.merged_into_case_id = updates.mergedIntoCaseId || null;
     if (updates.mergedCaseIds !== undefined) dbPayload.merged_case_ids = updates.mergedCaseIds;
-    if (updates.mergedAt !== undefined) dbPayload.merged_at = updates.mergedAt;
-    if (updates.mergedBy !== undefined) dbPayload.merged_by = updates.mergedBy;
-    if (updates.mergeReason !== undefined) dbPayload.merge_reason = updates.mergeReason;
+    if (updates.mergedAt !== undefined) dbPayload.merged_at = updates.mergedAt || null;
+    if (updates.mergedBy !== undefined) dbPayload.merged_by = updates.mergedBy || null;
+    if (updates.mergeReason !== undefined) dbPayload.merge_reason = updates.mergeReason || null;
 
     const { error } = await supabase.from('cases').update(dbPayload).eq('case_id', caseId);
     if (error) {
-      console.error(`Failed to update case ${caseId} in Supabase:`, error);
-      await this.fallbackService.updateCase(caseId, updates);
+      console.error(`Failed to update case ${caseId} in Supabase:`, error.message);
+      throw new Error(`Failed to update case [${caseId}] in Supabase: ${error.message}${error.code ? ` (Code: ${error.code})` : ''}`);
     }
   }
 
@@ -237,6 +244,7 @@ export class SupabaseStorageService implements IStorageService {
     if (!supabase) {
       return this.fallbackService.saveActions(actions);
     }
+    if (actions.length === 0) return;
 
     const payloads = actions.map(act => ({
       action_id: act.actionId,
@@ -250,8 +258,8 @@ export class SupabaseStorageService implements IStorageService {
 
     const { error } = await supabase.from('case_actions').insert(payloads);
     if (error) {
-      console.error('Failed to append actions in Supabase:', error);
-      await this.fallbackService.saveActions(actions);
+      console.error('Failed to append actions in Supabase:', error.message);
+      throw new Error(`Failed to append actions to Supabase: ${error.message}${error.code ? ` (Code: ${error.code})` : ''}`);
     }
   }
 
@@ -264,6 +272,7 @@ export class SupabaseStorageService implements IStorageService {
     if (!supabase) {
       return this.fallbackService.saveAlerts(alerts);
     }
+    if (alerts.length === 0) return;
 
     const payloads = alerts.map(alt => ({
       alert_id: alt.alertId,
@@ -283,8 +292,8 @@ export class SupabaseStorageService implements IStorageService {
 
     const { error } = await supabase.from('overlap_alerts').upsert(payloads, { onConflict: 'alert_id' });
     if (error) {
-      console.error('Failed to save overlap alerts in Supabase:', error);
-      await this.fallbackService.saveAlerts(alerts);
+      console.error('Failed to save overlap alerts in Supabase:', error.message);
+      throw new Error(`Failed to save overlap alerts in Supabase: ${error.message}${error.code ? ` (Code: ${error.code})` : ''}`);
     }
   }
 

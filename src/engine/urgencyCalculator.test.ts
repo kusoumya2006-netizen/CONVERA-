@@ -1,11 +1,17 @@
 import { describe, it, expect } from 'vitest';
-import { calculateDeterministicUrgency, sortCasesByDeterministicUrgency } from './urgencyCalculator';
+import {
+  calculateDeterministicUrgency,
+  sortCasesByDeterministicUrgency,
+  compareCasesByUrgency
+} from './urgencyCalculator';
 import { CaseRecord } from '../types';
 
 describe('Urgency Engine — Deterministic Urgency & Priority Calculations', () => {
   const now = Date.now();
   const dayMs = 24 * 60 * 60 * 1000;
+  const hourMs = 60 * 60 * 1000;
   const isoOffset = (days: number) => new Date(now + days * dayMs).toISOString();
+  const isoHoursOffset = (hours: number) => new Date(now + hours * hourMs).toISOString();
 
   const baseCase: CaseRecord = {
     caseId: 'AICTE/RB/2026/0100',
@@ -14,7 +20,7 @@ describe('Urgency Engine — Deterministic Urgency & Priority Calculations', () 
     category: 'Unlawful Fee Demands',
     description: 'Capitation fee inquiry',
     bureau: 'RB',
-    assignedOfficer: 'Dr. Amitabh Ghosh',
+    assignedOfficer: 'Dr. Suresh Patil',
     status: 'Under Process',
     priority: 'MEDIUM',
     complainantType: 'Student',
@@ -37,8 +43,11 @@ describe('Urgency Engine — Deterministic Urgency & Priority Calculations', () 
     const analysis = calculateDeterministicUrgency(overdueCase);
     expect(analysis.isOverdue).toBe(true);
     expect(analysis.urgencyLevel).toBe('OVERDUE');
-    expect(analysis.urgencyScore).toBeGreaterThanOrEqual(100);
+    expect(analysis.urgencyBadge).toBe('OVERDUE');
+    expect(analysis.urgencyScore).toBeGreaterThanOrEqual(1000);
     expect(analysis.primaryReason).toContain('Statutory SLA Breached');
+    expect(analysis.indicatorText).toContain('OVERDUE — deadline passed');
+    expect(analysis.deadlineCountdown).toContain('overdue');
   });
 
   it('2. Disposed cases are excluded from active urgency calculation', () => {
@@ -51,6 +60,8 @@ describe('Urgency Engine — Deterministic Urgency & Priority Calculations', () 
     const analysis = calculateDeterministicUrgency(disposedCase);
     expect(analysis.urgencyScore).toBe(0);
     expect(analysis.isOverdue).toBe(false);
+    expect(analysis.urgencyBadge).toBe('NORMAL');
+    expect(analysis.indicatorText).toContain('RESOLVED');
     expect(analysis.primaryReason).toContain('Case resolved & disposed');
   });
 
@@ -106,6 +117,8 @@ describe('Urgency Engine — Deterministic Urgency & Priority Calculations', () 
 
     const analysis = calculateDeterministicUrgency(malformedCase);
     expect(analysis.urgencyScore).toBeGreaterThan(0);
+    expect(analysis.hasValidDeadline).toBe(false);
+    expect(analysis.isProvisionalDeadline).toBe(true);
     expect(analysis.primaryReason).toContain('Provisional 30-day demo SLA');
   });
 
@@ -116,5 +129,147 @@ describe('Urgency Engine — Deterministic Urgency & Priority Calculations', () 
     const sorted = sortCasesByDeterministicUrgency([caseA, caseB]);
     expect(sorted[0].caseId).toBe('CASE-A');
     expect(sorted[1].caseId).toBe('CASE-B');
+  });
+
+  it('7. Cases due within 24 hours receive DUE_SOON badge and higher urgency than multi-day cases', () => {
+    const dueIn6Hours: CaseRecord = {
+      ...baseCase,
+      caseId: 'AICTE/RB/2026/0206',
+      expectedDisposalDate: isoHoursOffset(6)
+    };
+
+    const dueIn3Days: CaseRecord = {
+      ...baseCase,
+      caseId: 'AICTE/RB/2026/0203',
+      expectedDisposalDate: isoOffset(3)
+    };
+
+    const analysis6h = calculateDeterministicUrgency(dueIn6Hours);
+    const analysis3d = calculateDeterministicUrgency(dueIn3Days);
+
+    expect(analysis6h.isDueWithin24h).toBe(true);
+    expect(analysis6h.urgencyBadge).toBe('DUE_SOON');
+    expect(analysis6h.indicatorText).toContain('DUE SOON — deadline within 24 hours');
+    expect(analysis6h.deadlineCountdown).toContain('h remaining');
+    expect(analysis6h.urgencyScore).toBeGreaterThan(analysis3d.urgencyScore);
+  });
+
+  it('8. Priority hierarchy: Overdue > Due <= 24h > Critical > High > Medium', () => {
+    const overdueCase: CaseRecord = {
+      ...baseCase,
+      caseId: 'CASE-1-OVERDUE',
+      priority: 'LOW',
+      expectedDisposalDate: isoOffset(-2)
+    };
+
+    const dueSoonCase: CaseRecord = {
+      ...baseCase,
+      caseId: 'CASE-2-DUESOON',
+      priority: 'LOW',
+      expectedDisposalDate: isoHoursOffset(12)
+    };
+
+    const criticalCase: CaseRecord = {
+      ...baseCase,
+      caseId: 'CASE-3-CRITICAL',
+      priority: 'CRITICAL',
+      expectedDisposalDate: isoOffset(10)
+    };
+
+    const highCase: CaseRecord = {
+      ...baseCase,
+      caseId: 'CASE-4-HIGH',
+      priority: 'HIGH',
+      expectedDisposalDate: isoOffset(10)
+    };
+
+    const mediumCase: CaseRecord = {
+      ...baseCase,
+      caseId: 'CASE-5-MEDIUM',
+      priority: 'MEDIUM',
+      expectedDisposalDate: isoOffset(10)
+    };
+
+    const disposedCase: CaseRecord = {
+      ...baseCase,
+      caseId: 'CASE-6-DISPOSED',
+      status: 'Disposed',
+      expectedDisposalDate: isoOffset(-5)
+    };
+
+    const sorted = sortCasesByDeterministicUrgency([
+      mediumCase,
+      disposedCase,
+      criticalCase,
+      overdueCase,
+      highCase,
+      dueSoonCase
+    ]);
+
+    expect(sorted.map(c => c.caseId)).toEqual([
+      'CASE-1-OVERDUE',
+      'CASE-2-DUESOON',
+      'CASE-3-CRITICAL',
+      'CASE-4-HIGH',
+      'CASE-5-MEDIUM',
+      'CASE-6-DISPOSED'
+    ]);
+  });
+
+  it('9. Escalated cases rank above standard non-escalated cases of equal priority', () => {
+    const escalatedCase: CaseRecord = {
+      ...baseCase,
+      caseId: 'CASE-ESC',
+      status: 'Escalated',
+      priority: 'HIGH',
+      expectedDisposalDate: isoOffset(10)
+    };
+
+    const normalHighCase: CaseRecord = {
+      ...baseCase,
+      caseId: 'CASE-NORMAL',
+      status: 'Under Process',
+      priority: 'HIGH',
+      expectedDisposalDate: isoOffset(10)
+    };
+
+    const sorted = sortCasesByDeterministicUrgency([normalHighCase, escalatedCase]);
+    expect(sorted[0].caseId).toBe('CASE-ESC');
+    expect(sorted[1].caseId).toBe('CASE-NORMAL');
+  });
+
+  it('10. Complaint age acts as a stable tie-breaker when deadlines and priority are identical', () => {
+    const olderCase: CaseRecord = {
+      ...baseCase,
+      caseId: 'CASE-ZZZ', // lexicographically later, but chronologically older
+      priority: 'HIGH',
+      receivedAt: isoOffset(-30),
+      expectedDisposalDate: isoOffset(15)
+    };
+
+    const newerCase: CaseRecord = {
+      ...baseCase,
+      caseId: 'CASE-AAA', // lexicographically earlier, but newer
+      priority: 'HIGH',
+      receivedAt: isoOffset(-5),
+      expectedDisposalDate: isoOffset(15)
+    };
+
+    const sorted = sortCasesByDeterministicUrgency([newerCase, olderCase]);
+    expect(sorted[0].caseId).toBe('CASE-ZZZ'); // Older complaint ranks first!
+    expect(sorted[1].caseId).toBe('CASE-AAA');
+  });
+
+  it('11. Input immutability: calculateDeterministicUrgency and sortCasesByDeterministicUrgency never mutate original case records', () => {
+    const testCase: CaseRecord = { ...baseCase };
+    const freezeOriginal = Object.freeze({ ...testCase });
+
+    const analysis = calculateDeterministicUrgency(freezeOriginal);
+    expect(analysis).toBeDefined();
+
+    const sorted = sortCasesByDeterministicUrgency([freezeOriginal]);
+    expect(sorted.length).toBe(1);
+    expect(freezeOriginal.status).toBe(testCase.status);
+    expect(freezeOriginal.expectedDisposalDate).toBe(testCase.expectedDisposalDate);
   });
 });

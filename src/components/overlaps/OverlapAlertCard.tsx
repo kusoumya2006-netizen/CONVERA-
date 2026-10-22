@@ -3,6 +3,7 @@ import { useCaseWatch } from '../../context/CaseWatchContext';
 import { OverlapAlert } from '../../types';
 import { BureauBadge, StatusBadge, OverlapReviewBadge, PriorityBadge } from '../common/StatusBadge';
 import { CoordinateModal } from './CoordinateModal';
+import { calculateDeterministicUrgency } from '../../engine/urgencyCalculator';
 import {
   GitCompare,
   AlertOctagon,
@@ -10,7 +11,11 @@ import {
   ShieldCheck,
   Calendar,
   Layers,
-  FileText
+  Compass,
+  Link2,
+  Clock,
+  XCircle,
+  Activity
 } from 'lucide-react';
 
 interface OverlapAlertCardProps {
@@ -18,7 +23,7 @@ interface OverlapAlertCardProps {
 }
 
 export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => {
-  const { cases, setSelectedCaseId } = useCaseWatch();
+  const { cases, setSelectedCaseId, setActiveTab } = useCaseWatch();
   const [isCoordinateOpen, setIsCoordinateOpen] = useState(false);
 
   // Retrieve full case records involved in this overlap
@@ -39,6 +44,18 @@ export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => 
             <span className="font-mono text-xs font-bold text-[#E8EAED] px-2 py-0.5 rounded bg-[#161A20] border border-[#272D35]">
               {alert.alertId}
             </span>
+
+            {/* Matching Strategy & Confidence */}
+            <span
+              className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded border ${
+                alert.matchingStrategy === 'EXACT_PID'
+                  ? 'bg-[#A3B86C]/10 text-[#A3B86C] border-[#A3B86C]/30'
+                  : 'bg-[#E8B75C]/10 text-[#E8B75C] border-[#E8B75C]/30'
+              }`}
+            >
+              {alert.matchingStrategy === 'EXACT_PID' ? 'MATCH: EXACT PID' : 'MATCH: NORMALIZED NAME'}
+            </span>
+
             <span
               className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded border ${
                 alert.confidence === 'HIGH'
@@ -48,16 +65,41 @@ export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => 
             >
               {alert.confidence} CONFIDENCE
             </span>
+
             {hasRbAndPgrc && (
               <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#F16D75]/10 text-[#F16D75] border border-[#F16D75]/30">
                 CRITICAL RB + PGRC
               </span>
             )}
+
             {alert.categoryCorrelation && (
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#161A20] text-[#A3B86C] border border-[#272D35]">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#161A20] text-[#E8EAED] border border-[#272D35]">
                 {alert.categoryCorrelation.replace('_', ' ')}
               </span>
             )}
+
+            {alert.isConfirmedRelated && (
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#69C9A0]/10 text-[#69C9A0] border border-[#69C9A0]/30 flex items-center gap-1">
+                <Link2 className="w-2.5 h-2.5" />
+                CONFIRMED RELATED DOSSIERS
+              </span>
+            )}
+
+            {alert.highestUrgency && alert.highestUrgency !== 'NORMAL' && (
+              <span
+                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border flex items-center gap-1 ${
+                  alert.highestUrgency === 'OVERDUE'
+                    ? 'bg-[#F16D75]/10 text-[#F16D75] border-[#F16D75]/30 animate-pulse'
+                    : alert.highestUrgency === 'DUE_SOON'
+                    ? 'bg-[#E8B75C]/10 text-[#E8B75C] border-[#E8B75C]/30'
+                    : 'bg-[#86A9FF]/10 text-[#86A9FF] border-[#86A9FF]/30'
+                }`}
+              >
+                <Clock className="w-2.5 h-2.5" />
+                URGENCY: {alert.highestUrgency.replace('_', ' ')}
+              </span>
+            )}
+
             <OverlapReviewBadge status={alert.reviewStatus} />
           </div>
 
@@ -101,6 +143,15 @@ export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => 
             </span>
           </div>
         )}
+
+        {alert.recommendedAction && (
+          <div className="flex items-start gap-2 pl-6 text-[11px] text-[#A3B86C]">
+            <Compass className="w-3.5 h-3.5 text-[#A3B86C] shrink-0 mt-0.5" />
+            <span>
+              <strong className="text-[#E8EAED]">Recommended Action:</strong> {alert.recommendedAction}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Side-by-side Case Comparison */}
@@ -116,14 +167,16 @@ export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => 
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {involvedCaseRecords.map(c => {
-            const diffDays = Math.ceil((new Date(c.expectedDisposalDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-            const isOverdue = diffDays < 0;
+            const urgency = calculateDeterministicUrgency(c);
 
             return (
               <div
                 key={c.caseId}
-                onClick={() => setSelectedCaseId(c.caseId)}
-                className="p-3.5 rounded-md border border-[#272D35] bg-[#111419] hover:bg-[#161A20] hover:border-[#38414D] cursor-pointer transition-all space-y-2"
+                onClick={() => {
+                  setSelectedCaseId(c.caseId);
+                  setActiveTab('registry');
+                }}
+                className="p-3.5 rounded-md border border-[#272D35] bg-[#111419] hover:bg-[#161A20] hover:border-[#38414D] cursor-pointer transition-all space-y-2.5"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -131,7 +184,20 @@ export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => 
                     <BureauBadge bureau={c.bureau} size="sm" />
                     <PriorityBadge priority={c.priority} size="sm" />
                   </div>
-                  <StatusBadge status={c.status} size="sm" />
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded border ${
+                        urgency.isOverdue
+                          ? 'bg-[#F16D75]/15 text-[#F16D75] border-[#F16D75]/30'
+                          : urgency.isDueWithin24h || urgency.daysUntilDue <= 2
+                          ? 'bg-[#E8B75C]/15 text-[#E8B75C] border-[#E8B75C]/30'
+                          : 'bg-[#161A20] text-[#A0A7B2] border-[#272D35]'
+                      }`}
+                    >
+                      {urgency.deadlineCountdown}
+                    </span>
+                    <StatusBadge status={c.status} size="sm" />
+                  </div>
                 </div>
 
                 <div>
@@ -139,15 +205,27 @@ export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => 
                   <p className="text-[11px] text-[#A0A7B2] line-clamp-2 mt-0.5 leading-relaxed">{c.description}</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-[10px] font-mono pt-1 text-[#737D8B]">
+                {/* Progress & Next Step */}
+                <div className="p-2 rounded bg-[#0B0D10] border border-[#272D35] text-[10px] space-y-1">
+                  <div className="flex items-center justify-between text-[#737D8B]">
+                    <span>Last Action:</span>
+                    <span className="text-[#A0A7B2] truncate max-w-[210px] font-mono">{c.lastAction}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[#737D8B]">
+                    <span>Next Action:</span>
+                    <span className="text-[#A3B86C] truncate max-w-[210px] font-mono font-medium">{c.nextAction || 'Pending review'}</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[10px] font-mono pt-0.5 text-[#737D8B]">
                   <div>
                     <span>Received: </span>
                     <span className="text-[#A0A7B2]">{c.receivedAt.split('T')[0]}</span>
                   </div>
                   <div className="text-right">
-                    <span>Deadline: </span>
-                    <span className={isOverdue ? 'text-[#F16D75] font-bold' : 'text-[#E8B75C]'}>
-                      {c.expectedDisposalDate.split('T')[0]} ({isOverdue ? `Overdue ${Math.abs(diffDays)}d` : `Due in ${diffDays}d`})
+                    <span>Target: </span>
+                    <span className={urgency.isOverdue ? 'text-[#F16D75] font-bold' : 'text-[#E8EAED]'}>
+                      {c.expectedDisposalDate.split('T')[0]}
                     </span>
                   </div>
                 </div>
@@ -170,13 +248,21 @@ export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => 
       {alert.reviewStatus !== 'PENDING_REVIEW' && (
         <div className="px-4 py-2.5 bg-[#111419] border-t border-[#272D35] text-xs flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-[#E8EAED]">
-            <ShieldCheck className="w-4 h-4 text-[#69C9A0]" />
+            {alert.reviewStatus === 'DISMISSED' ? (
+              <XCircle className="w-4 h-4 text-[#737D8B]" />
+            ) : (
+              <ShieldCheck className="w-4 h-4 text-[#69C9A0]" />
+            )}
             <span>
-              <strong className="text-[#A0A7B2]">Coordination Action:</strong> {alert.coordinationRemarks}
+              <strong className="text-[#A0A7B2]">
+                {alert.reviewStatus === 'DISMISSED' ? 'Dismissal Rationale:' : 'Coordination Action:'}
+              </strong>{' '}
+              {alert.dismissalReason ? `${alert.dismissalReason} — ` : ''}
+              {alert.coordinationRemarks}
             </span>
           </div>
           <div className="text-[11px] text-[#737D8B] font-mono">
-            Lead Bureau: <strong className="text-[#E8EAED]">{alert.leadBureau || 'Joint'}</strong> • Reviewed by {alert.reviewedBy}
+            Lead Bureau: <strong className="text-[#E8EAED]">{alert.leadBureau || 'Joint'}</strong> • Reviewed by {alert.reviewedBy || 'Redressal Coordinator'}
           </div>
         </div>
       )}

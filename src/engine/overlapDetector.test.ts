@@ -264,5 +264,82 @@ describe('Deterministic Overlap Detection Engine', () => {
       expect(alerts[0].confidence).toBe('MEDIUM');
       expect(alerts[0].matchingEvidence).toContain('Normalized Institution Name match');
     });
+
+    it('Scenario 7: Generates actionable recommendedAction according to category correlation', () => {
+      // Identical category: joint hearing directive
+      const casesIdentical: CaseRecord[] = [
+        { ...baseCase, caseId: 'RB-1', category: 'Unlawful Fee Demands', bureau: 'RB' },
+        { ...baseCase, caseId: 'PGRC-1', category: 'Unlawful Fee Demands', bureau: 'PGRC' }
+      ];
+      const alertIdentical = detectCrossBureauOverlaps(casesIdentical, sampleInstitutions)[0];
+      expect(alertIdentical.recommendedAction).toContain('Convene joint RB & PGRC directive hearing');
+
+      // Related theme: synchronize hearing dates and inspection findings
+      const casesRelated: CaseRecord[] = [
+        { ...baseCase, caseId: 'RB-2', category: 'Unlawful Fee Demands', bureau: 'RB' },
+        { ...baseCase, caseId: 'PGRC-2', category: 'Capitation Fee Allegation', bureau: 'PGRC' }
+      ];
+      const alertRelated = detectCrossBureauOverlaps(casesRelated, sampleInstitutions)[0];
+      expect(alertRelated.recommendedAction).toContain('Cross-reference case records, synchronize hearing dates');
+
+      // Distinct matters: coordinate schedules to avoid conflicting dates
+      const casesDistinct: CaseRecord[] = [
+        { ...baseCase, caseId: 'RB-3', category: 'Unlawful Fee Demands', bureau: 'RB' },
+        { ...baseCase, caseId: 'PGRC-3', category: 'Infrastructure Non-Compliance', bureau: 'PGRC' }
+      ];
+      const alertDistinct = detectCrossBureauOverlaps(casesDistinct, sampleInstitutions)[0];
+      expect(alertDistinct.recommendedAction).toContain('Coordinate hearing schedules to avoid conflicting institution appearance dates');
+    });
+
+    it('Scenario 8: Identifies confirmed related cases when relatedCaseIds are mutually linked', () => {
+      const casesUnlinked: CaseRecord[] = [
+        { ...baseCase, caseId: 'RB-A', bureau: 'RB', relatedCaseIds: [] },
+        { ...baseCase, caseId: 'PGRC-A', bureau: 'PGRC', relatedCaseIds: [] }
+      ];
+      const alertsUnlinked = detectCrossBureauOverlaps(casesUnlinked, sampleInstitutions);
+      expect(alertsUnlinked[0].isConfirmedRelated).toBe(false);
+
+      const casesLinked: CaseRecord[] = [
+        { ...baseCase, caseId: 'RB-A', bureau: 'RB', relatedCaseIds: ['PGRC-A'] },
+        { ...baseCase, caseId: 'PGRC-A', bureau: 'PGRC', relatedCaseIds: ['RB-A'] }
+      ];
+      const alertsLinked = detectCrossBureauOverlaps(casesLinked, sampleInstitutions);
+      expect(alertsLinked[0].isConfirmedRelated).toBe(true);
+    });
+
+    it('Scenario 9: Bubble-up highest urgency when active case is overdue', () => {
+      const pastDeadline = new Date(Date.now() - 3 * 86400000).toISOString();
+      const futureDeadline = new Date(Date.now() + 30 * 86400000).toISOString();
+
+      const cases: CaseRecord[] = [
+        { ...baseCase, caseId: 'RB-OD', bureau: 'RB', expectedDisposalDate: pastDeadline },
+        { ...baseCase, caseId: 'PGRC-NORM', bureau: 'PGRC', expectedDisposalDate: futureDeadline }
+      ];
+      const alert = detectCrossBureauOverlaps(cases, sampleInstitutions)[0];
+      expect(alert.highestUrgency).toBe('OVERDUE');
+    });
+
+    it('Scenario 10: Preserves dismissal status and dismissalReason across recalculation cycles', () => {
+      const cases: CaseRecord[] = [
+        { ...baseCase, caseId: 'RB-D', bureau: 'RB' },
+        { ...baseCase, caseId: 'PGRC-D', bureau: 'PGRC' }
+      ];
+      const initialAlert = detectCrossBureauOverlaps(cases, sampleInstitutions)[0];
+
+      const dismissedAlert: OverlapAlert = {
+        ...initialAlert,
+        reviewStatus: 'DISMISSED',
+        dismissalReason: 'Verified as completely separate grievances regarding two distinct departments.',
+        coordinationRemarks: 'Reviewed with regional officer. No coordination needed.'
+      };
+
+      const recheckedAlerts = detectCrossBureauOverlaps(cases, sampleInstitutions, {
+        existingAlerts: [dismissedAlert]
+      });
+
+      expect(recheckedAlerts[0].reviewStatus).toBe('DISMISSED');
+      expect(recheckedAlerts[0].dismissalReason).toBe(dismissedAlert.dismissalReason);
+      expect(recheckedAlerts[0].coordinationRemarks).toBe(dismissedAlert.coordinationRemarks);
+    });
   });
 });

@@ -1,5 +1,7 @@
 import React from 'react';
 import { CaseStatus, Bureau, Priority, ReviewStatus } from '../../types';
+import { UrgencyAnalysis, UrgencyBadge } from '../../engine/urgencyCalculator';
+import { AlertTriangle, Clock, Flame, ShieldAlert, CheckCircle2 } from 'lucide-react';
 
 interface StatusBadgeProps {
   status: CaseStatus;
@@ -87,3 +89,44 @@ export const OverlapReviewBadge: React.FC<{ status: ReviewStatus }> = ({ status 
     </span>
   );
 };
+
+export const UrgencyBadgeView: React.FC<{
+  analysis: UrgencyAnalysis;
+  size?: 'sm' | 'md';
+  showCountdown?: boolean;
+}> = ({ analysis, size = 'sm', showCountdown = false }) => {
+  const styles: Record<UrgencyBadge, string> = {
+    'OVERDUE': 'bg-[#F16D75]/15 text-[#F16D75] border-[#F16D75]/40 font-bold',
+    'DUE_SOON': 'bg-[#E8B75C]/15 text-[#E8B75C] border-[#E8B75C]/40 font-bold',
+    'ESCALATED': 'bg-[#B392F0]/15 text-[#B392F0] border-[#B392F0]/40 font-bold',
+    'HIGH_PRIORITY': 'bg-[#A3B86C]/15 text-[#A3B86C] border-[#A3B86C]/40 font-semibold',
+    'NORMAL': 'bg-[#161A20] text-[#A0A7B2] border-[#272D35]'
+  };
+
+  const badgeLabels: Record<UrgencyBadge, string> = {
+    'OVERDUE': 'OVERDUE',
+    'DUE_SOON': 'DUE SOON',
+    'ESCALATED': 'ESCALATED',
+    'HIGH_PRIORITY': 'HIGH PRIORITY',
+    'NORMAL': 'NORMAL'
+  };
+
+  const sizeClasses = size === 'sm' ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-0.5 text-[10px]';
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 font-mono rounded border ${styles[analysis.urgencyBadge]} ${sizeClasses}`}
+      title={analysis.indicatorText}
+    >
+      {analysis.urgencyBadge === 'OVERDUE' && <AlertTriangle className="w-2.5 h-2.5 shrink-0" />}
+      {analysis.urgencyBadge === 'DUE_SOON' && <Clock className="w-2.5 h-2.5 shrink-0" />}
+      {analysis.urgencyBadge === 'ESCALATED' && <ShieldAlert className="w-2.5 h-2.5 shrink-0" />}
+      {analysis.urgencyBadge === 'HIGH_PRIORITY' && <Flame className="w-2.5 h-2.5 shrink-0" />}
+      <span>{badgeLabels[analysis.urgencyBadge]}</span>
+      {showCountdown && analysis.deadlineCountdown && (
+        <span className="opacity-90 font-normal">({analysis.deadlineCountdown})</span>
+      )}
+    </span>
+  );
+};
+

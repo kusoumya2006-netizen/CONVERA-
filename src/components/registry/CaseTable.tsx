@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useCaseWatch } from '../../context/CaseWatchContext';
-import { StatusBadge, BureauBadge, PriorityBadge } from '../common/StatusBadge';
+import { StatusBadge, BureauBadge, PriorityBadge, UrgencyBadgeView } from '../common/StatusBadge';
+import { calculateDeterministicUrgency } from '../../engine/urgencyCalculator';
 import {
   ChevronLeft,
   ChevronRight,
@@ -23,6 +24,14 @@ export const CaseTable: React.FC = () => {
       }
     }
     return map;
+  }, [alerts]);
+
+  const activeOverlapCaseIds = useMemo(() => {
+    const set = new Set<string>();
+    alerts
+      .filter(a => a.reviewStatus === 'PENDING_REVIEW')
+      .forEach(a => a.caseIds.forEach(id => set.add(id)));
+    return set;
   }, [alerts]);
 
   const totalPages = Math.max(1, Math.ceil(filteredCases.length / pageSize));
@@ -58,8 +67,8 @@ export const CaseTable: React.FC = () => {
             ) : (
               currentRecords.map(c => {
                 const hasOverlap = overlapInstIdMap.has(c.institutionId);
-                const dueMs = new Date(c.expectedDisposalDate).getTime();
-                const isOverdue = c.status !== 'Disposed' && dueMs < nowMs;
+                const urgency = calculateDeterministicUrgency(c, activeOverlapCaseIds);
+                const isOverdue = urgency.isOverdue;
 
                 return (
                   <tr
@@ -142,14 +151,16 @@ export const CaseTable: React.FC = () => {
                       )}
                     </td>
                     <td className="px-3 py-3">
-                      <div className={`font-mono text-[11px] ${isOverdue ? 'text-[#F16D75] font-bold' : 'text-[#A0A7B2]'}`}>
-                        {c.expectedDisposalDate ? c.expectedDisposalDate.split('T')[0] : ''}
-                      </div>
-                      {isOverdue && (
-                        <span className="inline-flex items-center gap-0.5 text-[9px] text-[#F16D75] font-mono font-bold">
-                          <AlertTriangle className="w-2.5 h-2.5" /> OVERDUE
+                      <div className="flex flex-col gap-1">
+                        <span className={`font-mono text-[11px] ${isOverdue ? 'text-[#F16D75] font-bold' : 'text-[#A0A7B2]'}`}>
+                          {c.expectedDisposalDate ? c.expectedDisposalDate.split('T')[0] : 'N/A'}
                         </span>
-                      )}
+                        {c.status !== 'Disposed' ? (
+                          <UrgencyBadgeView analysis={urgency} size="sm" showCountdown />
+                        ) : (
+                          <span className="font-mono text-[9px] text-[#69C9A0]">Resolved</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-3 py-3 text-center" onClick={e => e.stopPropagation()}>
                       {hasOverlap ? (

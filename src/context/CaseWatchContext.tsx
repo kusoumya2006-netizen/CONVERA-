@@ -13,7 +13,10 @@ import {
   NavTab
 } from '../types';
 import { loadInitialData, saveDataToStorage, resetStorage, getStorageService, isSupabaseConfigured } from '../services/storageService';
+import { getSupabaseClient } from '../services/supabaseClient';
 import { detectCrossBureauOverlaps } from '../engine/overlapDetector';
+import { calculateDeterministicUrgency, sortCasesByDeterministicUrgency } from '../engine/urgencyCalculator';
+import { AuthContext } from './AuthContext';
 
 interface CaseWatchContextType {
   institutions: Institution[];
@@ -33,20 +36,22 @@ interface CaseWatchContextType {
   filteredCases: CaseRecord[];
   
   // Data modification actions
-  addCase: (caseData: Omit<CaseRecord, 'createdAt' | 'updatedAt'>) => void;
-  updateCaseStatus: (caseId: string, status: CaseStatus, remarks: string, officer: string, resolutionSummary?: string, officerId?: string) => void;
-  addCaseAction: (caseId: string, actionType: ActionType, remarks: string, officer: string, nextAction?: string) => void;
-  reassignBureau: (caseId: string, newBureau: Bureau, remarks: string, officer: string) => void;
-  recordEscalation: (caseId: string, remarks: string, officer: string) => void;
-  linkRelatedCases: (caseId1: string, caseId2: string, remarks: string, officer: string) => void;
-  reopenCase: (caseId: string, reopenReason: string, officer: string) => void;
-  mergeCases: (primaryCaseId: string, childCaseId: string, mergeReason: string, officer: string) => boolean;
-  unmergeCase: (childCaseId: string, officer: string, reason: string) => boolean;
-  reviewOverlapAlert: (alertId: string, reviewStatus: ReviewStatus, remarks: string, leadBureau?: Bureau, reviewer?: string) => void;
+  addCase: (caseData: Omit<CaseRecord, 'createdAt' | 'updatedAt'>) => Promise<{ success: boolean; error?: string }>;
+  updateCaseStatus: (caseId: string, status: CaseStatus, remarks: string, officer: string, resolutionSummary?: string, officerId?: string) => Promise<{ success: boolean; error?: string }>;
+  addCaseAction: (caseId: string, actionType: ActionType, remarks: string, officer: string, nextAction?: string) => Promise<{ success: boolean; error?: string }>;
+  reassignBureau: (caseId: string, newBureau: Bureau, remarks: string, officer: string) => Promise<{ success: boolean; error?: string }>;
+  recordEscalation: (caseId: string, remarks: string, officer: string) => Promise<{ success: boolean; error?: string }>;
+  linkRelatedCases: (caseId1: string, caseId2: string, remarks: string, officer: string) => Promise<{ success: boolean; error?: string; alreadyLinked?: boolean }>;
+  reopenCase: (caseId: string, reopenReason: string, officer: string) => Promise<{ success: boolean; error?: string }>;
+  mergeCases: (primaryCaseId: string, childCaseId: string, mergeReason: string, officer: string) => Promise<boolean>;
+  unmergeCase: (childCaseId: string, officer: string, reason: string) => Promise<boolean>;
+  reviewOverlapAlert: (alertId: string, reviewStatus: ReviewStatus, remarks: string, leadBureau?: Bureau, reviewer?: string, dismissalReason?: string) => Promise<{ success: boolean; error?: string }>;
   resetToSeedData: () => void;
   isDemoMode: boolean;
   storageMode: 'supabase' | 'local';
   isLoadingCloudData: boolean;
+  cloudError: string | null;
+  syncCloudData: () => Promise<void>;
   toastMessage: { text: string; type: 'success' | 'info' | 'warning' } | null;
   showToast: (text: string, type?: 'success' | 'info' | 'warning') => void;
 }
@@ -63,43 +68,69 @@ const defaultFilters: FilterState = {
 const CaseWatchContext = createContext<CaseWatchContextType | undefined>(undefined);
 
 export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const authContext = useContext(AuthContext);
+  const authUser = authContext?.user || null;
   const [initialData] = useState(() => loadInitialData());
 
-  const [institutions, setInstitutions] = useState<Institution[]>(initialData.institutions);
-  const [cases, setCases] = useState<CaseRecord[]>(initialData.cases);
-  const [actions, setActions] = useState<CaseAction[]>(initialData.actions);
-  const [alerts, setAlerts] = useState<OverlapAlert[]>(initialData.alerts);
+  const [storageMode, setStorageMode] = useState<'supabase' | 'local'>(() => isSupabaseConfigured() ? 'supabase' : 'local');
+  // In Supabase cloud mode, never initialize institutions with synthetic mock IDs to prevent foreign key errors.
+  const [institutions, setInstitutions] = useState<Institution[]>(() => isSupabaseConfigured() ? [] : initialData.institutions);
+  const [cases, setCases] = useState<CaseRecord[]>(() => isSupabaseConfigured() ? [] : initialData.cases);
+  const [actions, setActions] = useState<CaseAction[]>(() => isSupabaseConfigured() ? [] : initialData.actions);
+  const [alerts, setAlerts] = useState<OverlapAlert[]>(() => isSupabaseConfigured() ? [] : initialData.alerts);
   const [filters, setFilterState] = useState<FilterState>(defaultFilters);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [selectedInstitutionId, setSelectedInstitutionId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'info' | 'warning' } | null>(null);
-  const [storageMode, setStorageMode] = useState<'supabase' | 'local'>(() => isSupabaseConfigured() ? 'supabase' : 'local');
   const [isLoadingCloudData, setIsLoadingCloudData] = useState<boolean>(false);
+  const [cloudError, setCloudError] = useState<string | null>(null);
 
-  // Sync with Supabase on mount if configured
-  useEffect(() => {
-    if (isSupabaseConfigured()) {
-      setIsLoadingCloudData(true);
-      getStorageService()
-        .loadInitialData()
-        .then(cloudData => {
-          if (cloudData.cases && cloudData.cases.length > 0) {
-            setInstitutions(cloudData.institutions);
-            setCases(cloudData.cases);
-            setActions(cloudData.actions);
-            setAlerts(cloudData.alerts);
-            setStorageMode('supabase');
-          }
-        })
-        .catch(err => {
-          console.warn('Could not sync with Supabase cloud on initial load:', err);
-        })
-        .finally(() => {
-          setIsLoadingCloudData(false);
-        });
+  const syncCloudData = useCallback(async () => {
+    if (!isSupabaseConfigured()) {
+      setStorageMode('local');
+      return;
+    }
+
+    setIsLoadingCloudData(true);
+    setCloudError(null);
+    try {
+      const cloudData = await getStorageService().loadInitialData();
+      if (cloudData.institutions && cloudData.institutions.length > 0) {
+        setInstitutions(cloudData.institutions);
+        setCases(cloudData.cases || []);
+        setActions(cloudData.actions || []);
+        setAlerts(cloudData.alerts || []);
+        setStorageMode('supabase');
+      } else {
+        setCloudError('Supabase public.institutions table returned 0 rows. Cloud institutions must be seeded.');
+      }
+    } catch (err: any) {
+      console.warn('Could not sync with Supabase cloud:', err);
+      setCloudError(err?.message || 'Failed to load institutions from Supabase cloud database.');
+    } finally {
+      setIsLoadingCloudData(false);
     }
   }, []);
+
+  // Sync on mount and subscribe to auth state changes so institutions re-fetch when authenticated
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+
+    syncCloudData();
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || (session && event === 'INITIAL_SESSION')) {
+          syncCloudData();
+        }
+      });
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, [syncCloudData]);
 
   const showToast = useCallback((text: string, type: 'success' | 'info' | 'warning' = 'info') => {
     setToastMessage({ text, type });
@@ -108,10 +139,12 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }, 4000);
   }, []);
 
-  // Save changes to localStorage whenever data changes
+  // Save changes to localStorage whenever data changes (in local demo mode only)
   useEffect(() => {
-    saveDataToStorage(institutions, cases, actions, alerts);
-  }, [institutions, cases, actions, alerts]);
+    if (storageMode === 'local') {
+      saveDataToStorage(institutions, cases, actions, alerts);
+    }
+  }, [institutions, cases, actions, alerts, storageMode]);
 
   // Recalculate overlaps whenever cases change
   const refreshOverlaps = useCallback((currentCases: CaseRecord[], currentInstitutions: Institution[], currentAlerts: OverlapAlert[]) => {
@@ -131,7 +164,9 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   // Add Case
-  const addCase = (caseData: Omit<CaseRecord, 'createdAt' | 'updatedAt'>) => {
+  const addCase = async (
+    caseData: Omit<CaseRecord, 'createdAt' | 'updatedAt'>
+  ): Promise<{ success: boolean; error?: string }> => {
     const now = new Date().toISOString();
     const newRecord: CaseRecord = {
       ...caseData,
@@ -139,15 +174,49 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       updatedAt: now
     };
 
+    const actingBureau = (authUser?.bureau && authUser.bureau !== 'ALL') ? authUser.bureau : newRecord.bureau;
+    const actingOfficer = authUser?.displayName || newRecord.assignedOfficer;
+
     const initialAction: CaseAction = {
       actionId: `ACT-${Date.now()}`,
       caseId: newRecord.caseId,
       actionType: 'CASE_FILED',
-      remarks: `Complaint registered in ${newRecord.bureau} system by ${newRecord.assignedOfficer}.`,
-      bureau: newRecord.bureau,
-      officer: newRecord.assignedOfficer,
+      remarks: `Complaint registered in ${newRecord.bureau} system by ${actingOfficer}.`,
+      bureau: actingBureau,
+      officer: actingOfficer,
       timestamp: now
     };
+
+    const storage = getStorageService();
+    const isCloud = storage.mode === 'supabase' && isSupabaseConfigured();
+
+    if (isCloud) {
+      // 1. Await persistence of the case
+      try {
+        await storage.saveCase(newRecord);
+      } catch (err: any) {
+        const errorMsg = err?.message || 'Failed to save case in Supabase database';
+        showToast(`Cloud write failed: ${errorMsg}`, 'warning');
+        return { success: false, error: errorMsg };
+      }
+
+      // 2. Await persistence of the initial action
+      try {
+        await storage.saveAction(initialAction);
+      } catch (err: any) {
+        // Case was persisted, but initial action failed.
+        // Avoid retrying saveCase to prevent duplicates.
+        const updatedCases = [newRecord, ...cases];
+        setCases(updatedCases);
+        refreshOverlaps(updatedCases, institutions, alerts);
+        const actionErrMsg = `Case ${newRecord.caseId} registered, but initial action history could not be saved: ${err?.message || 'Unknown error'}`;
+        showToast(actionErrMsg, 'warning');
+        return { success: false, error: actionErrMsg };
+      }
+    } else {
+      await storage.saveCase(newRecord);
+      await storage.saveAction(initialAction);
+    }
 
     const updatedCases = [newRecord, ...cases];
     const updatedActions = [initialAction, ...actions];
@@ -155,8 +224,15 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setActions(updatedActions);
 
     const newAlerts = refreshOverlaps(updatedCases, institutions, alerts);
-    const triggeredAlert = newAlerts.find(a => a.caseIds.includes(newRecord.caseId));
+    if (isCloud && newAlerts.length > 0) {
+      try {
+        await storage.saveAlerts(newAlerts);
+      } catch (alertErr) {
+        console.warn('Could not persist updated overlap alerts to Supabase:', alertErr);
+      }
+    }
 
+    const triggeredAlert = newAlerts.find(a => a.caseIds.includes(newRecord.caseId));
     if (triggeredAlert) {
       showToast(
         `Case ${newRecord.caseId} registered. WARNING: Cross-bureau overlap detected with ${triggeredAlert.institutionName}!`,
@@ -165,54 +241,60 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } else {
       showToast(`Case ${newRecord.caseId} successfully registered.`, 'success');
     }
+
+    return { success: true };
   };
 
   // Update Status
-  const updateCaseStatus = (
+  const updateCaseStatus = async (
     caseId: string,
     status: CaseStatus,
     remarks: string,
     officer: string,
     resolutionSummary?: string,
     officerId?: string
-  ) => {
-    const now = new Date().toISOString();
-    let bureau: Bureau = 'RB';
-    let oldStatus: CaseStatus = 'Pending';
+  ): Promise<{ success: boolean; error?: string }> => {
+    const targetCase = cases.find(c => c.caseId === caseId);
+    if (!targetCase) {
+      return { success: false, error: `Case ${caseId} not found.` };
+    }
 
-    const updatedCases = cases.map(c => {
-      if (c.caseId === caseId) {
-        bureau = c.bureau;
-        oldStatus = c.status;
-        const isDisposing = status === 'Disposed';
-        return {
-          ...c,
-          status,
-          lastAction: isDisposing 
-            ? `Disposed & Closed: ${resolutionSummary || remarks}`
-            : `Status updated to ${status}. ${remarks}`,
-          lastActionAt: now,
-          updatedAt: now,
-          ...(isDisposing ? {
-            completedAt: now,
-            completedBy: officer,
-            completedByOfficerId: officerId,
-            resolutionSummary: resolutionSummary || remarks
-          } : {})
-        };
-      }
-      return c;
-    });
+    if (authUser && authUser.role !== 'SUPER_ADMIN' && authUser.bureau !== 'ALL' && authUser.bureau !== targetCase.bureau) {
+      const errorMsg = `Jurisdiction Denied: Official (${authUser.displayName} - ${authUser.bureau}) cannot modify status of case ${caseId} under jurisdiction of ${targetCase.bureau}.`;
+      showToast(errorMsg, 'warning');
+      return { success: false, error: errorMsg };
+    }
+
+    const now = new Date().toISOString();
+    const actingOfficer = authUser?.displayName || officer;
+    const actingBureau: Bureau = (authUser?.bureau && authUser.bureau !== 'ALL') ? authUser.bureau : targetCase.bureau;
+    const oldStatus: CaseStatus = targetCase.status;
+    const isDisposing = status === 'Disposed';
+
+    const caseUpdates: Partial<CaseRecord> = {
+      status,
+      lastAction: isDisposing 
+        ? `Disposed & Closed: ${resolutionSummary || remarks}`
+        : `Status updated to ${status}. ${remarks}`,
+      lastActionAt: now,
+      updatedAt: now,
+      ...(isDisposing ? {
+        completedAt: now,
+        completedBy: actingOfficer,
+        completedByOfficerId: officerId,
+        resolutionSummary: resolutionSummary || remarks
+      } : {})
+    };
 
     const newAction: CaseAction = {
       actionId: `ACT-${Date.now()}`,
       caseId,
       actionType: status === 'Disposed' ? 'CASE_DISPOSED' : 'REMARKS_ADDED',
       remarks: status === 'Disposed'
-        ? `Case Disposed & Closed by ${officer}. Resolution: ${resolutionSummary || remarks}`
+        ? `Case Disposed & Closed by ${actingOfficer}. Resolution: ${resolutionSummary || remarks}`
         : `Status changed to [${status}]. Remarks: ${remarks}`,
-      bureau,
-      officer,
+      bureau: actingBureau,
+      officer: actingOfficer,
       timestamp: now,
       previousValue: oldStatus,
       newValue: status,
@@ -220,42 +302,70 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       justification: resolutionSummary || remarks
     };
 
+    const storage = getStorageService();
+    const isCloud = storage.mode === 'supabase' && isSupabaseConfigured();
+
+    if (isCloud) {
+      try {
+        await storage.updateCase(caseId, caseUpdates);
+        await storage.saveAction(newAction);
+      } catch (err: any) {
+        const errorMsg = err?.message || 'Failed to update case in Supabase';
+        showToast(`Update failed: ${errorMsg}`, 'warning');
+        return { success: false, error: errorMsg };
+      }
+    } else {
+      await storage.updateCase(caseId, caseUpdates);
+      await storage.saveAction(newAction);
+    }
+
+    const updatedCases = cases.map(c => (c.caseId === caseId ? { ...c, ...caseUpdates } : c));
     const updatedActions = [newAction, ...actions];
     setCases(updatedCases);
     setActions(updatedActions);
     refreshOverlaps(updatedCases, institutions, alerts);
     showToast(`Case ${caseId} status updated to ${status}.`, 'success');
+    return { success: true };
   };
 
   // Reopen Case (P1 requirement)
-  const reopenCase = (caseId: string, reopenReason: string, officer: string) => {
-    const now = new Date().toISOString();
-    let bureau: Bureau = 'RB';
+  const reopenCase = async (
+    caseId: string,
+    reopenReason: string,
+    officer: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const targetCase = cases.find(c => c.caseId === caseId);
+    if (!targetCase) {
+      return { success: false, error: `Case ${caseId} not found.` };
+    }
 
-    const updatedCases = cases.map(c => {
-      if (c.caseId === caseId) {
-        bureau = c.bureau;
-        return {
-          ...c,
-          status: 'Under Process' as CaseStatus,
-          reopenedAt: now,
-          reopenedBy: officer,
-          reopenReason,
-          lastAction: `Case reopened from Disposed status. Reason: ${reopenReason}`,
-          lastActionAt: now,
-          updatedAt: now
-        };
-      }
-      return c;
-    });
+    if (authUser && authUser.role !== 'SUPER_ADMIN' && authUser.bureau !== 'ALL' && authUser.bureau !== targetCase.bureau) {
+      const errorMsg = `Jurisdiction Denied: Official (${authUser.displayName} - ${authUser.bureau}) cannot reopen case ${caseId} under jurisdiction of ${targetCase.bureau}.`;
+      showToast(errorMsg, 'warning');
+      return { success: false, error: errorMsg };
+    }
+
+    const now = new Date().toISOString();
+    const actingOfficer = authUser?.displayName || officer;
+    const actingBureau: Bureau = (authUser?.bureau && authUser.bureau !== 'ALL') ? authUser.bureau : targetCase.bureau;
+
+    const caseUpdates: Partial<CaseRecord> = {
+      status: 'Under Process' as CaseStatus,
+      reopenedAt: now,
+      reopenedBy: actingOfficer,
+      reopenReason,
+      lastAction: `Case reopened from Disposed status. Reason: ${reopenReason}`,
+      lastActionAt: now,
+      updatedAt: now
+    };
 
     const newAction: CaseAction = {
       actionId: `ACT-REOPEN-${Date.now()}`,
       caseId,
       actionType: 'CASE_REOPENED',
-      remarks: `Case reopened by ${officer}. Reopen Reason: ${reopenReason}`,
-      bureau,
-      officer,
+      remarks: `Case reopened by ${actingOfficer}. Reopen Reason: ${reopenReason}`,
+      bureau: actingBureau,
+      officer: actingOfficer,
       timestamp: now,
       previousValue: 'Disposed',
       newValue: 'Under Process',
@@ -263,20 +373,39 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       justification: reopenReason
     };
 
+    const storage = getStorageService();
+    const isCloud = storage.mode === 'supabase' && isSupabaseConfigured();
+
+    if (isCloud) {
+      try {
+        await storage.updateCase(caseId, caseUpdates);
+        await storage.saveAction(newAction);
+      } catch (err: any) {
+        const errorMsg = err?.message || 'Failed to reopen case in Supabase';
+        showToast(`Reopen failed: ${errorMsg}`, 'warning');
+        return { success: false, error: errorMsg };
+      }
+    } else {
+      await storage.updateCase(caseId, caseUpdates);
+      await storage.saveAction(newAction);
+    }
+
+    const updatedCases = cases.map(c => (c.caseId === caseId ? { ...c, ...caseUpdates } : c));
     const updatedActions = [newAction, ...actions];
     setCases(updatedCases);
     setActions(updatedActions);
     refreshOverlaps(updatedCases, institutions, alerts);
     showToast(`Case ${caseId} reopened and restored to Under Process.`, 'info');
+    return { success: true };
   };
 
   // Merge Cases (P2 requirement)
-  const mergeCases = (
+  const mergeCases = async (
     primaryCaseId: string,
     childCaseId: string,
     mergeReason: string,
     officer: string
-  ): boolean => {
+  ): Promise<boolean> => {
     if (primaryCaseId === childCaseId) {
       showToast('Cannot merge a case into itself.', 'warning');
       return false;
@@ -306,45 +435,45 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return false;
     }
 
-    const now = new Date().toISOString();
+    const hasJurisdiction = !authUser || authUser.role === 'SUPER_ADMIN' || authUser.bureau === 'ALL' || authUser.bureau === primaryCase.bureau || authUser.bureau === childCase.bureau;
+    if (!hasJurisdiction) {
+      showToast(`Jurisdiction Denied: Official (${authUser.displayName} - ${authUser.bureau}) cannot merge cases outside their bureau.`, 'warning');
+      return false;
+    }
 
-    const updatedCases = cases.map(c => {
-      if (c.caseId === childCaseId) {
-        return {
-          ...c,
-          isMerged: true,
-          mergedIntoCaseId: primaryCaseId,
-          mergedAt: now,
-          mergedBy: officer,
-          mergeReason,
-          lastAction: `Consolidated & merged into primary complaint ${primaryCaseId}. Reason: ${mergeReason}`,
-          lastActionAt: now,
-          updatedAt: now,
-          relatedCaseIds: Array.from(new Set([...c.relatedCaseIds, primaryCaseId]))
-        };
-      }
-      if (c.caseId === primaryCaseId) {
-        const mergedList = Array.from(new Set([...(c.mergedCaseIds || []), childCaseId]));
-        const relatedList = Array.from(new Set([...c.relatedCaseIds, childCaseId]));
-        return {
-          ...c,
-          mergedCaseIds: mergedList,
-          relatedCaseIds: relatedList,
-          lastAction: `Consolidated complaint ${childCaseId} merged into this dossier. Reason: ${mergeReason}`,
-          lastActionAt: now,
-          updatedAt: now
-        };
-      }
-      return c;
-    });
+    const now = new Date().toISOString();
+    const actingOfficer = authUser?.displayName || officer;
+    const actingBureau: Bureau = (authUser?.bureau && authUser.bureau !== 'ALL') ? authUser.bureau : childCase.bureau;
+
+    const childUpdates: Partial<CaseRecord> = {
+      isMerged: true,
+      mergedIntoCaseId: primaryCaseId,
+      mergedAt: now,
+      mergedBy: actingOfficer,
+      mergeReason,
+      lastAction: `Consolidated & merged into primary complaint ${primaryCaseId}. Reason: ${mergeReason}`,
+      lastActionAt: now,
+      updatedAt: now,
+      relatedCaseIds: Array.from(new Set([...childCase.relatedCaseIds, primaryCaseId]))
+    };
+
+    const mergedList = Array.from(new Set([...(primaryCase.mergedCaseIds || []), childCaseId]));
+    const relatedList = Array.from(new Set([...primaryCase.relatedCaseIds, childCaseId]));
+    const primaryUpdates: Partial<CaseRecord> = {
+      mergedCaseIds: mergedList,
+      relatedCaseIds: relatedList,
+      lastAction: `Consolidated complaint ${childCaseId} merged into this dossier. Reason: ${mergeReason}`,
+      lastActionAt: now,
+      updatedAt: now
+    };
 
     const actionChild: CaseAction = {
       actionId: `ACT-MERGE-CHILD-${Date.now()}`,
       caseId: childCaseId,
       actionType: 'CASES_MERGED',
-      remarks: `Merged into primary case ${primaryCaseId} by ${officer}. Reason: ${mergeReason}`,
-      bureau: childCase.bureau,
-      officer,
+      remarks: `Merged into primary case ${primaryCaseId} by ${actingOfficer}. Reason: ${mergeReason}`,
+      bureau: actingBureau,
+      officer: actingOfficer,
       timestamp: now,
       previousValue: 'Standalone Case',
       newValue: `Merged into ${primaryCaseId}`,
@@ -356,15 +485,39 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       actionId: `ACT-MERGE-PRIM-${Date.now()}`,
       caseId: primaryCaseId,
       actionType: 'CASES_MERGED',
-      remarks: `Consolidated child case ${childCaseId} merged into this dossier by ${officer}. Reason: ${mergeReason}`,
-      bureau: primaryCase.bureau,
-      officer,
+      remarks: `Consolidated child case ${childCaseId} merged into this dossier by ${actingOfficer}. Reason: ${mergeReason}`,
+      bureau: actingBureau,
+      officer: actingOfficer,
       timestamp: now,
       previousValue: primaryCase.mergedCaseIds?.length ? `${primaryCase.mergedCaseIds.length} merged cases` : 'None',
       newValue: `${(primaryCase.mergedCaseIds || []).length + 1} merged cases (added ${childCaseId})`,
       fieldChanged: 'mergedCaseIds',
       justification: mergeReason
     };
+
+    const storage = getStorageService();
+    const isCloud = storage.mode === 'supabase' && isSupabaseConfigured();
+
+    if (isCloud) {
+      try {
+        await storage.updateCase(childCaseId, childUpdates);
+        await storage.updateCase(primaryCaseId, primaryUpdates);
+        await storage.saveActions([actionChild, actionPrimary]);
+      } catch (err: any) {
+        showToast(`Merge failed in database: ${err?.message || 'Unknown error'}`, 'warning');
+        return false;
+      }
+    } else {
+      await storage.updateCase(childCaseId, childUpdates);
+      await storage.updateCase(primaryCaseId, primaryUpdates);
+      await storage.saveActions([actionChild, actionPrimary]);
+    }
+
+    const updatedCases = cases.map(c => {
+      if (c.caseId === childCaseId) return { ...c, ...childUpdates };
+      if (c.caseId === primaryCaseId) return { ...c, ...primaryUpdates };
+      return c;
+    });
 
     setCases(updatedCases);
     setActions([actionChild, actionPrimary, ...actions]);
@@ -374,7 +527,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   // Unmerge Case (P2 requirement)
-  const unmergeCase = (childCaseId: string, officer: string, reason: string): boolean => {
+  const unmergeCase = async (childCaseId: string, officer: string, reason: string): Promise<boolean> => {
     const childCase = cases.find(c => c.caseId === childCaseId);
     if (!childCase || !childCase.isMerged || !childCase.mergedIntoCaseId) {
       showToast('Case is not currently merged.', 'warning');
@@ -382,7 +535,71 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
 
     const primaryCaseId = childCase.mergedIntoCaseId;
+    const primaryCase = cases.find(c => c.caseId === primaryCaseId);
+
+    const hasJurisdiction = !authUser || authUser.role === 'SUPER_ADMIN' || authUser.bureau === 'ALL' || authUser.bureau === childCase.bureau || (primaryCase && authUser.bureau === primaryCase.bureau);
+    if (!hasJurisdiction) {
+      showToast(`Jurisdiction Denied: Official (${authUser.displayName} - ${authUser.bureau}) cannot unmerge cases outside their bureau.`, 'warning');
+      return false;
+    }
+
     const now = new Date().toISOString();
+    const actingOfficer = authUser?.displayName || officer;
+    const actingBureau: Bureau = (authUser?.bureau && authUser.bureau !== 'ALL') ? authUser.bureau : childCase.bureau;
+
+    const childUpdates: Partial<CaseRecord> = {
+      isMerged: false,
+      mergedIntoCaseId: undefined,
+      mergedAt: undefined,
+      mergedBy: undefined,
+      mergeReason: undefined,
+      lastAction: `Separated / unmerged from primary complaint ${primaryCaseId}. Reason: ${reason}`,
+      lastActionAt: now,
+      updatedAt: now
+    };
+
+    const primaryUpdates: Partial<CaseRecord> = primaryCase ? {
+      mergedCaseIds: (primaryCase.mergedCaseIds || []).filter(id => id !== childCaseId),
+      lastAction: `Child complaint ${childCaseId} unmerged from this case. Reason: ${reason}`,
+      lastActionAt: now,
+      updatedAt: now
+    } : { updatedAt: now };
+
+    const actionChild: CaseAction = {
+      actionId: `ACT-UNMERGE-${Date.now()}`,
+      caseId: childCaseId,
+      actionType: 'CASE_UNMERGED',
+      remarks: `Unmerged from ${primaryCaseId} by ${actingOfficer}. Reason: ${reason}`,
+      bureau: actingBureau,
+      officer: actingOfficer,
+      timestamp: now,
+      previousValue: `Merged into ${primaryCaseId}`,
+      newValue: 'Standalone Case',
+      fieldChanged: 'isMerged',
+      justification: reason
+    };
+
+    const storage = getStorageService();
+    const isCloud = storage.mode === 'supabase' && isSupabaseConfigured();
+
+    if (isCloud) {
+      try {
+        await storage.updateCase(childCaseId, childUpdates);
+        if (primaryCase) {
+          await storage.updateCase(primaryCaseId, primaryUpdates);
+        }
+        await storage.saveAction(actionChild);
+      } catch (err: any) {
+        showToast(`Unmerge failed in database: ${err?.message || 'Unknown error'}`, 'warning');
+        return false;
+      }
+    } else {
+      await storage.updateCase(childCaseId, childUpdates);
+      if (primaryCase) {
+        await storage.updateCase(primaryCaseId, primaryUpdates);
+      }
+      await storage.saveAction(actionChild);
+    }
 
     const updatedCases = cases.map(c => {
       if (c.caseId === childCaseId) {
@@ -395,7 +612,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           updatedAt: now
         };
       }
-      if (c.caseId === primaryCaseId) {
+      if (c.caseId === primaryCaseId && primaryCase) {
         return {
           ...c,
           mergedCaseIds: (c.mergedCaseIds || []).filter(id => id !== childCaseId),
@@ -407,20 +624,6 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return c;
     });
 
-    const actionChild: CaseAction = {
-      actionId: `ACT-UNMERGE-${Date.now()}`,
-      caseId: childCaseId,
-      actionType: 'CASE_UNMERGED',
-      remarks: `Unmerged from ${primaryCaseId} by ${officer}. Reason: ${reason}`,
-      bureau: childCase.bureau,
-      officer,
-      timestamp: now,
-      previousValue: `Merged into ${primaryCaseId}`,
-      newValue: 'Standalone Case',
-      fieldChanged: 'isMerged',
-      justification: reason
-    };
-
     setCases(updatedCases);
     setActions([actionChild, ...actions]);
     refreshOverlaps(updatedCases, institutions, alerts);
@@ -429,72 +632,108 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   // Add Action
-  const addCaseAction = (
+  const addCaseAction = async (
     caseId: string,
     actionType: ActionType,
     remarks: string,
     officer: string,
     nextAction?: string
-  ) => {
-    const now = new Date().toISOString();
-    let bureau: Bureau = 'RB';
+  ): Promise<{ success: boolean; error?: string }> => {
+    const targetCase = cases.find(c => c.caseId === caseId);
+    if (!targetCase) {
+      return { success: false, error: `Case ${caseId} not found.` };
+    }
 
-    const updatedCases = cases.map(c => {
-      if (c.caseId === caseId) {
-        bureau = c.bureau;
-        return {
-          ...c,
-          lastAction: remarks,
-          nextAction: nextAction || c.nextAction,
-          lastActionAt: now,
-          updatedAt: now
-        };
-      }
-      return c;
-    });
+    const isCoordinationAction = actionType === 'INTER_BUREAU_COORDINATED';
+    if (!isCoordinationAction && authUser && authUser.role !== 'SUPER_ADMIN' && authUser.bureau !== 'ALL' && authUser.bureau !== targetCase.bureau) {
+      const errorMsg = `Jurisdiction Denied: Official (${authUser.displayName} - ${authUser.bureau}) cannot record action on case ${caseId} under jurisdiction of ${targetCase.bureau}.`;
+      showToast(errorMsg, 'warning');
+      return { success: false, error: errorMsg };
+    }
+
+    const now = new Date().toISOString();
+    const actingOfficer = authUser?.displayName || officer;
+    const actingBureau: Bureau = (authUser?.bureau && authUser.bureau !== 'ALL') ? authUser.bureau : targetCase.bureau;
+
+    const caseUpdates: Partial<CaseRecord> = {
+      lastAction: remarks,
+      nextAction: nextAction || targetCase.nextAction,
+      lastActionAt: now,
+      updatedAt: now
+    };
 
     const newAction: CaseAction = {
       actionId: `ACT-${Date.now()}`,
       caseId,
       actionType,
       remarks,
-      bureau,
-      officer,
+      bureau: actingBureau,
+      officer: actingOfficer,
       timestamp: now
     };
 
+    const storage = getStorageService();
+    const isCloud = storage.mode === 'supabase' && isSupabaseConfigured();
+
+    if (isCloud) {
+      try {
+        await storage.updateCase(caseId, caseUpdates);
+        await storage.saveAction(newAction);
+      } catch (err: any) {
+        const errorMsg = err?.message || 'Failed to record action in database';
+        showToast(`Action failed: ${errorMsg}`, 'warning');
+        return { success: false, error: errorMsg };
+      }
+    } else {
+      await storage.updateCase(caseId, caseUpdates);
+      await storage.saveAction(newAction);
+    }
+
+    const updatedCases = cases.map(c => (c.caseId === caseId ? { ...c, ...caseUpdates } : c));
     setCases(updatedCases);
     setActions([newAction, ...actions]);
     showToast(`Action recorded on Case ${caseId}.`, 'success');
+    return { success: true };
   };
 
   // Reassign Bureau
-  const reassignBureau = (caseId: string, newBureau: Bureau, remarks: string, officer: string) => {
-    const now = new Date().toISOString();
-    let oldBureau: Bureau = 'RB';
+  const reassignBureau = async (
+    caseId: string,
+    newBureau: Bureau,
+    remarks: string,
+    officer: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const targetCase = cases.find(c => c.caseId === caseId);
+    if (!targetCase) {
+      return { success: false, error: `Case ${caseId} not found.` };
+    }
 
-    const updatedCases = cases.map(c => {
-      if (c.caseId === caseId) {
-        oldBureau = c.bureau;
-        return {
-          ...c,
-          bureau: newBureau,
-          status: 'Transferred' as CaseStatus,
-          lastAction: `Jurisdiction transferred from ${oldBureau} to ${newBureau}. ${remarks}`,
-          lastActionAt: now,
-          updatedAt: now
-        };
-      }
-      return c;
-    });
+    if (authUser && authUser.role !== 'SUPER_ADMIN' && authUser.bureau !== 'ALL' && authUser.bureau !== targetCase.bureau) {
+      const errorMsg = `Jurisdiction Denied: Official (${authUser.displayName} - ${authUser.bureau}) cannot reassign case ${caseId} under jurisdiction of ${targetCase.bureau}.`;
+      showToast(errorMsg, 'warning');
+      return { success: false, error: errorMsg };
+    }
+
+    const now = new Date().toISOString();
+    const actingOfficer = authUser?.displayName || officer;
+    const actingBureau: Bureau = (authUser?.bureau && authUser.bureau !== 'ALL') ? authUser.bureau : newBureau;
+    const oldBureau: Bureau = targetCase.bureau;
+
+    const caseUpdates: Partial<CaseRecord> = {
+      bureau: newBureau,
+      status: 'Transferred' as CaseStatus,
+      lastAction: `Jurisdiction transferred from ${oldBureau} to ${newBureau}. ${remarks}`,
+      lastActionAt: now,
+      updatedAt: now
+    };
 
     const newAction: CaseAction = {
       actionId: `ACT-${Date.now()}`,
       caseId,
       actionType: 'BUREAU_REASSIGNED',
       remarks: `Transferred from ${oldBureau} to ${newBureau}. Remarks: ${remarks}`,
-      bureau: newBureau,
-      officer,
+      bureau: actingBureau,
+      officer: actingOfficer,
       timestamp: now,
       previousValue: oldBureau,
       newValue: newBureau,
@@ -502,41 +741,68 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       justification: remarks
     };
 
+    const storage = getStorageService();
+    const isCloud = storage.mode === 'supabase' && isSupabaseConfigured();
+
+    if (isCloud) {
+      try {
+        await storage.updateCase(caseId, caseUpdates);
+        await storage.saveAction(newAction);
+      } catch (err: any) {
+        const errorMsg = err?.message || 'Failed to reassign bureau in database';
+        showToast(`Transfer failed: ${errorMsg}`, 'warning');
+        return { success: false, error: errorMsg };
+      }
+    } else {
+      await storage.updateCase(caseId, caseUpdates);
+      await storage.saveAction(newAction);
+    }
+
+    const updatedCases = cases.map(c => (c.caseId === caseId ? { ...c, ...caseUpdates } : c));
     setCases(updatedCases);
     setActions([newAction, ...actions]);
     refreshOverlaps(updatedCases, institutions, alerts);
     showToast(`Case ${caseId} transferred to ${newBureau}.`, 'info');
+    return { success: true };
   };
 
   // Record Escalation
-  const recordEscalation = (caseId: string, remarks: string, officer: string) => {
-    const now = new Date().toISOString();
-    let bureau: Bureau = 'RB';
-    let oldPriority = 'HIGH';
+  const recordEscalation = async (
+    caseId: string,
+    remarks: string,
+    officer: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const targetCase = cases.find(c => c.caseId === caseId);
+    if (!targetCase) {
+      return { success: false, error: `Case ${caseId} not found.` };
+    }
 
-    const updatedCases = cases.map(c => {
-      if (c.caseId === caseId) {
-        bureau = c.bureau;
-        oldPriority = c.priority;
-        return {
-          ...c,
-          status: 'Escalated' as CaseStatus,
-          priority: 'CRITICAL' as const,
-          lastAction: `Case escalated for high-level regulatory intervention. ${remarks}`,
-          lastActionAt: now,
-          updatedAt: now
-        };
-      }
-      return c;
-    });
+    if (authUser && authUser.role !== 'SUPER_ADMIN' && authUser.bureau !== 'ALL' && authUser.bureau !== targetCase.bureau) {
+      const errorMsg = `Jurisdiction Denied: Official (${authUser.displayName} - ${authUser.bureau}) cannot escalate case ${caseId} under jurisdiction of ${targetCase.bureau}.`;
+      showToast(errorMsg, 'warning');
+      return { success: false, error: errorMsg };
+    }
+
+    const now = new Date().toISOString();
+    const actingOfficer = authUser?.displayName || officer;
+    const actingBureau: Bureau = (authUser?.bureau && authUser.bureau !== 'ALL') ? authUser.bureau : targetCase.bureau;
+    const oldPriority = targetCase.priority;
+
+    const caseUpdates: Partial<CaseRecord> = {
+      status: 'Escalated' as CaseStatus,
+      priority: 'CRITICAL' as const,
+      lastAction: `Case escalated for high-level regulatory intervention. ${remarks}`,
+      lastActionAt: now,
+      updatedAt: now
+    };
 
     const newAction: CaseAction = {
       actionId: `ACT-${Date.now()}`,
       caseId,
       actionType: 'CASE_ESCALATED',
       remarks: `Escalated to Higher Authority. Remarks: ${remarks}`,
-      bureau,
-      officer,
+      bureau: actingBureau,
+      officer: actingOfficer,
       timestamp: now,
       previousValue: oldPriority,
       newValue: 'CRITICAL',
@@ -544,34 +810,69 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       justification: remarks
     };
 
+    const storage = getStorageService();
+    const isCloud = storage.mode === 'supabase' && isSupabaseConfigured();
+
+    if (isCloud) {
+      try {
+        await storage.updateCase(caseId, caseUpdates);
+        await storage.saveAction(newAction);
+      } catch (err: any) {
+        const errorMsg = err?.message || 'Failed to record escalation in database';
+        showToast(`Escalation failed: ${errorMsg}`, 'warning');
+        return { success: false, error: errorMsg };
+      }
+    } else {
+      await storage.updateCase(caseId, caseUpdates);
+      await storage.saveAction(newAction);
+    }
+
+    const updatedCases = cases.map(c => (c.caseId === caseId ? { ...c, ...caseUpdates } : c));
     setCases(updatedCases);
     setActions([newAction, ...actions]);
     showToast(`Case ${caseId} escalated to higher regulatory authority.`, 'warning');
+    return { success: true };
   };
 
   // Link Related Cases
-  const linkRelatedCases = (caseId1: string, caseId2: string, remarks: string, officer: string) => {
-    const now = new Date().toISOString();
+  const linkRelatedCases = async (
+    caseId1: string,
+    caseId2: string,
+    remarks: string,
+    officer: string
+  ): Promise<{ success: boolean; error?: string; alreadyLinked?: boolean }> => {
+    const case1 = cases.find(c => c.caseId === caseId1);
+    const case2 = cases.find(c => c.caseId === caseId2);
+    if (!case1 || !case2) {
+      return { success: false, error: 'One or both cases not found.' };
+    }
 
-    const updatedCases = cases.map(c => {
-      if (c.caseId === caseId1) {
-        const related = Array.from(new Set([...c.relatedCaseIds, caseId2]));
-        return { ...c, relatedCaseIds: related, updatedAt: now };
-      }
-      if (c.caseId === caseId2) {
-        const related = Array.from(new Set([...c.relatedCaseIds, caseId1]));
-        return { ...c, relatedCaseIds: related, updatedAt: now };
-      }
-      return c;
-    });
+    if (caseId1 === caseId2) {
+      return { success: false, error: 'Cannot link a case to itself.' };
+    }
+
+    // Check if already bidirectionally linked
+    const alreadyLinked1 = case1.relatedCaseIds?.includes(caseId2);
+    const alreadyLinked2 = case2.relatedCaseIds?.includes(caseId1);
+
+    if (alreadyLinked1 && alreadyLinked2) {
+      return { success: true, alreadyLinked: true };
+    }
+
+    const now = new Date().toISOString();
+    const related1 = Array.from(new Set([...(case1.relatedCaseIds || []), caseId2]));
+    const related2 = Array.from(new Set([...(case2.relatedCaseIds || []), caseId1]));
+
+    const actingOfficer = authUser?.displayName || officer;
+    const actingBureau: Bureau = (authUser?.bureau && authUser.bureau !== 'ALL') ? authUser.bureau : case1.bureau;
 
     const newAction1: CaseAction = {
       actionId: `ACT-${Date.now()}-1`,
       caseId: caseId1,
       actionType: 'INTER_BUREAU_COORDINATED',
       remarks: `Linked with cross-reference case ${caseId2}. Remarks: ${remarks}`,
-      bureau: 'RB',
-      officer,
+      bureau: actingBureau,
+      officer: actingOfficer,
       timestamp: now
     };
 
@@ -580,57 +881,116 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       caseId: caseId2,
       actionType: 'INTER_BUREAU_COORDINATED',
       remarks: `Linked with cross-reference case ${caseId1}. Remarks: ${remarks}`,
-      bureau: 'PGRC',
-      officer,
+      bureau: actingBureau,
+      officer: actingOfficer,
       timestamp: now
     };
 
+    const storage = getStorageService();
+    const isCloud = storage.mode === 'supabase' && isSupabaseConfigured();
+
+    if (isCloud) {
+      try {
+        await storage.updateCase(caseId1, { relatedCaseIds: related1, updatedAt: now });
+        await storage.updateCase(caseId2, { relatedCaseIds: related2, updatedAt: now });
+        await storage.saveActions([newAction1, newAction2]);
+      } catch (err: any) {
+        const errorMsg = err?.message || 'Failed to cross-link cases in database';
+        showToast(`Cross-link failed: ${errorMsg}`, 'warning');
+        return { success: false, error: errorMsg };
+      }
+    } else {
+      await storage.updateCase(caseId1, { relatedCaseIds: related1, updatedAt: now });
+      await storage.updateCase(caseId2, { relatedCaseIds: related2, updatedAt: now });
+      await storage.saveActions([newAction1, newAction2]);
+    }
+
+    const updatedCases = cases.map(c => {
+      if (c.caseId === caseId1) return { ...c, relatedCaseIds: related1, updatedAt: now };
+      if (c.caseId === caseId2) return { ...c, relatedCaseIds: related2, updatedAt: now };
+      return c;
+    });
+
     setCases(updatedCases);
     setActions([newAction1, newAction2, ...actions]);
+    refreshOverlaps(updatedCases, institutions, alerts);
     showToast(`Cases ${caseId1} and ${caseId2} cross-linked.`, 'success');
+    return { success: true };
   };
 
   // Review Overlap Alert
-  const reviewOverlapAlert = (
+  const reviewOverlapAlert = async (
     alertId: string,
     reviewStatus: ReviewStatus,
     remarks: string,
     leadBureau?: Bureau,
-    reviewer: string = 'Redressal Coordinator'
-  ) => {
-    const now = new Date().toISOString();
-
-    const updatedAlerts = alerts.map(a => {
-      if (a.alertId === alertId) {
-        return {
-          ...a,
-          reviewStatus,
-          coordinationRemarks: remarks,
-          leadBureau,
-          reviewedBy: reviewer,
-          reviewedAt: now
-        };
-      }
-      return a;
-    });
-
-    // Append coordination action to all cases associated with this alert
+    reviewer: string = 'Redressal Coordinator',
+    dismissalReason?: string
+  ): Promise<{ success: boolean; error?: string }> => {
     const targetAlert = alerts.find(a => a.alertId === alertId);
-    if (targetAlert) {
-      const coordActions: CaseAction[] = targetAlert.caseIds.map((cid, idx) => ({
-        actionId: `ACT-COORD-${Date.now()}-${idx}`,
-        caseId: cid,
-        actionType: 'INTER_BUREAU_COORDINATED',
-        remarks: `[Overlap Coordination Decision]: Marked as ${reviewStatus}. Lead: ${leadBureau || 'Joint'}. Remarks: ${remarks}`,
-        bureau: leadBureau || 'RB',
-        officer: reviewer,
-        timestamp: now
-      }));
-      setActions(prev => [...coordActions, ...prev]);
+    if (!targetAlert) {
+      return { success: false, error: `Alert ${alertId} not found.` };
     }
 
+    const now = new Date().toISOString();
+    const actingReviewer = authUser?.displayName || reviewer;
+    const actingBureau: Bureau = (authUser?.bureau && authUser.bureau !== 'ALL') ? authUser.bureau : (leadBureau || 'RB');
+
+    const updatedAlert: OverlapAlert = {
+      ...targetAlert,
+      reviewStatus,
+      coordinationRemarks: remarks,
+      leadBureau,
+      reviewedBy: actingReviewer,
+      reviewedAt: now,
+      dismissalReason: reviewStatus === 'DISMISSED' ? (dismissalReason || remarks) : undefined
+    };
+
+    const coordActions: CaseAction[] = targetAlert.caseIds.map((cid, idx) => ({
+      actionId: `ACT-COORD-${Date.now()}-${idx}`,
+      caseId: cid,
+      actionType: 'INTER_BUREAU_COORDINATED',
+      remarks: reviewStatus === 'DISMISSED'
+        ? `[Overlap Review Decision]: Dismissed as false positive / distinct matters.${dismissalReason ? ` Reason: ${dismissalReason}.` : ''} Remarks: ${remarks}`
+        : `[Overlap Coordination Decision]: Marked as ${reviewStatus}. Lead: ${leadBureau || 'Joint'}. Remarks: ${remarks}`,
+      bureau: actingBureau,
+      officer: actingReviewer,
+      timestamp: now
+    }));
+
+    const storage = getStorageService();
+    const isCloud = storage.mode === 'supabase' && isSupabaseConfigured();
+
+    if (isCloud) {
+      try {
+        await storage.saveAlert(updatedAlert);
+        if (coordActions.length > 0) {
+          await storage.saveActions(coordActions);
+        }
+      } catch (err: any) {
+        const errorMsg = err?.message || 'Failed to save alert review in database';
+        showToast(`Coordination failed: ${errorMsg}`, 'warning');
+        return { success: false, error: errorMsg };
+      }
+    } else {
+      await storage.saveAlert(updatedAlert);
+      if (coordActions.length > 0) {
+        await storage.saveActions(coordActions);
+      }
+    }
+
+    const updatedAlerts = alerts.map(a => (a.alertId === alertId ? updatedAlert : a));
     setAlerts(updatedAlerts);
-    showToast(`Overlap alert reviewed. Coordination remarks recorded.`, 'success');
+    if (coordActions.length > 0) {
+      setActions(prev => [...coordActions, ...prev]);
+    }
+    showToast(
+      reviewStatus === 'DISMISSED'
+        ? 'Overlap alert dismissed. False-positive record saved.'
+        : 'Overlap alert reviewed. Coordination remarks recorded.',
+      'success'
+    );
+    return { success: true };
   };
 
   // Reset Data to Clean Seed State
@@ -649,16 +1009,61 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Calculate Dashboard Stats dynamically from current data
   const stats: DashboardStats = useMemo(() => {
     const total = cases.length;
+    const activeCases = cases.filter(c => c.status !== 'Disposed');
+    const totalActive = activeCases.length;
     const pending = cases.filter(c => c.status === 'Pending').length;
     const underProcess = cases.filter(c => c.status === 'Under Process').length;
     const disposed = cases.filter(c => c.status === 'Disposed').length;
     const transferredEscalated = cases.filter(c => c.status === 'Transferred' || c.status === 'Escalated').length;
-    
+
     const nowMs = Date.now();
-    const overdue = cases.filter(c => {
-      if (c.status === 'Disposed') return false;
-      return new Date(c.expectedDisposalDate).getTime() < nowMs;
-    }).length;
+    const activeOverlapCaseIds = new Set(
+      alerts.filter(a => a.reviewStatus === 'PENDING_REVIEW').flatMap(a => a.caseIds)
+    );
+
+    let overdueCount = 0;
+    let dueWithin24HoursCount = 0;
+    let highCriticalActiveCount = 0;
+    let overdueHighPriorityOverlap = 0;
+
+    for (const c of activeCases) {
+      const urgency = calculateDeterministicUrgency(c, activeOverlapCaseIds);
+      if (urgency.isOverdue) {
+        overdueCount++;
+      } else if (urgency.isDueWithin24h) {
+        dueWithin24HoursCount++;
+      }
+
+      const isHighOrCritical = c.priority === 'CRITICAL' || c.priority === 'HIGH';
+      if (isHighOrCritical) {
+        highCriticalActiveCount++;
+      }
+
+      if (urgency.isOverdue && isHighOrCritical) {
+        overdueHighPriorityOverlap++;
+      }
+    }
+
+    // Bureau-wise workload distribution
+    const bureaus: Bureau[] = ['RB', 'PGRC', 'AB', 'Finance', 'Vigilance'];
+    const bureauWorkload: Record<string, { total: number; active: number; overdue: number; highPriority: number }> = {};
+    for (const b of bureaus) {
+      const bCases = cases.filter(c => c.bureau === b);
+      const bActive = bCases.filter(c => c.status !== 'Disposed');
+      let bOverdue = 0;
+      let bHighPri = 0;
+      for (const bc of bActive) {
+        const u = calculateDeterministicUrgency(bc, activeOverlapCaseIds);
+        if (u.isOverdue) bOverdue++;
+        if (bc.priority === 'CRITICAL' || bc.priority === 'HIGH') bHighPri++;
+      }
+      bureauWorkload[b] = {
+        total: bCases.length,
+        active: bActive.length,
+        overdue: bOverdue,
+        highPriority: bHighPri
+      };
+    }
 
     const potential = alerts.length;
     const unresolved = alerts.filter(a => a.reviewStatus === 'PENDING_REVIEW').length;
@@ -676,11 +1081,17 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     return {
       totalComplaints: total,
+      totalActiveComplaints: totalActive,
       pendingCases: pending,
       underProcessCases: underProcess,
       disposedCases: disposed,
+      resolvedComplaints: disposed,
       transferredEscalatedCases: transferredEscalated,
-      overdueCases: overdue,
+      overdueCases: overdueCount,
+      dueWithin24Hours: dueWithin24HoursCount,
+      highCriticalActive: highCriticalActiveCount,
+      overdueHighPriorityOverlap,
+      bureauWorkload,
       potentialOverlaps: potential,
       unresolvedOverlaps: unresolved,
       disposalRate: rate,
@@ -689,7 +1100,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
   }, [cases, alerts]);
 
-  // Filtered cases for registry and export
+  // Filtered cases for registry and export - prioritized by deterministic urgency hierarchy
   const filteredCases = useMemo(() => {
     const now = new Date().getTime();
 
@@ -699,7 +1110,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       instRegionMap.set(inst.institutionId, inst.region);
     }
 
-    return cases.filter(c => {
+    const matched = cases.filter(c => {
       // Search query (case ID, institution name, institution ID, description)
       if (filters.searchQuery.trim()) {
         const q = filters.searchQuery.toLowerCase();
@@ -764,7 +1175,13 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       return true;
     });
-  }, [cases, institutions, filters]);
+
+    const activeOverlapCaseIds = new Set(
+      alerts.filter(a => a.reviewStatus === 'PENDING_REVIEW').flatMap(a => a.caseIds)
+    );
+
+    return sortCasesByDeterministicUrgency(matched, activeOverlapCaseIds);
+  }, [cases, institutions, alerts, filters]);
 
   return (
     <CaseWatchContext.Provider
@@ -798,6 +1215,8 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         isDemoMode: storageMode === 'local',
         storageMode,
         isLoadingCloudData,
+        cloudError,
+        syncCloudData,
         toastMessage,
         showToast
       }}

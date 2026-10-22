@@ -3,7 +3,7 @@ import { useCaseWatch } from '../../context/CaseWatchContext';
 import { useAuth } from '../../context/AuthContext';
 import { CaseRecord, CaseStatus, Bureau } from '../../types';
 import { Modal } from '../common/Modal';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface ActionFormModalProps {
   isOpen: boolean;
@@ -35,57 +35,90 @@ export const ActionFormModal: React.FC<ActionFormModalProps> = ({ isOpen, onClos
   const [resolutionSummary, setResolutionSummary] = useState(caseRecord.resolutionSummary || '');
   const [remarks, setRemarks] = useState('');
   const [nextAction, setNextAction] = useState(caseRecord.nextAction);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const linkableCases = cases.filter(
     c => c.caseId !== caseRecord.caseId && !caseRecord.relatedCaseIds.includes(c.caseId)
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     if (!remarks.trim()) {
-      alert('Please enter administrative remarks.');
+      setSubmitError('Please enter administrative remarks.');
       return;
     }
 
-    if (mode === 'STATUS_UPDATE') {
-      if (newStatus === 'Disposed' && !resolutionSummary.trim()) {
-        alert('Please provide a formal Resolution Summary for disposing and closing this case.');
-        return;
-      }
-      updateCaseStatus(
-        caseRecord.caseId,
-        newStatus,
-        remarks,
-        officerName,
-        resolutionSummary.trim() || undefined,
-        user?.uid
-      );
-    } else if (mode === 'ADD_REMARKS') {
-      addCaseAction(caseRecord.caseId, 'REMARKS_ADDED', remarks, officerName, nextAction);
-    } else if (mode === 'REASSIGN_BUREAU') {
-      reassignBureau(caseRecord.caseId, newBureau, remarks, officerName);
-    } else if (mode === 'ESCALATE') {
-      recordEscalation(caseRecord.caseId, remarks, officerName);
-    } else if (mode === 'LINK_CASE') {
-      if (!selectedCaseToLink) {
-        alert('Please select a case to link.');
-        return;
-      }
-      linkRelatedCases(caseRecord.caseId, selectedCaseToLink, remarks, officerName);
-    }
+    setIsSubmitting(true);
+    setSubmitError(null);
 
-    onClose();
+    try {
+      let res: { success: boolean; error?: string } = { success: true };
+
+      if (mode === 'STATUS_UPDATE') {
+        if (newStatus === 'Disposed' && !resolutionSummary.trim()) {
+          setSubmitError('Please provide a formal Resolution Summary for disposing and closing this case.');
+          setIsSubmitting(false);
+          return;
+        }
+        res = await updateCaseStatus(
+          caseRecord.caseId,
+          newStatus,
+          remarks.trim(),
+          officerName.trim(),
+          resolutionSummary.trim() || undefined,
+          user?.uid
+        );
+      } else if (mode === 'ADD_REMARKS') {
+        res = await addCaseAction(caseRecord.caseId, 'REMARKS_ADDED', remarks.trim(), officerName.trim(), nextAction);
+      } else if (mode === 'REASSIGN_BUREAU') {
+        res = await reassignBureau(caseRecord.caseId, newBureau, remarks.trim(), officerName.trim());
+      } else if (mode === 'ESCALATE') {
+        res = await recordEscalation(caseRecord.caseId, remarks.trim(), officerName.trim());
+      } else if (mode === 'LINK_CASE') {
+        if (!selectedCaseToLink) {
+          setSubmitError('Please select a case to link.');
+          setIsSubmitting(false);
+          return;
+        }
+        res = await linkRelatedCases(caseRecord.caseId, selectedCaseToLink, remarks.trim(), officerName.trim());
+      }
+
+      if (!res.success) {
+        setSubmitError(res.error || 'Failed to record action in database.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      setIsSubmitting(false);
+      onClose();
+    } catch (err: any) {
+      setSubmitError(err?.message || 'An unexpected error occurred while saving the action.');
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={isSubmitting ? () => {} : onClose}
       title="Record Administrative Action / Status Transition"
       subtitle={`Case Dossier: ${caseRecord.caseId} | Current Bureau: ${caseRecord.bureau}`}
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        {submitError && (
+          <div className="p-3 bg-[#F16D75]/10 border border-[#F16D75]/30 rounded-md text-[#F16D75] text-xs flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <p className="font-semibold text-[#F16D75]">Action Recording Error</p>
+              <p className="text-[11px] text-[#E8EAED]/90 leading-relaxed font-mono">{submitError}</p>
+            </div>
+          </div>
+        )}
+
         {/* Action Mode Switcher */}
         <div>
           <label className="block font-semibold text-[#737D8B] mb-1.5 uppercase text-[10px] font-mono">
@@ -247,15 +280,24 @@ export const ActionFormModal: React.FC<ActionFormModalProps> = ({ isOpen, onClos
           <button
             type="button"
             onClick={onClose}
-            className="px-3.5 py-1.5 rounded-md border border-[#272D35] text-[#A0A7B2] hover:bg-[#161A20] hover:text-[#E8EAED] font-medium transition-colors"
+            disabled={isSubmitting}
+            className="px-3.5 py-1.5 rounded-md border border-[#272D35] text-[#A0A7B2] hover:bg-[#161A20] hover:text-[#E8EAED] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-3.5 py-1.5 rounded-md bg-[#A3B86C] hover:bg-[#B7CA82] text-[#08090B] font-semibold shadow-sm transition-colors"
+            disabled={isSubmitting}
+            className="px-3.5 py-1.5 rounded-md bg-[#A3B86C] hover:bg-[#B7CA82] text-[#08090B] font-semibold shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            Commit Action to Case Ledger
+            {isSubmitting ? (
+              <>
+                <span className="w-3 h-3 border-2 border-[#08090B] border-t-transparent rounded-full animate-spin" />
+                <span>Recording Action...</span>
+              </>
+            ) : (
+              'Commit Action to Case Ledger'
+            )}
           </button>
         </div>
       </form>

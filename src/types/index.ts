@@ -127,6 +127,10 @@ export interface OverlapAlert {
   leadBureau?: Bureau;
   reviewedBy?: string;
   reviewedAt?: string;
+  recommendedAction?: string;
+  isConfirmedRelated?: boolean;
+  dismissalReason?: string;
+  highestUrgency?: 'OVERDUE' | 'DUE_SOON' | 'HIGH' | 'NORMAL';
 }
 
 export interface FilterState {
@@ -149,11 +153,17 @@ export type NavTab =
 
 export interface DashboardStats {
   totalComplaints: number;
+  totalActiveComplaints: number;
   pendingCases: number;
   underProcessCases: number;
   disposedCases: number;
+  resolvedComplaints: number;
   transferredEscalatedCases: number;
   overdueCases: number;
+  dueWithin24Hours: number;
+  highCriticalActive: number;
+  overdueHighPriorityOverlap: number;
+  bureauWorkload: Record<string, { total: number; active: number; overdue: number; highPriority: number }>;
   potentialOverlaps: number;
   unresolvedOverlaps: number;
   disposalRate: number; // percentage
