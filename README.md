@@ -236,17 +236,6 @@ Potential future improvements, subject to problem-statement priorities and valid
 - Accessibility and responsive-layout refinements.
 - Additional automated RLS and end-to-end tests.
 
-## Screenshot gallery
-
-Add current screenshots of the live application here:
-
-| Dashboard | Cross-Bureau Overlap Intelligence |
-|---|---|
-| _Add dashboard screenshot_ | _Add overlap view screenshot_ |
-
-| Case Registry | Coordination Console |
-|---|---|
-| _Add registry screenshot_ | _Add coordination console screenshot_ |
 
 ## Attribution
 
