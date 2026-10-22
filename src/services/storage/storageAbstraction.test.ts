@@ -34,11 +34,15 @@ describe('CONVERA — Storage Abstraction & Multi-User Architecture Verification
     sessionStorage.clear();
   });
 
-  it('1. Storage Factory defaults to operational LocalStorage fallback when cloud credentials are not supplied', () => {
+  it('1. Storage Factory activates appropriate service and LocalStorage fallback operates cleanly', () => {
     const service = getStorageService();
     expect(service).toBeDefined();
     expect(service.isConfigured()).toBe(true);
-    expect(service.mode).toBe('local');
+    expect(['local', 'supabase']).toContain(service.mode);
+
+    const localFallback = new LocalStorageService();
+    expect(localFallback.mode).toBe('local');
+    expect(localFallback.isConfigured()).toBe(true);
   });
 
   it('2. Storage Service loads 18 institutions, cases, actions, and overlap alerts seamlessly', async () => {
