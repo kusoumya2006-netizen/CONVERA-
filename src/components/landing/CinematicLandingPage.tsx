@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { AUTHORIZED_DEMO_ACCOUNTS } from '../../services/authService';
+import { isSupabaseConfigured } from '../../services/supabaseClient';
 import {
   Shield,
   Layers,
@@ -74,6 +75,18 @@ export const CinematicLandingPage: React.FC<CinematicLandingPageProps> = ({
   const handleLaunchPersona = async (accountIndex: number) => {
     const acc = AUTHORIZED_DEMO_ACCOUNTS[accountIndex];
     if (!acc) return;
+
+    // In Cloud Mode, passwords are user-managed in Supabase Auth;
+    // navigate directly to login screen without hardcoded password assumption
+    if (isSupabaseConfigured()) {
+      if (onOpenLogin) {
+        onOpenLogin();
+      } else {
+        onEnterWorkspace();
+      }
+      return;
+    }
+
     try {
       setIsSigningIn(acc.user.displayName);
       await signIn({
@@ -82,6 +95,9 @@ export const CinematicLandingPage: React.FC<CinematicLandingPageProps> = ({
         rememberMe: true
       });
       onEnterWorkspace();
+    } catch {
+      if (onOpenLogin) onOpenLogin();
+      else onEnterWorkspace();
     } finally {
       setIsSigningIn(null);
     }

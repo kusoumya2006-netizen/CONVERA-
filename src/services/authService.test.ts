@@ -144,4 +144,16 @@ describe('AuthService Authentication Engine', () => {
     expect(profileError.message).toContain('Profile lookup failed');
     expect(profileError.message).not.toContain('Invalid official credentials');
   });
+
+  it('Scenario 11: Validates that empty password cannot sign in and requires user-entered password', async () => {
+    const directorRB = AUTHORIZED_DEMO_ACCOUNTS[0];
+
+    // Submitting quick-filled email with blank password requires user to enter their actual password
+    await expect(
+      AuthService.signIn({
+        email: directorRB.user.email,
+        password: ''
+      })
+    ).rejects.toThrow('Account password is required');
+  });
 });

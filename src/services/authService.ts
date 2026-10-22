@@ -84,6 +84,13 @@ export class AuthService {
     const { email, password, rememberMe } = credentials;
     const normalizedEmail = email.trim().toLowerCase();
 
+    if (!normalizedEmail) {
+      throw new Error('Official email address is required.');
+    }
+    if (!password) {
+      throw new Error('Account password is required. Please enter your password.');
+    }
+
     // 1. If Supabase is configured, authenticate against Supabase Auth
     if (isSupabaseConfigured()) {
       const supabase = getSupabaseClient();
