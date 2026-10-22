@@ -12,17 +12,17 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 text-slate-100">
-        <div className="p-8 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-2xl text-center space-y-4 max-w-sm w-full">
-          <div className="w-12 h-12 rounded-xl bg-gov-olive/30 border border-emerald-500/40 text-emerald-400 mx-auto flex items-center justify-center">
-            <ShieldCheck className="w-6 h-6 animate-pulse" />
+      <div className="min-h-screen bg-[#08090B] flex flex-col items-center justify-center p-4 text-[#E8EAED]">
+        <div className="p-8 rounded-xl bg-[#161A20] border border-[#272D35] shadow-2xl text-center space-y-4 max-w-sm w-full">
+          <div className="w-12 h-12 rounded-xl bg-[#111419] border border-[#272D35] text-[#A3B86C] mx-auto flex items-center justify-center">
+            <ShieldCheck className="w-6 h-6 animate-pulse text-[#A3B86C]" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white tracking-wide">SYNCHRA Authentication Gateway</h3>
-            <p className="text-xs text-slate-400 mt-1">Verifying administrative security credentials...</p>
+            <h3 className="text-sm font-bold text-[#E8EAED] tracking-wide">CONVERA Authentication Gateway</h3>
+            <p className="text-xs text-[#A0A7B2] mt-1">Verifying administrative security credentials...</p>
           </div>
-          <div className="flex items-center justify-center gap-2 text-xs text-amber-400 pt-2 font-mono">
-            <Loader2 className="w-4 h-4 animate-spin" />
+          <div className="flex items-center justify-center gap-2 text-xs text-[#E8B75C] pt-2 font-mono">
+            <Loader2 className="w-4 h-4 animate-spin text-[#E8B75C]" />
             <span>Establishing Secure Session</span>
           </div>
         </div>

@@ -74,7 +74,7 @@ export const NetworkVisual: React.FC = () => {
             {/* Central Badge */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-3.5 py-1.5 rounded-full bg-gov-olive text-white border border-emerald-400/40 shadow-lg flex items-center gap-2">
               <FolderGit2 className="w-3.5 h-3.5 text-amber-300" />
-              <span className="text-[11px] font-bold tracking-tight">SYNCHRA Overlap Engine</span>
+              <span className="text-[11px] font-bold tracking-tight">CONVERA Overlap Engine</span>
             </div>
           </div>
 
