@@ -1,12 +1,13 @@
 import React from 'react';
 import { CampusHeroBanner } from './CampusHeroBanner';
-import { Layers, Network, FileCheck2 } from 'lucide-react';
+import { Layers, Network, FileCheck2, ArrowLeft } from 'lucide-react';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
+  onBackToLanding?: () => void;
 }
 
-export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
+export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, onBackToLanding }) => {
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#08090B] text-[#E8EAED] antialiased selection:bg-[#A3B86C]/30 selection:text-white">
       {/* =========================================================================
@@ -123,7 +124,18 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#69C9A0] animate-pulse"></span>
             <span className="font-semibold text-[#A0A7B2]">AICTE Central Administrative Gateway</span>
           </div>
-          <span className="text-[#737D8B] hidden sm:inline">Tier-3 Security Directives</span>
+          {onBackToLanding ? (
+            <button
+              type="button"
+              onClick={onBackToLanding}
+              className="text-[#A0A7B2] hover:text-[#A3B86C] transition-colors flex items-center gap-1 font-mono text-[11px]"
+            >
+              <ArrowLeft className="w-3 h-3" />
+              <span>System Overview</span>
+            </button>
+          ) : (
+            <span className="text-[#737D8B] hidden sm:inline">Tier-3 Security Directives</span>
+          )}
         </div>
 
         {/* Centered Form */}

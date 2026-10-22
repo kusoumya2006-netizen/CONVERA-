@@ -5,9 +5,10 @@ import { RotateCcw, Plus, AlertOctagon, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   onOpenNewCaseModal: () => void;
+  onNavigateLanding?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenNewCaseModal }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenNewCaseModal, onNavigateLanding }) => {
   const { stats, resetToSeedData, isDemoMode, setActiveTab } = useCaseWatch();
   const { user, signOut } = useAuth();
 
@@ -15,8 +16,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewCaseModal }) => {
     <header className="sticky top-0 z-30 bg-[#0B0D10] border-b border-[#272D35] px-5 py-2.5 shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Brand identity: CONVERA wordmark & simple geometric symbol */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#161A20] border border-[#272D35] flex items-center justify-center text-white shadow-inner">
+        <div
+          className={`flex items-center gap-3 ${onNavigateLanding ? 'cursor-pointer group' : ''}`}
+          onClick={onNavigateLanding}
+          title={onNavigateLanding ? 'View System Overview & Story' : undefined}
+        >
+          <div className="w-8 h-8 rounded-lg bg-[#161A20] border border-[#272D35] group-hover:border-[#A3B86C]/50 flex items-center justify-center text-white shadow-inner transition-colors">
             <svg
               className="w-4 h-4 text-[#A3B86C]"
               viewBox="0 0 24 24"
@@ -33,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewCaseModal }) => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-base font-bold tracking-tight text-[#E8EAED]">
+              <span className="text-base font-bold tracking-tight text-[#E8EAED] group-hover:text-white transition-colors">
                 CONVERA
               </span>
               <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-[#161A20] text-[#A0A7B2] border border-[#272D35]">
@@ -67,6 +72,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewCaseModal }) => {
             <RotateCcw className="w-3 h-3 text-[#737D8B]" />
             <span>Reset Data</span>
           </button>
+
+          {onNavigateLanding && (
+            <button
+              onClick={onNavigateLanding}
+              title="View the cinematic system overview & architecture story"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#161A20] hover:bg-[#1E232B] text-[#A3B86C] border border-[#A3B86C]/30 hover:border-[#A3B86C]/50 text-[11px] font-mono transition-colors"
+            >
+              <span>System Story</span>
+            </button>
+          )}
         </div>
 
         {/* Right side: Alerts, Action & Profile */}

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { AuthProvider } from './context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { LoginPage } from './components/auth/LoginPage';
+import { CinematicLandingPage } from './components/landing/CinematicLandingPage';
 import { CaseWatchProvider, useCaseWatch } from './context/CaseWatchContext';
 import { Header } from './components/common/Header';
 import { Sidebar } from './components/common/Sidebar';
@@ -16,14 +18,35 @@ import { ReportsView } from './components/reports/ReportsView';
 import { CompletedCasesView } from './components/completed/CompletedCasesView';
 import { MergedCasesView } from './components/merged/MergedCasesView';
 
-const MainLayout: React.FC = () => {
+type AppRoute = 'landing' | 'login' | 'app';
+
+const getInitialRoute = (): AppRoute => {
+  if (typeof window === 'undefined') {
+    // In Node / SSR testing environment, default to 'login' to test auth gateway workflows
+    return 'login';
+  }
+  const path = window.location.pathname;
+  const hash = window.location.hash;
+  if (path === '/login' || hash === '#login') return 'login';
+  if (path === '/app' || hash === '#app') return 'app';
+  return 'landing';
+};
+
+interface MainLayoutProps {
+  onNavigateLanding?: () => void;
+}
+
+const MainLayout: React.FC<MainLayoutProps> = ({ onNavigateLanding }) => {
   const { activeTab, selectedCaseId, toastMessage } = useCaseWatch();
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#08090B] flex flex-col text-[#E8EAED] selection:bg-[#A3B86C]/30 selection:text-white">
       {/* Header with CONVERA branding & Controls */}
-      <Header onOpenNewCaseModal={() => setIsNewCaseModalOpen(true)} />
+      <Header
+        onOpenNewCaseModal={() => setIsNewCaseModalOpen(true)}
+        onNavigateLanding={onNavigateLanding}
+      />
 
       {/* Main Body: Sidebar + Dynamic Content Pane */}
       <div className="flex-1 flex">
@@ -92,13 +115,72 @@ const MainLayout: React.FC = () => {
   );
 };
 
+const AppRouter: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  const [route, setRoute] = useState<AppRoute>(getInitialRoute);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleLocationChange = () => {
+      const path = window.location.pathname;
+      const hash = window.location.hash;
+      if (path === '/login' || hash === '#login') {
+        setRoute('login');
+      } else if (path === '/app' || hash === '#app') {
+        setRoute('app');
+      } else {
+        setRoute('landing');
+      }
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
+  }, []);
+
+  const navigateTo = (newRoute: AppRoute) => {
+    setRoute(newRoute);
+    if (typeof window !== 'undefined') {
+      const targetPath = newRoute === 'landing' ? '/' : `/${newRoute}`;
+      if (window.location.pathname !== targetPath) {
+        window.history.pushState({ route: newRoute }, '', targetPath);
+      }
+    }
+  };
+
+  if (route === 'landing') {
+    return (
+      <CinematicLandingPage
+        onEnterWorkspace={() => navigateTo(isAuthenticated ? 'app' : 'login')}
+        onOpenLogin={() => navigateTo('login')}
+      />
+    );
+  }
+
+  if (route === 'login') {
+    if (isAuthenticated) {
+      return <MainLayout onNavigateLanding={() => navigateTo('landing')} />;
+    }
+    return <LoginPage onBackToLanding={() => navigateTo('landing')} />;
+  }
+
+  // route === 'app'
+  return (
+    <ProtectedRoute>
+      <MainLayout onNavigateLanding={() => navigateTo('landing')} />
+    </ProtectedRoute>
+  );
+};
+
 export default function App() {
   return (
     <AuthProvider>
       <CaseWatchProvider>
-        <ProtectedRoute>
-          <MainLayout />
-        </ProtectedRoute>
+        <AppRouter />
       </CaseWatchProvider>
     </AuthProvider>
   );
