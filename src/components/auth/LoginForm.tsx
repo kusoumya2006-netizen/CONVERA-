@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { PasswordInput } from './PasswordInput';
 import { AdminHelpModal } from './AdminHelpModal';
 import { AUTHORIZED_DEMO_ACCOUNTS } from '../../services/authService';
+import { isSupabaseConfigured } from '../../services/supabaseClient';
 import {
   Mail,
   ShieldCheck,
@@ -148,9 +149,19 @@ export const LoginForm: React.FC = () => {
         <>
           {/* Title & Subheading */}
           <div className="space-y-1 text-left">
-            <h2 className="text-2xl font-bold tracking-tight text-[#E8EAED] font-sans">
-              Welcome back
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold tracking-tight text-[#E8EAED] font-sans">
+                Welcome back
+              </h2>
+              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium border ${
+                isSupabaseConfigured()
+                  ? 'bg-[#A3B86C]/10 text-[#A3B86C] border-[#A3B86C]/30'
+                  : 'bg-[#111419] text-[#CBD5E1] border-[#272D35]'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isSupabaseConfigured() ? 'bg-[#A3B86C]' : 'bg-[#69C9A0]'} animate-pulse`} />
+                <span>{isSupabaseConfigured() ? 'PostgreSQL Cloud' : 'Demo Sandbox'}</span>
+              </span>
+            </div>
             <p className="text-xs text-[#A0A7B2] leading-relaxed">
               Sign in to access the CONVERA institutional complaint intelligence workspace.
             </p>

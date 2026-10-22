@@ -107,17 +107,19 @@ export class AuthService {
               .single();
 
             if (profileError || !profile) {
-              console.warn('Profile not found in public.profiles; using basic user info:', profileError);
+              throw new Error(
+                'Official profile record not found in public.profiles. An administrator must assign your role and bureau in the database.'
+              );
             }
 
             const authenticatedUser: AuthUser = {
               uid: authData.user.id,
               email: authData.user.email || normalizedEmail,
-              displayName: profile?.display_name || authData.user.user_metadata?.full_name || 'AICTE Scrutiny Officer',
-              designation: profile?.designation || 'Scrutiny Officer',
-              role: profile?.role || 'CASE_SCRUTINY_OFFICER',
-              bureau: profile?.bureau || 'RB',
-              department: profile?.department || 'Regulation Bureau, AICTE',
+              displayName: profile.display_name || 'AICTE Official',
+              designation: profile.designation || 'Regulatory Officer',
+              role: profile.role,
+              bureau: profile.bureau,
+              department: profile.department || 'AICTE Headquarters, New Delhi',
               lastLogin: new Date().toISOString()
             };
 
@@ -125,9 +127,26 @@ export class AuthService {
             return authenticatedUser;
           }
         } catch (supabaseErr: any) {
-          console.warn('Supabase Auth error, checking demo accounts:', supabaseErr.message);
-          if (supabaseErr.message.includes('Invalid login credentials')) {
-            throw new Error('Invalid official credentials. Please verify your password or contact system administrator.');
+          console.warn('Supabase Auth response:', supabaseErr.message);
+
+          // If offline or network fetch failed (e.g. running in an offline sandbox/test suite),
+          // allow deterministic demo accounts fallback
+          if (
+            supabaseErr.message.includes('fetch failed') ||
+            supabaseErr.message.includes('Failed to fetch') ||
+            supabaseErr.message.includes('NetworkError')
+          ) {
+            console.warn('Network unreachable; falling back to offline demo credentials.');
+          } else if (supabaseErr.message.includes('Invalid login credentials')) {
+            throw new Error(
+              'Authentication failed: Invalid official credentials. In Supabase Cloud mode, please verify your password or ensure this official persona is provisioned in Supabase Authentication and public.profiles.'
+            );
+          } else if (supabaseErr.message.includes('Email not confirmed')) {
+            throw new Error(
+              'Official email is not confirmed in Supabase Auth. Please confirm your email address or enable auto-confirm in the Supabase Dashboard.'
+            );
+          } else {
+            throw supabaseErr;
           }
         }
       }
