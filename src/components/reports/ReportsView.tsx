@@ -9,10 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
+  ResponsiveContainer
 } from 'recharts';
 import { Download, FileSpreadsheet, CheckCircle2, Clock, AlertTriangle, GitCompare } from 'lucide-react';
 
@@ -93,26 +90,26 @@ export const ReportsView: React.FC = () => {
   const handleExportFiltered = () => {
     exportCasesToCsv(
       filteredCases,
-      `casewatch_cases_report_${new Date().toISOString().split('T')[0]}.csv`
+      `convera_cases_report_${new Date().toISOString().split('T')[0]}.csv`
     );
   };
 
   const handleExportAllOverlaps = () => {
     exportOverlapsToCsv(
       alerts,
-      `casewatch_overlaps_report_${new Date().toISOString().split('T')[0]}.csv`
+      `convera_overlaps_report_${new Date().toISOString().split('T')[0]}.csv`
     );
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Top Banner */}
-      <div className="bg-obsidian-850 p-5 rounded-lg border border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-[#111419] p-4 sm:p-5 rounded-lg border border-[#272D35] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-base font-bold text-slate-100">
+          <h2 className="text-base font-bold text-[#E8EAED]">
             Administrative Reports & Grievance Disposal Analytics
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[#A0A7B2] mt-1">
             Aggregated institutional performance, SLA compliance metrics, and downloadable statutory registers.
           </p>
         </div>
@@ -120,113 +117,113 @@ export const ReportsView: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={handleExportFiltered}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161A20] hover:bg-[#1C2129] border border-[#272D35] text-[#E8EAED] text-xs font-semibold shadow-sm transition-colors"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>Download Cases Register (CSV)</span>
+            <Download className="w-3.5 h-3.5 text-[#737D8B]" />
+            <span>Cases Register (CSV)</span>
           </button>
           <button
             onClick={handleExportAllOverlaps}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161A20] hover:bg-[#1C2129] border border-[#272D35] text-[#E8EAED] text-xs font-semibold shadow-sm transition-colors"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
-            <span>Download Overlaps Audit (CSV)</span>
+            <FileSpreadsheet className="w-3.5 h-3.5 text-[#737D8B]" />
+            <span>Overlaps Audit (CSV)</span>
           </button>
         </div>
       </div>
 
       {/* KPI Highlights */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="p-4 bg-obsidian-850 rounded-lg border border-slate-800">
+        <div className="p-3.5 bg-[#111419] rounded-lg border border-[#272D35]">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase">National Disposal Rate</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span className="text-[10px] font-semibold text-[#737D8B] uppercase font-mono">Disposal Rate</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#69C9A0]" />
           </div>
-          <p className="text-2xl font-bold font-mono text-slate-100">{stats.disposalRate}%</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">{stats.disposedCases} of {stats.totalComplaints} cases resolved</p>
+          <p className="text-2xl font-bold font-mono text-[#E8EAED]">{stats.disposalRate}%</p>
+          <p className="text-[10px] text-[#737D8B] mt-0.5">{stats.disposedCases} of {stats.totalComplaints} resolved</p>
         </div>
 
-        <div className="p-4 bg-obsidian-850 rounded-lg border border-slate-800">
+        <div className="p-3.5 bg-[#111419] rounded-lg border border-[#272D35]">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase">Active Under Process</span>
-            <Clock className="w-4 h-4 text-blue-400" />
+            <span className="text-[10px] font-semibold text-[#737D8B] uppercase font-mono">Under Process</span>
+            <Clock className="w-3.5 h-3.5 text-[#86A9FF]" />
           </div>
-          <p className="text-2xl font-bold font-mono text-blue-300">{stats.underProcessCases}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Formal inquiry or hearing in progress</p>
+          <p className="text-2xl font-bold font-mono text-[#86A9FF]">{stats.underProcessCases}</p>
+          <p className="text-[10px] text-[#737D8B] mt-0.5">Active inquiry or hearing</p>
         </div>
 
-        <div className="p-4 bg-obsidian-850 rounded-lg border border-slate-800">
+        <div className="p-3.5 bg-[#111419] rounded-lg border border-[#272D35]">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-semibold text-rose-300 uppercase">SLA Overdue Ageing</span>
-            <AlertTriangle className="w-4 h-4 text-rose-400" />
+            <span className="text-[10px] font-semibold text-[#737D8B] uppercase font-mono">SLA Overdue</span>
+            <AlertTriangle className="w-3.5 h-3.5 text-[#F16D75]" />
           </div>
-          <p className="text-2xl font-bold font-mono text-rose-300">{stats.overdueCases}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Exceeded expected disposal cutoff</p>
+          <p className="text-2xl font-bold font-mono text-[#F16D75]">{stats.overdueCases}</p>
+          <p className="text-[10px] text-[#737D8B] mt-0.5">Exceeded disposal deadline</p>
         </div>
 
-        <div className="p-4 bg-obsidian-850 rounded-lg border border-slate-800">
+        <div className="p-3.5 bg-[#111419] rounded-lg border border-[#272D35]">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase">Cross-Bureau Coordinated</span>
-            <GitCompare className="w-4 h-4 text-slate-300" />
+            <span className="text-[10px] font-semibold text-[#737D8B] uppercase font-mono">Coordinated Overlaps</span>
+            <GitCompare className="w-3.5 h-3.5 text-[#A3B86C]" />
           </div>
-          <p className="text-2xl font-bold font-mono text-slate-100">
+          <p className="text-2xl font-bold font-mono text-[#E8EAED]">
             {stats.potentialOverlaps - stats.unresolvedOverlaps} / {stats.potentialOverlaps}
           </p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Alerts reviewed & coordinated</p>
+          <p className="text-[10px] text-[#737D8B] mt-0.5">Alerts reviewed & resolved</p>
         </div>
       </div>
 
       {/* Analytics Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Overdue Ageing Breakdown */}
-        <div className="bg-obsidian-850 p-5 rounded-lg border border-slate-800 shadow-sm">
+        <div className="bg-[#111419] p-4 sm:p-5 rounded-lg border border-[#272D35] shadow-sm">
           <div className="mb-4">
-            <h3 className="text-sm font-bold text-slate-100">Overdue Case Ageing Analysis</h3>
-            <p className="text-xs text-slate-400">Number of active cases exceeding SLA cutoff by duration bracket</p>
+            <h3 className="text-sm font-bold text-[#E8EAED]">Overdue Case Ageing Analysis</h3>
+            <p className="text-xs text-[#A0A7B2]">Number of active cases exceeding SLA cutoff by duration bracket</p>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={ageingData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                <XAxis dataKey="bracket" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} />
-                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#272D35" />
+                <XAxis dataKey="bracket" tick={{ fontSize: 11, fill: '#A0A7B2' }} axisLine={{ stroke: '#272D35' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#A0A7B2' }} axisLine={{ stroke: '#272D35' }} allowDecimals={false} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0F172A',
-                    borderColor: '#334155',
-                    color: '#F8FAFC',
-                    borderRadius: '8px',
+                    backgroundColor: '#161A20',
+                    borderColor: '#272D35',
+                    color: '#E8EAED',
+                    borderRadius: '6px',
                     fontSize: '12px'
                   }}
                 />
-                <Bar dataKey="Overdue Cases" fill="#f43f5e" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Overdue Cases" fill="#F16D75" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Bureau Disposal Rates */}
-        <div className="bg-obsidian-850 p-5 rounded-lg border border-slate-800 shadow-sm">
+        <div className="bg-[#111419] p-4 sm:p-5 rounded-lg border border-[#272D35] shadow-sm">
           <div className="mb-4">
-            <h3 className="text-sm font-bold text-slate-100">Disposal Efficiency by Bureau / Cell</h3>
-            <p className="text-xs text-slate-400">Percentage of complaints resolved and closed by cell</p>
+            <h3 className="text-sm font-bold text-[#E8EAED]">Disposal Efficiency by Bureau / Cell</h3>
+            <p className="text-xs text-[#A0A7B2]">Percentage of complaints resolved and closed by cell</p>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={bureauDisposalData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                <XAxis dataKey="bureau" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} />
-                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} unit="%" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#272D35" />
+                <XAxis dataKey="bureau" tick={{ fontSize: 11, fill: '#A0A7B2' }} axisLine={{ stroke: '#272D35' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#A0A7B2' }} axisLine={{ stroke: '#272D35' }} unit="%" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0F172A',
-                    borderColor: '#334155',
-                    color: '#F8FAFC',
-                    borderRadius: '8px',
+                    backgroundColor: '#161A20',
+                    borderColor: '#272D35',
+                    color: '#E8EAED',
+                    borderRadius: '6px',
                     fontSize: '12px'
                   }}
                 />
-                <Bar dataKey="Disposal Rate (%)" fill="#64748b" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Disposal Rate (%)" fill="#A3B86C" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -234,29 +231,29 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {/* Region-wise Table & Chart */}
-      <div className="bg-obsidian-850 p-5 rounded-lg border border-slate-800 shadow-sm">
+      <div className="bg-[#111419] p-4 sm:p-5 rounded-lg border border-[#272D35] shadow-sm">
         <div className="mb-4">
-          <h3 className="text-sm font-bold text-slate-100">Regional Grievance Workload Comparison</h3>
-          <p className="text-xs text-slate-400">Active vs resolved complaints across AICTE Regional Offices</p>
+          <h3 className="text-sm font-bold text-[#E8EAED]">Regional Grievance Workload Comparison</h3>
+          <p className="text-xs text-[#A0A7B2]">Active vs resolved complaints across AICTE Regional Offices</p>
         </div>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={regionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-              <XAxis dataKey="region" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#334155' }} allowDecimals={false} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#272D35" />
+              <XAxis dataKey="region" tick={{ fontSize: 11, fill: '#A0A7B2' }} axisLine={{ stroke: '#272D35' }} />
+              <YAxis tick={{ fontSize: 11, fill: '#A0A7B2' }} axisLine={{ stroke: '#272D35' }} allowDecimals={false} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#0F172A',
-                  borderColor: '#334155',
-                  color: '#F8FAFC',
-                  borderRadius: '8px',
+                  backgroundColor: '#161A20',
+                  borderColor: '#272D35',
+                  color: '#E8EAED',
+                  borderRadius: '6px',
                   fontSize: '12px'
                 }}
               />
               <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-              <Bar dataKey="Active Cases" fill="#38bdf8" />
-              <Bar dataKey="Disposed Cases" fill="#34d399" />
+              <Bar dataKey="Active Cases" fill="#86A9FF" />
+              <Bar dataKey="Disposed Cases" fill="#69C9A0" />
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -14,7 +14,6 @@ import {
   UserPlus,
   LogIn,
   CheckCircle2,
-  Building2,
   BadgeCheck
 } from 'lucide-react';
 
@@ -44,7 +43,6 @@ export const LoginForm: React.FC = () => {
   // Admin help modal
   const [modalType, setModalType] = useState<'FORGOT_PASSWORD' | 'CONTACT_ADMIN' | null>(null);
 
-  // Validation function for login
   const validateLoginForm = (): boolean => {
     let isValid = true;
     setEmailError('');
@@ -112,17 +110,17 @@ export const LoginForm: React.FC = () => {
   return (
     <div className="w-full max-w-md mx-auto space-y-5">
       {/* Tab Switcher: Official Sign In vs Officer Registration */}
-      <div className="flex rounded-lg bg-obsidian-950 p-1 border border-slate-800 text-xs font-semibold font-mono">
+      <div className="flex rounded-md bg-[#0B0D10] p-1 border border-[#272D35] text-xs font-semibold font-mono">
         <button
           type="button"
           onClick={() => {
             setAuthMode('LOGIN');
             clearError();
           }}
-          className={`flex-1 py-2 rounded-md flex items-center justify-center gap-1.5 transition-all ${
+          className={`flex-1 py-1.5 rounded flex items-center justify-center gap-1.5 transition-colors ${
             authMode === 'LOGIN'
-              ? 'bg-slate-800 text-white shadow-sm border border-slate-700'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#161A20] text-[#E8EAED] border border-[#272D35]'
+              : 'text-[#737D8B] hover:text-[#A0A7B2]'
           }`}
         >
           <LogIn className="w-3.5 h-3.5" />
@@ -135,10 +133,10 @@ export const LoginForm: React.FC = () => {
             setRegSuccess(false);
             clearError();
           }}
-          className={`flex-1 py-2 rounded-md flex items-center justify-center gap-1.5 transition-all ${
+          className={`flex-1 py-1.5 rounded flex items-center justify-center gap-1.5 transition-colors ${
             authMode === 'REGISTER'
-              ? 'bg-slate-800 text-white shadow-sm border border-slate-700'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#161A20] text-[#E8EAED] border border-[#272D35]'
+              : 'text-[#737D8B] hover:text-[#A0A7B2]'
           }`}
         >
           <UserPlus className="w-3.5 h-3.5" />
@@ -150,34 +148,34 @@ export const LoginForm: React.FC = () => {
         <>
           {/* Title & Subheading */}
           <div className="space-y-1 text-left">
-            <h2 className="text-2xl font-bold tracking-tight text-white font-sans">
+            <h2 className="text-2xl font-bold tracking-tight text-[#E8EAED] font-sans">
               Welcome back
             </h2>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Sign in to access the institutional grievance intelligence & case monitoring workspace.
+            <p className="text-xs text-[#A0A7B2] leading-relaxed">
+              Sign in to access the CONVERA institutional complaint intelligence workspace.
             </p>
           </div>
 
           {/* Global Auth Error Alert */}
           {authError && (
-            <div className="p-3.5 bg-rose-950/40 border border-rose-800 text-rose-300 rounded-lg flex items-start gap-2.5 animate-in fade-in duration-200">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="p-3 bg-[#F16D75]/10 border border-[#F16D75]/30 text-[#F16D75] rounded-md flex items-start gap-2.5 animate-in fade-in duration-150">
+              <AlertCircle className="w-4 h-4 text-[#F16D75] shrink-0 mt-0.5" />
               <div className="text-xs leading-relaxed flex-1">
-                <span className="font-semibold block text-rose-200">Authentication Failed</span>
+                <span className="font-semibold block text-[#F16D75]">Authentication Failed</span>
                 <span>{authError}</span>
               </div>
             </div>
           )}
 
           {/* Login Form */}
-          <form onSubmit={handleLoginSubmit} className="space-y-4 text-left" noValidate>
+          <form onSubmit={handleLoginSubmit} className="space-y-3.5 text-left" noValidate>
             {/* Email Field */}
-            <div className="space-y-1.5">
-              <label htmlFor="official-email" className="block text-xs font-semibold text-slate-300">
-                Official Email Address <span className="text-rose-500">*</span>
+            <div className="space-y-1">
+              <label htmlFor="official-email" className="block text-xs font-semibold text-[#A0A7B2]">
+                Official Email Address <span className="text-[#F16D75]">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#737D8B]">
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
@@ -191,16 +189,16 @@ export const LoginForm: React.FC = () => {
                   }}
                   placeholder="officer.bureau@aicte-india.org"
                   disabled={isLoading}
-                  className={`w-full pl-9 pr-3 py-2.5 text-xs bg-obsidian-950 border rounded-lg transition-colors placeholder:text-slate-500 text-slate-100 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 ${
+                  className={`w-full pl-9 pr-3 py-2 text-xs bg-[#0B0D10] border rounded-md transition-colors placeholder:text-[#737D8B] text-[#E8EAED] focus:outline-none focus:border-[#A3B86C] ${
                     emailError
-                      ? 'border-rose-500/80 focus:border-rose-500 focus:ring-rose-950'
-                      : 'border-slate-700/80 hover:border-slate-600'
-                  } ${isLoading ? 'bg-slate-900 cursor-not-allowed text-slate-500' : ''}`}
+                      ? 'border-[#F16D75]/80 focus:border-[#F16D75]'
+                      : 'border-[#272D35] hover:border-[#38414D]'
+                  } ${isLoading ? 'bg-[#111419] cursor-not-allowed text-[#737D8B]' : ''}`}
                   autoComplete="email"
                   autoFocus
                 />
               </div>
-              {emailError && <p className="text-[11px] text-rose-400 font-medium">{emailError}</p>}
+              {emailError && <p className="text-[11px] text-[#F16D75] font-medium">{emailError}</p>}
             </div>
 
             {/* Password Field */}
@@ -227,15 +225,15 @@ export const LoginForm: React.FC = () => {
                   checked={rememberMe}
                   onChange={e => setRememberMe(e.target.checked)}
                   disabled={isLoading}
-                  className="w-3.5 h-3.5 rounded border-slate-700 bg-obsidian-950 text-gov-olive focus:ring-slate-600"
+                  className="w-3.5 h-3.5 rounded border-[#272D35] bg-[#0B0D10] text-[#A3B86C] focus:ring-[#A3B86C]"
                 />
-                <span className="text-slate-400 font-medium">Remember this session</span>
+                <span className="text-[#A0A7B2] font-medium">Remember this session</span>
               </label>
 
               <button
                 type="button"
                 onClick={() => setModalType('FORGOT_PASSWORD')}
-                className="font-medium text-slate-300 hover:text-white hover:underline transition-colors focus:outline-none"
+                className="font-medium text-[#A0A7B2] hover:text-[#E8EAED] transition-colors focus:outline-none"
               >
                 Forgot password?
               </button>
@@ -245,67 +243,67 @@ export const LoginForm: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 px-4 rounded-lg bg-gov-olive hover:bg-gov-olive-light active:bg-gov-olive text-white font-semibold text-xs shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gov-olive border border-gov-olive-light/40"
+              className="w-full py-2.5 px-4 rounded-md bg-[#A3B86C] hover:bg-[#B7CA82] text-[#08090B] font-semibold text-xs shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Verifying Administrative Credentials...</span>
+                  <span>Verifying Credentials...</span>
                 </>
               ) : (
                 <>
                   <KeyRound className="w-4 h-4" />
-                  <span>Sign in to SYNCHRA</span>
+                  <span>Sign in to CONVERA</span>
                 </>
               )}
             </button>
           </form>
 
           {/* Quick Demo Credentials for Evaluation */}
-          <div className="pt-3 border-t border-slate-800 space-y-2">
+          <div className="pt-3 border-t border-[#272D35] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 font-mono">
-                <UserCheck className="w-3 h-3 text-emerald-400" />
-                <span>Prototype Demo Accounts (Click to Pre-fill)</span>
+              <span className="text-[10px] font-semibold text-[#737D8B] uppercase tracking-wider flex items-center gap-1 font-mono">
+                <UserCheck className="w-3 h-3 text-[#A3B86C]" />
+                <span>Demo Personas (Click to Pre-fill)</span>
               </span>
-              <span className="text-[10px] text-slate-500 font-mono">SIH 2026</span>
+              <span className="text-[10px] text-[#737D8B] font-mono">SIH 2026</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-left">
               <button
                 type="button"
                 onClick={() => handleQuickFill(0)}
-                className="p-2 rounded-lg border border-slate-800 bg-obsidian-950 hover:border-slate-600 hover:bg-slate-800/40 transition-all text-xs text-slate-300"
+                className="p-2.5 rounded-md border border-[#272D35] bg-[#111419] hover:border-[#38414D] hover:bg-[#161A20] transition-colors text-xs text-[#A0A7B2]"
               >
-                <span className="font-semibold text-slate-100 block truncate">Dr. Amitabh Ghosh</span>
-                <span className="text-[10px] text-emerald-400 font-medium block">Director (RB)</span>
+                <span className="font-semibold text-[#E8EAED] block truncate">Dr. Amitabh Ghosh</span>
+                <span className="text-[10px] text-[#A3B86C] font-mono block">Director (RB)</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleQuickFill(1)}
-                className="p-2 rounded-lg border border-slate-800 bg-obsidian-950 hover:border-slate-600 hover:bg-slate-800/40 transition-all text-xs text-slate-300"
+                className="p-2.5 rounded-md border border-[#272D35] bg-[#111419] hover:border-[#38414D] hover:bg-[#161A20] transition-colors text-xs text-[#A0A7B2]"
               >
-                <span className="font-semibold text-slate-100 block truncate">Smt. Sunita Mohanty</span>
-                <span className="text-[10px] text-amber-400 font-medium block">Director (PGRC)</span>
+                <span className="font-semibold text-[#E8EAED] block truncate">Smt. Sunita Mohanty</span>
+                <span className="text-[10px] text-[#E8B75C] font-mono block">Director (PGRC)</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleQuickFill(2)}
-                className="p-2 rounded-lg border border-slate-800 bg-obsidian-950 hover:border-slate-600 hover:bg-slate-800/40 transition-all text-xs text-slate-300"
+                className="p-2.5 rounded-md border border-[#272D35] bg-[#111419] hover:border-[#38414D] hover:bg-[#161A20] transition-colors text-xs text-[#A0A7B2]"
               >
-                <span className="font-semibold text-slate-100 block truncate">Dr. R. K. Verma</span>
-                <span className="text-[10px] text-blue-400 font-medium block">Lead Coordinator</span>
+                <span className="font-semibold text-[#E8EAED] block truncate">Dr. R. K. Verma</span>
+                <span className="text-[10px] text-[#86A9FF] font-mono block">Lead Coordinator</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleQuickFill(3)}
-                className="p-2 rounded-lg border border-slate-800 bg-obsidian-950 hover:border-slate-600 hover:bg-slate-800/40 transition-all text-xs text-slate-300"
+                className="p-2.5 rounded-md border border-[#272D35] bg-[#111419] hover:border-[#38414D] hover:bg-[#161A20] transition-colors text-xs text-[#A0A7B2]"
               >
-                <span className="font-semibold text-slate-100 block truncate">Dr. Suresh Patil</span>
-                <span className="text-[10px] text-slate-400 font-medium block">Regional Officer (WRO)</span>
+                <span className="font-semibold text-[#E8EAED] block truncate">Dr. Suresh Patil</span>
+                <span className="text-[10px] text-[#737D8B] font-mono block">Regional Officer (WRO)</span>
               </button>
             </div>
           </div>
@@ -314,27 +312,27 @@ export const LoginForm: React.FC = () => {
         /* Officer Registration / Access Request Form */
         <div className="space-y-4 text-left">
           <div className="space-y-1 text-left">
-            <h2 className="text-2xl font-bold tracking-tight text-white font-sans">
+            <h2 className="text-2xl font-bold tracking-tight text-[#E8EAED] font-sans">
               Officer Registration
             </h2>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-[#A0A7B2] leading-relaxed">
               Request access credentials for the AICTE Institutional Grievance & Regulatory Coordination Platform.
             </p>
           </div>
 
           {regSuccess ? (
-            <div className="p-4 bg-emerald-950/40 border border-emerald-800 rounded-xl space-y-3 text-emerald-300">
-              <div className="flex items-center gap-2 font-bold text-sm text-emerald-300">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <div className="p-4 bg-[#69C9A0]/10 border border-[#69C9A0]/30 rounded-lg space-y-3 text-[#69C9A0]">
+              <div className="flex items-center gap-2 font-bold text-sm text-[#69C9A0]">
+                <CheckCircle2 className="w-5 h-5 text-[#69C9A0]" />
                 <span>Registration Request Submitted</span>
               </div>
-              <p className="text-xs leading-relaxed text-emerald-200/90">
-                Your onboarding request for <strong>{regName}</strong> ({regEmail}) has been logged in the AICTE Security Provisioning Queue. The Central Administrative Nodal Officer will verify your Bureau affiliation ({regBureau}) and activate your credentials within 24 hours.
+              <p className="text-xs leading-relaxed text-[#E8EAED]">
+                Your onboarding request for <strong className="text-white">{regName}</strong> ({regEmail}) has been logged in the AICTE Security Provisioning Queue. The Central Administrative Nodal Officer will verify your Bureau affiliation ({regBureau}) and activate your credentials within 24 hours.
               </p>
               <button
                 type="button"
                 onClick={() => setAuthMode('LOGIN')}
-                className="w-full py-2 px-3 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm transition-colors"
+                className="w-full py-2 px-3 rounded-md bg-[#69C9A0] hover:bg-[#69C9A0]/90 text-[#08090B] font-semibold text-xs shadow-sm transition-colors"
               >
                 Return to Official Sign In
               </button>
@@ -342,38 +340,38 @@ export const LoginForm: React.FC = () => {
           ) : (
             <form onSubmit={handleRegisterSubmit} className="space-y-3.5 text-xs">
               {regError && (
-                <div className="p-3 bg-rose-950/40 border border-rose-800 rounded-lg text-rose-300 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <div className="p-3 bg-[#F16D75]/10 border border-[#F16D75]/30 rounded-md text-[#F16D75] text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-[#F16D75] shrink-0" />
                   <span>{regError}</span>
                 </div>
               )}
 
               {/* Full Name */}
               <div className="space-y-1">
-                <label className="block font-semibold text-slate-300">
-                  Officer Full Name <span className="text-rose-500">*</span>
+                <label className="block font-semibold text-[#A0A7B2]">
+                  Officer Full Name <span className="text-[#F16D75]">*</span>
                 </label>
                 <input
                   type="text"
                   value={regName}
                   onChange={e => setRegName(e.target.value)}
                   placeholder="e.g. Dr. K. Radhakrishnan"
-                  className="w-full px-3 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-slate-400"
+                  className="w-full px-3 py-2 bg-[#0B0D10] border border-[#272D35] rounded-md text-[#E8EAED] placeholder:text-[#737D8B] focus:outline-none focus:border-[#A3B86C]"
                   required
                 />
               </div>
 
               {/* Official Email */}
               <div className="space-y-1">
-                <label className="block font-semibold text-slate-300">
-                  Official Email Address <span className="text-rose-500">*</span>
+                <label className="block font-semibold text-[#A0A7B2]">
+                  Official Email Address <span className="text-[#F16D75]">*</span>
                 </label>
                 <input
                   type="email"
                   value={regEmail}
                   onChange={e => setRegEmail(e.target.value)}
                   placeholder="name.designation@aicte-india.org"
-                  className="w-full px-3 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-slate-400"
+                  className="w-full px-3 py-2 bg-[#0B0D10] border border-[#272D35] rounded-md text-[#E8EAED] placeholder:text-[#737D8B] focus:outline-none focus:border-[#A3B86C]"
                   required
                 />
               </div>
@@ -381,14 +379,14 @@ export const LoginForm: React.FC = () => {
               {/* Bureau & Designation Row */}
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="space-y-1">
-                  <label className="block font-semibold text-slate-300">Bureau / Cell</label>
+                  <label className="block font-semibold text-[#A0A7B2]">Bureau / Cell</label>
                   <select
                     value={regBureau}
                     onChange={e => setRegBureau(e.target.value)}
-                    className="w-full px-2.5 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg font-medium text-slate-200 focus:outline-none focus:border-slate-400"
+                    className="w-full px-2.5 py-2 bg-[#0B0D10] border border-[#272D35] rounded-md font-medium text-[#E8EAED] focus:outline-none focus:border-[#A3B86C]"
                   >
                     <option value="RB">Regulation Bureau (RB)</option>
-                    <option value="PGRC">Public Grievance Redressal Cell (PGRC)</option>
+                    <option value="PGRC">Public Grievance Redressal (PGRC)</option>
                     <option value="AB">Approval Bureau (AB)</option>
                     <option value="Finance">Finance Bureau</option>
                     <option value="Vigilance">Vigilance Cell</option>
@@ -396,13 +394,13 @@ export const LoginForm: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block font-semibold text-slate-300">Designation</label>
+                  <label className="block font-semibold text-[#A0A7B2]">Designation</label>
                   <input
                     type="text"
                     value={regDesignation}
                     onChange={e => setRegDesignation(e.target.value)}
                     placeholder="e.g. Regional Officer"
-                    className="w-full px-3 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-slate-400"
+                    className="w-full px-3 py-2 bg-[#0B0D10] border border-[#272D35] rounded-md text-[#E8EAED] placeholder:text-[#737D8B] focus:outline-none focus:border-[#A3B86C]"
                     required
                   />
                 </div>
@@ -410,22 +408,22 @@ export const LoginForm: React.FC = () => {
 
               {/* Employee ID */}
               <div className="space-y-1">
-                <label className="block font-semibold text-slate-300">
-                  AICTE Employee / Officer ID <span className="text-rose-500">*</span>
+                <label className="block font-semibold text-[#A0A7B2]">
+                  AICTE Employee / Officer ID <span className="text-[#F16D75]">*</span>
                 </label>
                 <input
                   type="text"
                   value={regEmpId}
                   onChange={e => setRegEmpId(e.target.value)}
                   placeholder="e.g. AICTE-EMP-4091"
-                  className="w-full px-3 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-slate-400 font-mono"
+                  className="w-full px-3 py-2 bg-[#0B0D10] border border-[#272D35] rounded-md text-[#E8EAED] placeholder:text-[#737D8B] focus:outline-none focus:border-[#A3B86C] font-mono"
                   required
                 />
               </div>
 
               {/* Note */}
-              <div className="p-2.5 bg-obsidian-950 rounded-lg border border-slate-800 text-[11px] text-slate-400 flex items-start gap-2">
-                <BadgeCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div className="p-2.5 bg-[#0B0D10] rounded-md border border-[#272D35] text-[11px] text-[#737D8B] flex items-start gap-2">
+                <BadgeCheck className="w-4 h-4 text-[#A3B86C] shrink-0 mt-0.5" />
                 <span>
                   Submitted applications are verified against the AICTE Establishment Roll before clearance.
                 </span>
@@ -434,7 +432,7 @@ export const LoginForm: React.FC = () => {
               {/* Submit */}
               <button
                 type="submit"
-                className="w-full py-2.5 px-4 rounded-lg bg-gov-olive hover:bg-gov-olive-light text-white font-semibold text-xs shadow-sm transition-colors flex items-center justify-center gap-2 border border-gov-olive-light/40"
+                className="w-full py-2.5 px-4 rounded-md bg-[#A3B86C] hover:bg-[#B7CA82] text-[#08090B] font-semibold text-xs shadow-sm transition-colors flex items-center justify-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>Submit Officer Registration Request</span>
@@ -445,18 +443,18 @@ export const LoginForm: React.FC = () => {
       )}
 
       {/* Security Note & Support Footer */}
-      <div className="pt-2 text-center space-y-2">
-        <p className="text-[11px] text-slate-400 leading-normal flex items-center justify-center gap-1.5 font-mono">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+      <div className="pt-2 text-center space-y-1.5">
+        <p className="text-[11px] text-[#737D8B] leading-normal flex items-center justify-center gap-1.5 font-mono">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#69C9A0] shrink-0" />
           <span>Authorized access only. Monitored under AICTE Cyber Security Directives.</span>
         </p>
 
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-[#737D8B]">
           Need account assistance?{' '}
           <button
             type="button"
             onClick={() => setModalType('CONTACT_ADMIN')}
-            className="font-semibold text-slate-300 hover:text-white hover:underline inline-flex items-center gap-0.5"
+            className="font-medium text-[#A0A7B2] hover:text-[#E8EAED] hover:underline inline-flex items-center gap-0.5"
           >
             <span>Contact System Administrator</span>
             <ExternalLink className="w-2.5 h-2.5" />

@@ -8,59 +8,64 @@ interface AuthLayoutProps {
 
 export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-slate-900 text-slate-100 antialiased selection:bg-gov-olive selection:text-white">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#08090B] text-[#E8EAED] antialiased selection:bg-[#A3B86C]/30 selection:text-white">
       {/* =========================================================================
           LEFT PANEL — Product Identity & Sri Venkateswara College (SVCE) Campus Hero
           ========================================================================= */}
-      <div className="w-full lg:w-[52%] xl:w-[50%] p-8 lg:p-12 xl:p-16 flex flex-col justify-between bg-gov-dark border-r border-slate-800 relative overflow-hidden">
-        {/* Subtle background ambient lighting */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-950/30 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-amber-950/20 rounded-full blur-3xl pointer-events-none" />
-
+      <div className="w-full lg:w-[52%] xl:w-[50%] p-6 sm:p-10 lg:p-12 xl:p-16 flex flex-col justify-between bg-[#0B0D10] border-r border-[#272D35] relative overflow-hidden">
         <div className="relative z-10 space-y-6">
           {/* Government header strip */}
-          <div className="flex items-center gap-2 text-[11px] font-mono tracking-wider text-slate-400">
-            <span className="font-semibold text-slate-200">AICTE</span>
-            <span className="text-slate-600">/</span>
+          <div className="flex items-center gap-2 text-[11px] font-mono tracking-wider text-[#737D8B]">
+            <span className="font-semibold text-[#E8EAED]">AICTE</span>
+            <span className="text-[#272D35]">/</span>
             <span>REGULATION & PGRC DIVISION</span>
-            <span className="text-slate-600">/</span>
-            <span className="text-emerald-400">SIH 2026</span>
+            <span className="text-[#272D35]">/</span>
+            <span className="text-[#A3B86C]">SIH 2026</span>
           </div>
 
-          {/* SYNCHRA Brand Header */}
+          {/* CONVERA Brand Header */}
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              {/* Geometric Emblem: Interlocking Hexagon / Diamond Motif */}
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800 to-slate-950 border border-slate-700/80 p-2.5 flex items-center justify-center shadow-lg shadow-black/40">
-                <div className="relative w-full h-full flex items-center justify-center">
-                  <div className="w-6 h-6 border-2 border-amber-400/90 rounded rotate-45 transform" />
-                  <div className="absolute w-3.5 h-3.5 bg-gov-olive rounded-sm" />
-                </div>
+              {/* Geometric Emblem */}
+              <div className="w-10 h-10 rounded-lg bg-[#161A20] border border-[#272D35] p-2 flex items-center justify-center shadow-inner">
+                <svg
+                  className="w-5 h-5 text-[#A3B86C]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                  <polyline points="2 17 12 22 22 17" />
+                  <polyline points="2 12 12 17 22 12" />
+                </svg>
               </div>
 
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold tracking-tight text-white font-sans">
-                    SYNCHRA
+                  <h1 className="text-2xl font-bold tracking-tight text-[#E8EAED] font-sans">
+                    CONVERA
                   </h1>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-gov-olive/40 text-emerald-300 border border-emerald-600/40">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#161A20] text-[#A3B86C] border border-[#272D35]">
                     v1.0
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 font-medium">
-                  Unified Institutional Grievance Intelligence & Coordination Platform
+                <p className="text-xs text-[#A0A7B2] font-medium">
+                  Integrated Institution Complaint Monitoring & Overlap Dashboard
                 </p>
               </div>
             </div>
 
             {/* Tagline */}
-            <p className="text-sm font-semibold text-amber-400/95 tracking-wide">
+            <p className="text-sm font-semibold text-[#A3B86C] tracking-wide">
               One Institution. Connected Intelligence. Coordinated Action.
             </p>
 
             {/* Concise Mission Statement */}
-            <p className="text-xs text-slate-300 leading-relaxed max-w-lg">
-              SYNCHRA centralizes institution-related complaints across the Regulation Bureau (RB), Public Grievance Redressal Cell (PGRC), and Approval Bureau (AB). By identifying potential cross-bureau overlaps in real time, SYNCHRA prevents duplicated regulatory burden and accelerates grievance disposal.
+            <p className="text-xs text-[#A0A7B2] leading-relaxed max-w-lg">
+              CONVERA centralizes institution complaints across the Regulation Bureau (RB), Public Grievance Redressal Cell (PGRC), and Approval Bureau (AB). By identifying cross-bureau overlaps deterministically, CONVERA eliminates duplicated administrative friction and accelerates grievance disposal.
             </p>
           </div>
 
@@ -69,32 +74,32 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
 
           {/* 3 Core Highlights */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-            <div className="p-3 rounded-xl bg-slate-800/40 border border-slate-700/50">
-              <div className="w-7 h-7 rounded-lg bg-emerald-950/80 text-emerald-400 flex items-center justify-center mb-2 border border-emerald-800/40">
+            <div className="p-3 rounded-lg bg-[#111419] border border-[#272D35]">
+              <div className="w-6 h-6 rounded bg-[#161A20] text-[#A3B86C] flex items-center justify-center mb-2 border border-[#272D35]">
                 <Layers className="w-3.5 h-3.5" />
               </div>
-              <h4 className="text-xs font-semibold text-slate-100">Unified Records</h4>
-              <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+              <h4 className="text-xs font-semibold text-[#E8EAED]">Unified Records</h4>
+              <p className="text-[11px] text-[#737D8B] mt-1 leading-snug">
                 Single pane for technical college complaints, inspection history and directives.
               </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-800/40 border border-slate-700/50">
-              <div className="w-7 h-7 rounded-lg bg-amber-950/80 text-amber-400 flex items-center justify-center mb-2 border border-amber-800/40">
+            <div className="p-3 rounded-lg bg-[#111419] border border-[#272D35]">
+              <div className="w-6 h-6 rounded bg-[#161A20] text-[#E8B75C] flex items-center justify-center mb-2 border border-[#272D35]">
                 <Network className="w-3.5 h-3.5" />
               </div>
-              <h4 className="text-xs font-semibold text-slate-100">Overlap Intelligence</h4>
-              <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+              <h4 className="text-xs font-semibold text-[#E8EAED]">Overlap Engine</h4>
+              <p className="text-[11px] text-[#737D8B] mt-1 leading-snug">
                 Deterministic detection of concurrent proceedings across RB and PGRC cells.
               </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-800/40 border border-slate-700/50">
-              <div className="w-7 h-7 rounded-lg bg-slate-700/80 text-slate-200 flex items-center justify-center mb-2 border border-slate-600/40">
+            <div className="p-3 rounded-lg bg-[#111419] border border-[#272D35]">
+              <div className="w-6 h-6 rounded bg-[#161A20] text-[#69C9A0] flex items-center justify-center mb-2 border border-[#272D35]">
                 <FileCheck2 className="w-3.5 h-3.5" />
               </div>
-              <h4 className="text-xs font-semibold text-slate-100">Accountable Tracking</h4>
-              <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+              <h4 className="text-xs font-semibold text-[#E8EAED]">Accountable SLA</h4>
+              <p className="text-[11px] text-[#737D8B] mt-1 leading-snug">
                 Immutable action ledger with SLA ageing alerts and statutory exports.
               </p>
             </div>
@@ -102,39 +107,37 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
         </div>
 
         {/* Small Footer */}
-        <div className="relative z-10 pt-6 mt-4 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
+        <div className="relative z-10 pt-6 mt-4 border-t border-[#272D35] flex items-center justify-between text-[11px] text-[#737D8B]">
           <span>Smart India Hackathon 2026 Prototype</span>
-          <span className="font-mono text-slate-400">Problem Statement: SIH26264</span>
+          <span className="font-mono text-[#A0A7B2]">Problem Statement: SIH26264</span>
         </div>
       </div>
 
       {/* =========================================================================
           RIGHT PANEL — Login Form & Authenticated Access
           ========================================================================= */}
-      <div className="flex-1 bg-obsidian-900 border-l border-slate-800/80 flex flex-col justify-between p-6 sm:p-10 lg:p-16 text-slate-100">
+      <div className="flex-1 bg-[#08090B] flex flex-col justify-between p-6 sm:p-10 lg:p-14 text-[#E8EAED]">
         {/* Top Government Micro-strip */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800 text-[11px] text-slate-400 font-mono">
+        <div className="flex items-center justify-between pb-3 border-b border-[#272D35] text-[11px] text-[#737D8B] font-mono">
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span className="font-semibold text-slate-300">Official AICTE Administrative Gateway</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#69C9A0] animate-pulse"></span>
+            <span className="font-semibold text-[#A0A7B2]">AICTE Central Administrative Gateway</span>
           </div>
-          <span className="text-slate-500 hidden sm:inline">Portal Security Level: Tier-3 Gov</span>
+          <span className="text-[#737D8B] hidden sm:inline">Tier-3 Security Directives</span>
         </div>
 
         {/* Centered Form */}
-        <div className="my-auto py-8">
+        <div className="my-auto py-6">
           {children}
         </div>
 
         {/* Bottom Compliance Strip */}
-        <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500 font-mono">
-          <span>© 2026 All India Council for Technical Education (AICTE)</span>
+        <div className="pt-3 border-t border-[#272D35] flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-[#737D8B] font-mono">
+          <span>© 2026 All India Council for Technical Education</span>
           <div className="flex items-center gap-3">
-            <span className="hover:text-slate-300 cursor-pointer">Security Protocol</span>
+            <span className="hover:text-[#E8EAED] cursor-pointer">Security Protocol</span>
             <span>•</span>
-            <span className="hover:text-slate-300 cursor-pointer">Terms of Use</span>
-            <span>•</span>
-            <span className="hover:text-slate-300 cursor-pointer">Cyber Cell</span>
+            <span className="hover:text-[#E8EAED] cursor-pointer">Terms of Use</span>
           </div>
         </div>
       </div>

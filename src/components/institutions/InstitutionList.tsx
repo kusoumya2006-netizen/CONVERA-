@@ -1,16 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { useCaseWatch } from '../../context/CaseWatchContext';
-import { Institution, Region } from '../../types';
+import { Region } from '../../types';
 import { InstitutionDetailModal } from './InstitutionDetailModal';
 import {
-  Building2,
   Search,
   MapPin,
   Calendar,
   Award,
   GitCompare,
-  ArrowRight,
-  ShieldAlert
+  ArrowRight
 } from 'lucide-react';
 
 export const InstitutionList: React.FC = () => {
@@ -83,15 +81,15 @@ export const InstitutionList: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Search & Filter Header */}
-      <div className="bg-obsidian-850 p-4 rounded-lg border border-slate-800 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-[#111419] p-4 rounded-lg border border-[#272D35] shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#737D8B] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search institutions by name, permanent AICTE ID, city..."
-            className="w-full pl-9 pr-4 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-500"
+            className="w-full pl-9 pr-4 py-2 bg-[#0B0D10] border border-[#272D35] rounded-md text-xs text-[#E8EAED] placeholder-[#737D8B] focus:outline-none focus:border-[#A3B86C]"
           />
         </div>
 
@@ -99,19 +97,19 @@ export const InstitutionList: React.FC = () => {
           <select
             value={selectedRegion}
             onChange={e => setSelectedRegion(e.target.value as any)}
-            className="px-3 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-xs font-medium text-slate-200"
+            className="px-3 py-2 bg-[#0B0D10] border border-[#272D35] rounded-md text-xs font-medium text-[#E8EAED] focus:outline-none focus:border-[#A3B86C]"
           >
-            <option value="ALL" className="bg-obsidian-900 text-slate-200">All AICTE Regions</option>
-            <option value="Northern" className="bg-obsidian-900 text-slate-200">Northern Region</option>
-            <option value="Western" className="bg-obsidian-900 text-slate-200">Western Region</option>
-            <option value="Southern" className="bg-obsidian-900 text-slate-200">Southern Region</option>
-            <option value="Eastern" className="bg-obsidian-900 text-slate-200">Eastern Region</option>
-            <option value="Central" className="bg-obsidian-900 text-slate-200">Central Region</option>
-            <option value="North-Western" className="bg-obsidian-900 text-slate-200">North-Western Region</option>
-            <option value="South-Western" className="bg-obsidian-900 text-slate-200">South-Western Region</option>
+            <option value="ALL">All AICTE Regions</option>
+            <option value="Northern">Northern Region</option>
+            <option value="Western">Western Region</option>
+            <option value="Southern">Southern Region</option>
+            <option value="Eastern">Eastern Region</option>
+            <option value="Central">Central Region</option>
+            <option value="North-Western">North-Western Region</option>
+            <option value="South-Western">South-Western Region</option>
           </select>
-          <span className="text-xs text-slate-400 whitespace-nowrap">
-            Showing {filteredInstitutions.length} institutions
+          <span className="text-xs text-[#737D8B] font-mono whitespace-nowrap">
+            {filteredInstitutions.length} institutions
           </span>
         </div>
       </div>
@@ -132,75 +130,80 @@ export const InstitutionList: React.FC = () => {
             <div
               key={inst.institutionId}
               onClick={() => setSelectedInstitutionId(inst.institutionId)}
-              className={`p-5 rounded-lg border transition-all duration-150 cursor-pointer bg-obsidian-850 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-slate-600 ${
-                stats.hasOverlap ? 'border-rose-800/80 ring-1 ring-rose-900/60' : 'border-slate-800'
+              className={`p-4 sm:p-5 rounded-lg border transition-all duration-150 cursor-pointer bg-[#111419] flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#38414D] hover:bg-[#161A20] ${
+                stats.hasOverlap ? 'border-l-4 border-l-[#F16D75] border-y border-r border-[#272D35]' : 'border-[#272D35]'
               }`}
             >
               <div>
                 {/* Header Strip */}
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-obsidian-950 text-slate-300 border border-slate-800">
+                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-[#0B0D10] text-[#A0A7B2] border border-[#272D35]">
                     PID: {inst.institutionId}
                   </span>
                   {stats.hasOverlap ? (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-800/80">
-                      <GitCompare className="w-3 h-3 text-rose-400" />
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#F16D75]/15 text-[#F16D75] border border-[#F16D75]/35">
+                      <GitCompare className="w-3 h-3 text-[#F16D75]" />
                       RB + PGRC Overlap
                     </span>
                   ) : (
-                    <span className="text-[10px] font-medium text-slate-400">{inst.type}</span>
+                    <span className="text-[10px] font-mono text-[#737D8B]">{inst.type}</span>
                   )}
                 </div>
 
                 {/* Institution Name */}
-                <h4 className="text-sm font-bold text-slate-100 line-clamp-2 mb-2 hover:text-white">
+                <h4 className="text-sm font-bold text-[#E8EAED] line-clamp-2 mb-2 hover:text-[#A3B86C] transition-colors">
                   {inst.name}
                 </h4>
 
                 {/* Location and Metadata */}
-                <div className="space-y-1 text-xs text-slate-400 mb-4">
-                  <div className="flex items-start gap-1.5 line-clamp-1">
-                    <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
-                    <span className="text-[11px] truncate">{inst.address}</span>
+                <div className="space-y-1 text-xs text-[#A0A7B2] mb-4">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <MapPin className="w-3.5 h-3.5 text-[#737D8B] shrink-0" />
+                    <span className="truncate">{inst.address}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-[11px]">
-                    <span className="inline-flex items-center gap-1">
-                      <Award className="w-3 h-3 text-amber-400" />
-                      {inst.accreditationGrade || 'AICTE Approved'}
-                    </span>
-                    <span>•</span>
-                    <span className="inline-flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-slate-500" />
+                  <div className="flex items-center gap-4 text-[11px] text-[#737D8B]">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-[#737D8B]" />
                       Est. {inst.establishedYear}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Award className="w-3 h-3 text-[#A3B86C]" />
+                      {inst.accreditationGrade || 'Approved'}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Case Counts Footer */}
-              <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-blue-950/70 text-blue-300 border border-blue-800/60">
-                    {stats.active} Active
-                  </span>
-                  <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-emerald-950/70 text-emerald-300 border border-emerald-800/60">
-                    {stats.disposed} Disposed
-                  </span>
+              {/* Bottom Metrics Pill Strip */}
+              <div className="pt-3 border-t border-[#272D35] flex items-center justify-between text-xs">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <span className="text-[10px] text-[#737D8B] font-mono uppercase block">Active</span>
+                    <span className="font-mono font-bold text-[#86A9FF]">{stats.active}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-[#737D8B] font-mono uppercase block">Closed</span>
+                    <span className="font-mono font-bold text-[#69C9A0]">{stats.disposed}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-[#737D8B] font-mono uppercase block">Total</span>
+                    <span className="font-mono font-bold text-[#E8EAED]">{stats.total}</span>
+                  </div>
                 </div>
-                <button className="text-slate-300 font-semibold text-xs inline-flex items-center gap-0.5 hover:text-white">
-                  <span>Profile</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
+
+                <span className="text-[#A3B86C] hover:text-[#B7CA82] font-semibold text-xs flex items-center gap-0.5">
+                  View Profile <ArrowRight className="w-3 h-3" />
+                </span>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Detail Modal */}
+      {/* Institution Detail Modal */}
       {activeInstitution && (
         <InstitutionDetailModal
-          isOpen={Boolean(selectedInstitutionId)}
+          isOpen={Boolean(activeInstitution)}
           onClose={() => setSelectedInstitutionId(null)}
           institution={activeInstitution}
         />

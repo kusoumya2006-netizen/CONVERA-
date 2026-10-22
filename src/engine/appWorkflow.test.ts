@@ -31,7 +31,7 @@ describe('CONVERA — End-to-End Authentication & Dashboard Workflow Verificatio
     const html = renderToString(React.createElement(App));
 
     // Verify Login Page is rendered
-    expect(html).toContain('SYNCHRA');
+    expect(html).toContain('CONVERA');
     expect(html).toContain('Official Sign In');
     expect(html).toContain('Officer Registration');
     expect(html).toContain('Account Password');
@@ -63,14 +63,13 @@ describe('CONVERA — End-to-End Authentication & Dashboard Workflow Verificatio
     expect(html).toContain('Director (Regulation Bureau)');
     expect(html).toContain('Sign Out');
 
-    // Verify Core Dashboard is rendered
-    expect(html).toContain('SYNCHRA');
-    expect(html).toContain('AICTE CELL MONITOR');
+    // Verify Core Dashboard is rendered with CONVERA branding
+    expect(html).toContain('CONVERA');
     expect(html).toContain('Total Cases');
-    expect(html).toContain('Recent Regulatory Action Stream');
+    expect(html).toContain('Regulatory Action Stream');
 
     // Verify Login page is NOT displayed
-    expect(html).not.toContain('Sign in to access the institutional grievance intelligence');
+    expect(html).not.toContain('Sign in to access the CONVERA institutional complaint intelligence');
   });
 
   it('3. Sign Out workflow clears authenticated session and immediately restores LoginPage', async () => {
@@ -98,6 +97,5 @@ describe('CONVERA — End-to-End Authentication & Dashboard Workflow Verificatio
     expect(html).toContain('Welcome back');
     expect(html).not.toContain('Sign Out');
     expect(html).not.toContain('AICTE National Complaint Monitoring');
-    expect(html).not.toContain('Recent Regulatory Action Stream');
   });
 });

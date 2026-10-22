@@ -1,14 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { useCaseWatch } from '../../context/CaseWatchContext';
-import { CaseRecord } from '../../types';
 import { StatusBadge, BureauBadge, PriorityBadge } from '../common/StatusBadge';
 import {
   ChevronLeft,
   ChevronRight,
   GitCompare,
-  AlertTriangle,
-  ExternalLink,
-  Clock
+  AlertTriangle
 } from 'lucide-react';
 
 export const CaseTable: React.FC = () => {
@@ -34,10 +31,10 @@ export const CaseTable: React.FC = () => {
   const nowMs = Date.now();
 
   return (
-    <div className="bg-obsidian-850 rounded-lg border border-slate-800 shadow-sm overflow-hidden">
+    <div className="bg-[#111419] rounded-lg border border-[#272D35] shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead className="bg-obsidian-950 text-slate-300 font-semibold border-b border-slate-800">
+          <thead className="bg-[#0B0D10] text-[#737D8B] font-semibold border-b border-[#272D35] font-mono text-[10px]">
             <tr>
               <th className="px-4 py-3">Case ID</th>
               <th className="px-4 py-3">Institution & Permanent ID</th>
@@ -51,10 +48,10 @@ export const CaseTable: React.FC = () => {
               <th className="px-4 py-3 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60">
+          <tbody className="divide-y divide-[#272D35]/70">
             {currentRecords.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-4 py-12 text-center text-slate-400">
+                <td colSpan={10} className="px-4 py-12 text-center text-[#737D8B]">
                   No complaint cases match your selected filter criteria.
                 </td>
               </tr>
@@ -67,12 +64,12 @@ export const CaseTable: React.FC = () => {
                 return (
                   <tr
                     key={c.caseId}
-                    className="hover:bg-slate-800/40 transition-colors cursor-pointer"
+                    className="hover:bg-[#161A20] transition-colors cursor-pointer"
                     onClick={() => setSelectedCaseId(c.caseId)}
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-mono font-bold text-slate-100">{c.caseId}</span>
+                        <span className="font-mono font-bold text-[#E8EAED]">{c.caseId}</span>
                         {c.isMerged && (
                           <span
                             onClick={e => {
@@ -80,7 +77,7 @@ export const CaseTable: React.FC = () => {
                               setActiveTab('merged');
                             }}
                             title={`Merged into primary case ${c.mergedIntoCaseId}`}
-                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-950/70 text-blue-300 border border-blue-800/60"
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-[#86A9FF]/10 text-[#86A9FF] border border-[#86A9FF]/30"
                           >
                             Merged
                           </span>
@@ -92,19 +89,19 @@ export const CaseTable: React.FC = () => {
                               setActiveTab('merged');
                             }}
                             title={`Primary case with ${c.mergedCaseIds.length} consolidated complaints`}
-                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-200 border border-slate-700"
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-[#161A20] text-[#E8EAED] border border-[#272D35]"
                           >
                             Lead ({c.mergedCaseIds.length})
                           </span>
                         )}
                       </div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-[10px] text-[#737D8B] font-mono mt-0.5">
                         {c.receivedAt ? c.receivedAt.split('T')[0] : ''}
                       </div>
                     </td>
                     <td className="px-4 py-3 max-w-xs">
                       <div
-                        className="font-medium text-slate-100 truncate hover:text-slate-300"
+                        className="font-medium text-[#E8EAED] truncate hover:text-[#A3B86C] transition-colors"
                         onClick={e => {
                           e.stopPropagation();
                           setSelectedInstitutionId(c.institutionId);
@@ -113,13 +110,13 @@ export const CaseTable: React.FC = () => {
                       >
                         {c.institutionName || 'Unknown Institution'}
                       </div>
-                      <div className="font-mono text-[10px] text-slate-400">
+                      <div className="font-mono text-[10px] text-[#737D8B]">
                         PID: {c.institutionId}
                       </div>
                     </td>
                     <td className="px-3 py-3 max-w-[200px]">
-                      <div className="text-slate-200 font-medium truncate">{c.category}</div>
-                      <div className="text-[10px] text-slate-400">By {c.complainantType}</div>
+                      <div className="text-[#A0A7B2] font-medium truncate">{c.category}</div>
+                      <div className="text-[10px] text-[#737D8B]">By {c.complainantType}</div>
                     </td>
                     <td className="px-3 py-3">
                       <BureauBadge bureau={c.bureau} size="sm" />
@@ -133,23 +130,23 @@ export const CaseTable: React.FC = () => {
                     <td className="px-3 py-3 max-w-[160px]">
                       {c.status === 'Disposed' ? (
                         <div>
-                          <div className="text-[11px] font-semibold text-emerald-400 truncate" title={`Completed by ${c.completedBy || c.assignedOfficer}`}>
+                          <div className="text-[11px] font-medium text-[#69C9A0] truncate" title={`Completed by ${c.completedBy || c.assignedOfficer}`}>
                             Completed by {c.completedBy || c.assignedOfficer}
                           </div>
-                          <div className="font-mono text-[10px] text-slate-400">
+                          <div className="font-mono text-[10px] text-[#737D8B]">
                             Closed: {c.completedAt ? c.completedAt.split('T')[0] : c.lastActionAt?.split('T')[0]}
                           </div>
                         </div>
                       ) : (
-                        <div className="truncate text-slate-300">{c.assignedOfficer}</div>
+                        <div className="truncate text-[#A0A7B2]">{c.assignedOfficer}</div>
                       )}
                     </td>
                     <td className="px-3 py-3">
-                      <div className={`font-mono text-[11px] ${isOverdue ? 'text-rose-400 font-bold' : 'text-slate-300'}`}>
+                      <div className={`font-mono text-[11px] ${isOverdue ? 'text-[#F16D75] font-bold' : 'text-[#A0A7B2]'}`}>
                         {c.expectedDisposalDate ? c.expectedDisposalDate.split('T')[0] : ''}
                       </div>
                       {isOverdue && (
-                        <span className="inline-flex items-center gap-0.5 text-[9px] text-rose-400 font-bold">
+                        <span className="inline-flex items-center gap-0.5 text-[9px] text-[#F16D75] font-mono font-bold">
                           <AlertTriangle className="w-2.5 h-2.5" /> OVERDUE
                         </span>
                       )}
@@ -159,19 +156,19 @@ export const CaseTable: React.FC = () => {
                         <button
                           onClick={() => setActiveTab('overlaps')}
                           title="Concurrent active cases in other Bureaus. Click to view coordination alert."
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/80 text-rose-300 border border-rose-800/80 hover:bg-rose-900"
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#F16D75]/15 text-[#F16D75] border border-[#F16D75]/35 hover:bg-[#F16D75]/25 transition-colors"
                         >
-                          <GitCompare className="w-3 h-3 text-rose-400" />
+                          <GitCompare className="w-3 h-3 text-[#F16D75]" />
                           <span>Overlap</span>
                         </button>
                       ) : (
-                        <span className="text-slate-600">—</span>
+                        <span className="text-[#272D35]">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right" onClick={e => e.stopPropagation()}>
                       <button
                         onClick={() => setSelectedCaseId(c.caseId)}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-300 hover:text-white"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#A3B86C] hover:text-[#B7CA82] transition-colors"
                       >
                         <span>Dossier</span>
                         <ChevronRight className="w-3 h-3" />
@@ -186,33 +183,33 @@ export const CaseTable: React.FC = () => {
       </div>
 
       {/* Pagination Bar */}
-      <div className="px-4 py-3 bg-obsidian-900 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+      <div className="px-4 py-3 bg-[#0B0D10] border-t border-[#272D35] flex items-center justify-between text-xs text-[#737D8B]">
         <div>
           Showing{' '}
-          <span className="font-semibold text-slate-200">
+          <span className="font-semibold text-[#E8EAED]">
             {filteredCases.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}
           </span>{' '}
           to{' '}
-          <span className="font-semibold text-slate-200">
+          <span className="font-semibold text-[#E8EAED]">
             {Math.min(currentPage * pageSize, filteredCases.length)}
           </span>{' '}
-          of <span className="font-semibold text-slate-200">{filteredCases.length}</span> records
+          of <span className="font-semibold text-[#E8EAED]">{filteredCases.length}</span> records
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="p-1.5 rounded border border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-obsidian-800 text-slate-300 transition-colors"
+            className="p-1.5 rounded-md border border-[#272D35] disabled:opacity-30 disabled:cursor-not-allowed bg-[#161A20] hover:bg-[#1C2129] text-[#A0A7B2] hover:text-[#E8EAED] transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="text-xs font-medium px-2 text-slate-300">
-            Page {currentPage} of {totalPages}
+          <span className="text-xs font-mono px-2 text-[#A0A7B2]">
+            {currentPage} / {totalPages}
           </span>
           <button
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="p-1.5 rounded border border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-obsidian-800 text-slate-300 transition-colors"
+            className="p-1.5 rounded-md border border-[#272D35] disabled:opacity-30 disabled:cursor-not-allowed bg-[#161A20] hover:bg-[#1C2129] text-[#A0A7B2] hover:text-[#E8EAED] transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
           </button>

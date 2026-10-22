@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useCaseWatch } from '../../context/CaseWatchContext';
 import { OverlapAlertCard } from './OverlapAlertCard';
 import { ReviewStatus } from '../../types';
-import { GitCompare, Download, Filter, AlertOctagon, CheckCircle2 } from 'lucide-react';
+import { Download, CheckCircle2, GitCompare, AlertOctagon, Clock, ShieldCheck } from 'lucide-react';
 import { exportOverlapsToCsv } from '../../services/exportService';
 
 export const OverlapMonitoringView: React.FC = () => {
@@ -28,62 +28,77 @@ export const OverlapMonitoringView: React.FC = () => {
   const handleExport = () => {
     exportOverlapsToCsv(
       filteredAlerts,
-      `casewatch_overlap_alerts_${new Date().toISOString().split('T')[0]}.csv`
+      `convera_overlap_alerts_${new Date().toISOString().split('T')[0]}.csv`
     );
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Top Banner & KPI Strip */}
-      <div className="bg-obsidian-850 p-5 rounded-lg border border-slate-800 shadow-sm space-y-4">
+      <div className="bg-[#111419] p-4 sm:p-5 rounded-lg border border-[#272D35] space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-slate-100">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-base font-bold text-[#E8EAED]">
                 Cross-Bureau Overlap Monitoring Console
               </h2>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 font-mono">
-                Deterministic Matching Engine Active
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#161A20] text-[#A0A7B2] border border-[#272D35]">
+                Deterministic Engine Active
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Automatic identification of concurrent open proceedings across Regulation Bureau (RB) and Public Grievance Redressal Cell (PGRC) to eliminate duplicated regulatory friction.
+            <p className="text-xs text-[#A0A7B2] mt-1 max-w-3xl leading-relaxed">
+              Automated detection of concurrent complaint proceedings across Regulation Bureau (RB) and Public Grievance Redressal Cell (PGRC) to eliminate duplicated administrative friction.
             </p>
           </div>
 
           <button
             onClick={handleExport}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold shadow-sm transition-colors shrink-0"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161A20] hover:bg-[#1C2129] border border-[#272D35] hover:border-[#38414D] text-[#E8EAED] text-xs font-semibold shadow-sm transition-colors shrink-0"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-[#737D8B]" />
             <span>Export Overlaps CSV ({filteredAlerts.length})</span>
           </button>
         </div>
 
-        {/* Overlap Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-slate-800">
-          <div className="p-3 bg-obsidian-900 rounded-lg border border-slate-800">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase">Total Flagged Overlaps</span>
-            <p className="text-xl font-bold font-mono text-slate-100 mt-0.5">{stats.total}</p>
+        {/* Overlap Metrics: Dark graphite cards with subtle borders */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-[#272D35]">
+          <div className="p-3 bg-[#161A20] rounded-lg border border-[#272D35]">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-[#A0A7B2] uppercase font-mono">Total Overlaps</span>
+              <GitCompare className="w-3.5 h-3.5 text-[#737D8B]" />
+            </div>
+            <p className="text-xl font-bold font-mono text-[#E8EAED] mt-1">{stats.total}</p>
           </div>
-          <div className="p-3 bg-rose-950/40 rounded-lg border border-rose-800/80">
-            <span className="text-[10px] font-semibold text-rose-300 uppercase">RB + PGRC Overlaps</span>
-            <p className="text-xl font-bold font-mono text-rose-200 mt-0.5">{stats.rbPgrc}</p>
+
+          <div className="p-3 bg-[#161A20] rounded-lg border border-[#272D35]">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-[#A0A7B2] uppercase font-mono">RB + PGRC Overlaps</span>
+              <AlertOctagon className="w-3.5 h-3.5 text-[#F16D75]" />
+            </div>
+            <p className="text-xl font-bold font-mono text-[#F16D75] mt-1">{stats.rbPgrc}</p>
           </div>
-          <div className="p-3 bg-amber-950/40 rounded-lg border border-amber-800/80">
-            <span className="text-[10px] font-semibold text-amber-300 uppercase">Awaiting Coordination</span>
-            <p className="text-xl font-bold font-mono text-amber-200 mt-0.5">{stats.pending}</p>
+
+          <div className="p-3 bg-[#161A20] rounded-lg border border-[#272D35]">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-[#A0A7B2] uppercase font-mono">Awaiting Coordination</span>
+              <Clock className="w-3.5 h-3.5 text-[#E8B75C]" />
+            </div>
+            <p className="text-xl font-bold font-mono text-[#E8B75C] mt-1">{stats.pending}</p>
           </div>
-          <div className="p-3 bg-emerald-950/40 rounded-lg border border-emerald-800/80">
-            <span className="text-[10px] font-semibold text-emerald-300 uppercase">Coordinated Protocols</span>
-            <p className="text-xl font-bold font-mono text-emerald-200 mt-0.5">{stats.coordinated}</p>
+
+          <div className="p-3 bg-[#161A20] rounded-lg border border-[#272D35]">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-[#A0A7B2] uppercase font-mono">Coordinated Protocols</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-[#69C9A0]" />
+            </div>
+            <p className="text-xl font-bold font-mono text-[#69C9A0] mt-1">{stats.coordinated}</p>
           </div>
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between border-b border-[#272D35] pb-2.5">
+        <div className="flex items-center gap-1.5">
           {[
             { id: 'ALL', label: 'All Alerts' },
             { id: 'PENDING_REVIEW', label: 'Action Required' },
@@ -93,29 +108,29 @@ export const OverlapMonitoringView: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setFilterReview(tab.id as any)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                 filterReview === tab.id
-                  ? 'bg-slate-700 text-white border border-slate-600'
-                  : 'bg-obsidian-950 text-slate-400 border border-slate-800 hover:bg-obsidian-800 hover:text-slate-200'
+                  ? 'bg-[#161A20] text-[#E8EAED] border border-[#272D35] font-semibold'
+                  : 'bg-transparent text-[#737D8B] hover:text-[#A0A7B2] hover:bg-[#111419]'
               }`}
             >
               {tab.label}
             </button>
           ))}
         </div>
-        <span className="text-xs text-slate-400">
-          Showing {filteredAlerts.length} overlap scenarios
+        <span className="text-xs text-[#737D8B] font-mono">
+          {filteredAlerts.length} scenario{filteredAlerts.length !== 1 ? 's' : ''}
         </span>
       </div>
 
       {/* Overlap Cards List */}
-      <div className="space-y-4">
+      <div className="space-y-3.5">
         {filteredAlerts.length === 0 ? (
-          <div className="bg-obsidian-850 p-12 text-center rounded-lg border border-slate-800 space-y-2">
-            <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
-            <h4 className="text-sm font-bold text-slate-100">No Overlap Warnings Match Criteria</h4>
-            <p className="text-xs text-slate-400">
-              No unresolved cross-bureau conflicts for the selected review status.
+          <div className="bg-[#111419] p-12 text-center rounded-lg border border-[#272D35] space-y-2">
+            <CheckCircle2 className="w-8 h-8 text-[#69C9A0] mx-auto" />
+            <h4 className="text-sm font-bold text-[#E8EAED]">No Overlap Scenarios Match Filter</h4>
+            <p className="text-xs text-[#737D8B]">
+              No active cross-bureau conflicts for the selected review status.
             </p>
           </div>
         ) : (

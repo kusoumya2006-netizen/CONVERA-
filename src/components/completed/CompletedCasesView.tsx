@@ -1,19 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { useCaseWatch } from '../../context/CaseWatchContext';
 import { CaseRecord } from '../../types';
-import { StatusBadge, BureauBadge, PriorityBadge } from '../common/StatusBadge';
+import { BureauBadge } from '../common/StatusBadge';
 import { ReopenCaseModal } from '../cases/ReopenCaseModal';
 import {
   CheckCircle2,
-  Calendar,
   UserCheck,
   Search,
   RotateCcw,
-  ExternalLink,
   ChevronRight,
   ShieldCheck,
   FileCheck,
-  Building2,
   Download
 } from 'lucide-react';
 import { exportCasesToCsv } from '../../services/exportService';
@@ -64,24 +61,24 @@ export const CompletedCasesView: React.FC = () => {
   const handleExport = () => {
     exportCasesToCsv(
       filteredCompleted,
-      `casewatch_completed_14_days_${new Date().toISOString().split('T')[0]}.csv`
+      `convera_completed_14_days_${new Date().toISOString().split('T')[0]}.csv`
     );
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Top Banner & Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 bg-emerald-950/70 text-emerald-300 border border-emerald-800/60 rounded-lg">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <span className="p-1.5 bg-[#69C9A0]/10 text-[#69C9A0] border border-[#69C9A0]/30 rounded-lg">
+              <CheckCircle2 className="w-5 h-5 text-[#69C9A0]" />
             </span>
-            <h2 className="text-lg font-bold text-slate-100">
+            <h2 className="text-lg font-bold text-[#E8EAED]">
               Completed Proceedings — Last 14 Days
             </h2>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[#A0A7B2] mt-1">
             Grievances and regulatory inquiries fully disposed and closed within the past two-week monitoring cycle.
             Filtered strictly by administrative disposal timestamp.
           </p>
@@ -89,82 +86,82 @@ export const CompletedCasesView: React.FC = () => {
 
         <button
           onClick={handleExport}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold shadow-sm transition-colors shrink-0"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161A20] hover:bg-[#1C2129] border border-[#272D35] text-[#E8EAED] text-xs font-semibold shadow-sm transition-colors shrink-0"
         >
-          <Download className="w-3.5 h-3.5" />
-          <span>Export Completed Register ({filteredCompleted.length})</span>
+          <Download className="w-3.5 h-3.5 text-[#737D8B]" />
+          <span>Export Completed ({filteredCompleted.length})</span>
         </button>
       </div>
 
       {/* Metric Tiles */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-obsidian-850 p-4 rounded-lg border border-slate-800 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-[#111419] p-4 rounded-lg border border-[#272D35] shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase">Recent Disposals (14d)</span>
-            <FileCheck className="w-4 h-4 text-emerald-400" />
+            <span className="text-[10px] font-semibold text-[#737D8B] uppercase font-mono">Recent Disposals (14d)</span>
+            <FileCheck className="w-4 h-4 text-[#69C9A0]" />
           </div>
-          <div className="text-2xl font-bold font-mono text-slate-100 mt-1">
+          <div className="text-2xl font-bold font-mono text-[#E8EAED] mt-1">
             {completedCases.length}
           </div>
-          <p className="text-[10px] text-slate-400 mt-1">Total resolved matters across all cells</p>
+          <p className="text-[10px] text-[#737D8B] mt-1">Total resolved matters across all cells</p>
         </div>
 
-        <div className="bg-obsidian-850 p-4 rounded-lg border border-slate-800 shadow-sm">
+        <div className="bg-[#111419] p-4 rounded-lg border border-[#272D35] shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase">Regulation Bureau (RB)</span>
-            <ShieldCheck className="w-4 h-4 text-slate-300" />
+            <span className="text-[10px] font-semibold text-[#737D8B] uppercase font-mono">Regulation Bureau (RB)</span>
+            <ShieldCheck className="w-4 h-4 text-[#A3B86C]" />
           </div>
-          <div className="text-2xl font-bold font-mono text-slate-100 mt-1">
+          <div className="text-2xl font-bold font-mono text-[#E8EAED] mt-1">
             {rbCompleted}
           </div>
-          <p className="text-[10px] text-slate-400 mt-1">Inspections & compliance orders completed</p>
+          <p className="text-[10px] text-[#737D8B] mt-1">Inspections & compliance orders completed</p>
         </div>
 
-        <div className="bg-obsidian-850 p-4 rounded-lg border border-slate-800 shadow-sm">
+        <div className="bg-[#111419] p-4 rounded-lg border border-[#272D35] shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase">Public Grievances (PGRC)</span>
-            <UserCheck className="w-4 h-4 text-blue-400" />
+            <span className="text-[10px] font-semibold text-[#737D8B] uppercase font-mono">Public Grievances (PGRC)</span>
+            <UserCheck className="w-4 h-4 text-[#86A9FF]" />
           </div>
-          <div className="text-2xl font-bold font-mono text-slate-100 mt-1">
+          <div className="text-2xl font-bold font-mono text-[#E8EAED] mt-1">
             {pgrcCompleted}
           </div>
-          <p className="text-[10px] text-slate-400 mt-1">Student & faculty grievances redressed</p>
+          <p className="text-[10px] text-[#737D8B] mt-1">Student & faculty grievances redressed</p>
         </div>
       </div>
 
       {/* Filter / Search Strip */}
-      <div className="bg-obsidian-850 p-4 rounded-lg border border-slate-800 shadow-sm flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+      <div className="bg-[#111419] p-3.5 rounded-lg border border-[#272D35] shadow-sm flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#737D8B] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search completed records by Case ID, College, Completing Officer, or Resolution..."
-            className="w-full pl-9 pr-4 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-500"
+            className="w-full pl-9 pr-4 py-1.5 bg-[#0B0D10] border border-[#272D35] rounded-md text-xs text-[#E8EAED] placeholder-[#737D8B] focus:outline-none focus:border-[#A3B86C]"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <label className="text-[10px] font-semibold text-slate-400 uppercase">Bureau:</label>
+          <label className="text-[10px] font-semibold text-[#737D8B] uppercase font-mono">Bureau:</label>
           <select
             value={bureauFilter}
             onChange={e => setBureauFilter(e.target.value)}
-            className="px-2.5 py-1.5 bg-obsidian-950 border border-slate-700/80 rounded-md text-xs font-medium text-slate-200 focus:outline-none"
+            className="px-2.5 py-1.5 bg-[#0B0D10] border border-[#272D35] rounded-md text-xs font-medium text-[#E8EAED] focus:outline-none focus:border-[#A3B86C]"
           >
-            <option value="ALL" className="bg-obsidian-900 text-slate-200">All Bureaus</option>
-            <option value="RB" className="bg-obsidian-900 text-slate-200">Regulation Bureau (RB)</option>
-            <option value="PGRC" className="bg-obsidian-900 text-slate-200">Public Grievance Redressal (PGRC)</option>
-            <option value="AB" className="bg-obsidian-900 text-slate-200">Approval Bureau (AB)</option>
+            <option value="ALL">All Bureaus</option>
+            <option value="RB">Regulation Bureau (RB)</option>
+            <option value="PGRC">Public Grievance Redressal (PGRC)</option>
+            <option value="AB">Approval Bureau (AB)</option>
           </select>
         </div>
       </div>
 
       {/* Completed Cases Table */}
-      <div className="bg-obsidian-850 rounded-lg border border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-[#111419] rounded-lg border border-[#272D35] shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-obsidian-950 text-slate-300 font-semibold border-b border-slate-800">
+            <thead className="bg-[#0B0D10] text-[#737D8B] font-semibold border-b border-[#272D35] font-mono text-[10px]">
               <tr>
                 <th className="px-4 py-3">Case ID</th>
                 <th className="px-4 py-3">Institution</th>
@@ -176,10 +173,10 @@ export const CompletedCasesView: React.FC = () => {
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-[#272D35]/70">
               {filteredCompleted.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
+                  <td colSpan={8} className="px-4 py-12 text-center text-[#737D8B]">
                     No cases have been completed within the past 14 days matching your criteria.
                   </td>
                 </tr>
@@ -196,21 +193,21 @@ export const CompletedCasesView: React.FC = () => {
                   return (
                     <tr
                       key={c.caseId}
-                      className="hover:bg-slate-800/40 transition-colors cursor-pointer"
+                      className="hover:bg-[#161A20] transition-colors cursor-pointer"
                       onClick={() => {
                         setSelectedCaseId(c.caseId);
                         setActiveTab('registry');
                       }}
                     >
                       <td className="px-4 py-3">
-                        <div className="font-mono font-bold text-slate-100">{c.caseId}</div>
-                        <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-800/60">
+                        <div className="font-mono font-bold text-[#E8EAED]">{c.caseId}</div>
+                        <span className="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-[#69C9A0]/10 text-[#69C9A0] border border-[#69C9A0]/30">
                           Disposed
                         </span>
                       </td>
                       <td className="px-4 py-3 max-w-xs">
                         <div
-                          className="font-medium text-slate-100 truncate hover:text-slate-300"
+                          className="font-medium text-[#E8EAED] truncate hover:text-[#A3B86C] transition-colors"
                           onClick={e => {
                             e.stopPropagation();
                             setSelectedInstitutionId(c.institutionId);
@@ -219,24 +216,24 @@ export const CompletedCasesView: React.FC = () => {
                         >
                           {c.institutionName}
                         </div>
-                        <div className="font-mono text-[10px] text-slate-400">PID: {c.institutionId}</div>
+                        <div className="font-mono text-[10px] text-[#737D8B]">PID: {c.institutionId}</div>
                       </td>
-                      <td className="px-3 py-3 max-w-[160px] truncate font-medium text-slate-200">
+                      <td className="px-3 py-3 max-w-[160px] truncate font-medium text-[#A0A7B2]">
                         {c.category}
                       </td>
                       <td className="px-3 py-3">
                         <BureauBadge bureau={c.bureau} size="sm" />
                       </td>
-                      <td className="px-3 py-3 font-mono text-[11px] text-slate-300">
+                      <td className="px-3 py-3 font-mono text-[11px] text-[#A0A7B2]">
                         {compDateFormatted}
                       </td>
-                      <td className="px-3 py-3 font-medium text-slate-200">
+                      <td className="px-3 py-3 font-medium text-[#E8EAED]">
                         <div className="flex items-center gap-1.5">
-                          <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                          <UserCheck className="w-3.5 h-3.5 text-[#69C9A0]" />
                           <span>{c.completedBy || c.assignedOfficer}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 max-w-xs text-slate-300 text-[11px]">
+                      <td className="px-4 py-3 max-w-xs text-[#A0A7B2] text-[11px]">
                         <p className="line-clamp-2 leading-relaxed">
                           {c.resolutionSummary || c.lastAction}
                         </p>
@@ -246,7 +243,7 @@ export const CompletedCasesView: React.FC = () => {
                           <button
                             onClick={() => setReopenTargetCase(c)}
                             title="Reopen this case if new evidence or non-compliance is submitted"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-amber-800/80 text-amber-300 hover:bg-amber-950/50 text-[11px] font-semibold transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-[#E8B75C]/40 text-[#E8B75C] hover:bg-[#E8B75C]/15 text-[11px] font-semibold transition-colors"
                           >
                             <RotateCcw className="w-3 h-3" />
                             <span>Reopen</span>
@@ -256,10 +253,10 @@ export const CompletedCasesView: React.FC = () => {
                               setSelectedCaseId(c.caseId);
                               setActiveTab('registry');
                             }}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-obsidian-950 hover:bg-slate-800 border border-slate-700/80 text-slate-200 text-[11px] font-semibold transition-colors"
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#A3B86C] hover:text-[#B7CA82] transition-colors"
                           >
                             <span>Dossier</span>
-                            <ChevronRight className="w-3 h-3 text-slate-400" />
+                            <ChevronRight className="w-3 h-3" />
                           </button>
                         </div>
                       </td>

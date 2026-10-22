@@ -6,20 +6,15 @@ import { ActionFormModal } from './ActionFormModal';
 import { ReopenCaseModal } from './ReopenCaseModal';
 import {
   ArrowLeft,
-  Calendar,
-  Clock,
   UserCheck,
-  Building2,
-  AlertTriangle,
   GitCompare,
   Edit3,
   ExternalLink,
-  ShieldCheck,
-  FileText,
   RotateCcw,
   CheckCircle2,
   GitMerge,
-  Layers
+  Layers,
+  FileText
 } from 'lucide-react';
 
 export const CaseDetailView: React.FC = () => {
@@ -42,13 +37,13 @@ export const CaseDetailView: React.FC = () => {
   const caseRecord = cases.find(c => c.caseId === selectedCaseId);
   if (!caseRecord) {
     return (
-      <div className="p-8 text-center bg-obsidian-850 rounded-lg border border-slate-800">
-        <p className="text-slate-400">Case not found.</p>
+      <div className="p-8 text-center bg-[#111419] rounded-lg border border-[#272D35]">
+        <p className="text-[#A0A7B2]">Case record not found.</p>
         <button
           onClick={() => setSelectedCaseId(null)}
-          className="mt-3 px-4 py-2 rounded bg-slate-800 border border-slate-700 hover:bg-slate-700 text-white text-xs"
+          className="mt-3 px-3.5 py-1.5 rounded-md bg-[#161A20] border border-[#272D35] hover:bg-[#1C2129] text-[#E8EAED] text-xs font-medium"
         >
-          Back to Registry
+          Back to Case Registry
         </button>
       </div>
     );
@@ -68,12 +63,12 @@ export const CaseDetailView: React.FC = () => {
   const isOverdue = caseRecord.status !== 'Disposed' && diffDays < 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Top Navigation Strip */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <button
           onClick={() => setSelectedCaseId(null)}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-100 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#A0A7B2] hover:text-[#E8EAED] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Case Registry</span>
@@ -83,16 +78,16 @@ export const CaseDetailView: React.FC = () => {
           {caseRecord.status === 'Disposed' && (
             <button
               onClick={() => setIsReopenModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-800/80 bg-amber-950/40 hover:bg-amber-950/70 text-amber-300 text-xs font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[#E8B75C]/40 bg-[#E8B75C]/10 hover:bg-[#E8B75C]/20 text-[#E8B75C] text-xs font-semibold transition-colors"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+              <RotateCcw className="w-3.5 h-3.5 text-[#E8B75C]" />
               <span>Reopen Case</span>
             </button>
           )}
 
           <button
             onClick={() => setIsActionModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-[#A3B86C] hover:bg-[#B7CA82] text-[#08090B] text-xs font-semibold shadow-sm transition-colors"
           >
             <Edit3 className="w-3.5 h-3.5" />
             <span>Record Action / Update Status</span>
@@ -102,16 +97,16 @@ export const CaseDetailView: React.FC = () => {
 
       {/* Merged Child Alert Banner */}
       {caseRecord.isMerged && caseRecord.mergedIntoCaseId && (
-        <div className="p-4 rounded-lg bg-blue-950/60 border border-blue-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="p-4 rounded-lg bg-[#161A20] border-l-4 border-l-[#86A9FF] border-y border-r border-[#272D35] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-start gap-2.5">
-            <GitMerge className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+            <GitMerge className="w-5 h-5 text-[#86A9FF] shrink-0 mt-0.5" />
             <div>
-              <h4 className="text-xs font-bold text-blue-200 uppercase tracking-wide">
+              <h4 className="text-xs font-bold text-[#86A9FF] uppercase tracking-wide font-mono">
                 Consolidated Complaint Notice
               </h4>
-              <p className="text-xs text-blue-300/90 mt-0.5">
-                This grievance has been merged into master lead case{' '}
-                <strong className="font-mono text-white">{caseRecord.mergedIntoCaseId}</strong>.
+              <p className="text-xs text-[#A0A7B2] mt-0.5 leading-relaxed">
+                This grievance has been consolidated into lead master case{' '}
+                <strong className="font-mono text-[#E8EAED]">{caseRecord.mergedIntoCaseId}</strong>.
                 {caseRecord.mergeReason && ` Reason: ${caseRecord.mergeReason}.`}
                 {caseRecord.mergedBy && ` Merged by ${caseRecord.mergedBy}.`}
               </p>
@@ -119,7 +114,7 @@ export const CaseDetailView: React.FC = () => {
           </div>
           <button
             onClick={() => setSelectedCaseId(caseRecord.mergedIntoCaseId!)}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-blue-900 hover:bg-blue-800 text-white text-xs font-semibold shrink-0"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#111419] hover:bg-[#161A20] border border-[#272D35] text-[#86A9FF] text-xs font-semibold shrink-0 transition-colors"
           >
             <span>Open Primary Dossier</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -129,16 +124,16 @@ export const CaseDetailView: React.FC = () => {
 
       {/* Historical Reopened Banner if previously disposed */}
       {caseRecord.reopenedAt && (
-        <div className="p-4 rounded-lg bg-amber-950/50 border border-amber-800/70 flex items-start gap-2.5">
-          <RotateCcw className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="p-4 rounded-lg bg-[#161A20] border-l-4 border-l-[#E8B75C] border-y border-r border-[#272D35] flex items-start gap-2.5">
+          <RotateCcw className="w-5 h-5 text-[#E8B75C] shrink-0 mt-0.5" />
           <div>
-            <h4 className="text-xs font-bold text-amber-200 uppercase tracking-wide">
+            <h4 className="text-xs font-bold text-[#E8B75C] uppercase tracking-wide font-mono">
               Proceeding Reopened from Prior Disposal
             </h4>
-            <p className="text-xs text-amber-300/90 mt-0.5">
+            <p className="text-xs text-[#A0A7B2] mt-0.5 leading-relaxed">
               Reopened on {new Date(caseRecord.reopenedAt).toLocaleDateString('en-IN')} by{' '}
-              <strong className="text-white">{caseRecord.reopenedBy}</strong>. Ground:{' '}
-              <em>"{caseRecord.reopenReason}"</em>
+              <strong className="text-[#E8EAED]">{caseRecord.reopenedBy}</strong>. Ground:{' '}
+              <span className="italic text-[#E8EAED]">"{caseRecord.reopenReason}"</span>
             </p>
           </div>
         </div>
@@ -146,19 +141,19 @@ export const CaseDetailView: React.FC = () => {
 
       {/* Overlap Warning Box if involved */}
       {matchingAlert && (
-        <div className="p-4 rounded-lg bg-rose-950/60 border border-rose-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="p-4 rounded-lg bg-[#161A20] border-l-4 border-l-[#F16D75] border-y border-r border-[#272D35] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-start gap-2.5">
-            <GitCompare className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+            <GitCompare className="w-5 h-5 text-[#F16D75] shrink-0 mt-0.5" />
             <div>
-              <h4 className="text-xs font-bold text-rose-200 uppercase tracking-wide">
+              <h4 className="text-xs font-bold text-[#F16D75] uppercase tracking-wide font-mono">
                 Concurrent Cross-Bureau Proceeding Warning
               </h4>
-              <p className="text-xs text-rose-300/90 mt-0.5">{matchingAlert.reason}</p>
+              <p className="text-xs text-[#A0A7B2] mt-0.5 leading-relaxed">{matchingAlert.reason}</p>
             </div>
           </div>
           <button
             onClick={() => setActiveTab('overlaps')}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-rose-900 hover:bg-rose-800 text-white text-xs font-semibold shrink-0"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#111419] hover:bg-[#161A20] border border-[#272D35] text-[#F16D75] text-xs font-semibold shrink-0 transition-colors"
           >
             <span>Open Coordination Console</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -166,24 +161,24 @@ export const CaseDetailView: React.FC = () => {
         </div>
       )}
 
-      {/* Disposed Resolution Card (P1 Requirement) */}
+      {/* Disposed Resolution Card */}
       {caseRecord.status === 'Disposed' && (
-        <div className="p-5 rounded-lg bg-emerald-950/40 border border-emerald-800/80 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-800/60 pb-3">
+        <div className="p-5 rounded-lg bg-[#161A20] border-l-4 border-l-[#69C9A0] border-y border-r border-[#272D35] space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#272D35] pb-3">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              <CheckCircle2 className="w-5 h-5 text-[#69C9A0]" />
               <div>
-                <h3 className="text-sm font-bold text-emerald-200">
+                <h3 className="text-sm font-bold text-[#E8EAED]">
                   Case Disposal & Resolution Record
                 </h3>
-                <p className="text-[11px] text-emerald-400/80">
+                <p className="text-[11px] text-[#A0A7B2]">
                   Formally closed upon satisfactory verification of compliance and grievance redressal.
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-emerald-400 block">Completed On</span>
-              <span className="font-mono text-xs font-bold text-emerald-200">
+              <span className="text-[10px] uppercase font-bold text-[#737D8B] font-mono block">Completed On</span>
+              <span className="font-mono text-xs font-bold text-[#69C9A0]">
                 {caseRecord.completedAt
                   ? new Date(caseRecord.completedAt).toLocaleString('en-IN', {
                       day: 'numeric',
@@ -199,31 +194,31 @@ export const CaseDetailView: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div>
-              <span className="text-[10px] uppercase font-bold text-emerald-400 block">Completed By</span>
-              <div className="flex items-center gap-1.5 font-bold text-emerald-200 mt-0.5">
-                <UserCheck className="w-4 h-4 text-emerald-400" />
+              <span className="text-[10px] uppercase font-bold text-[#737D8B] font-mono block">Completed By</span>
+              <div className="flex items-center gap-1.5 font-bold text-[#E8EAED] mt-0.5">
+                <UserCheck className="w-4 h-4 text-[#69C9A0]" />
                 <span>{caseRecord.completedBy || caseRecord.assignedOfficer}</span>
               </div>
               {caseRecord.completedByOfficerId && (
-                <span className="font-mono text-[10px] text-emerald-400 block">
+                <span className="font-mono text-[10px] text-[#A0A7B2] block mt-0.5">
                   Officer ID: {caseRecord.completedByOfficerId}
                 </span>
               )}
             </div>
 
             <div>
-              <span className="text-[10px] uppercase font-bold text-emerald-400 block">Disposal Target Metric</span>
-              <span className="font-semibold text-emerald-200 mt-0.5 block">
-                Closed within regulatory turnaround period ({caseRecord.bureau})
+              <span className="text-[10px] uppercase font-bold text-[#737D8B] font-mono block">Turnaround Benchmark</span>
+              <span className="font-medium text-[#A0A7B2] mt-0.5 block">
+                Disposed within regulatory schedule for Bureau ({caseRecord.bureau})
               </span>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-emerald-800/60">
-            <span className="text-[10px] uppercase font-bold text-emerald-400 block mb-1">
+          <div className="pt-2 border-t border-[#272D35]">
+            <span className="text-[10px] uppercase font-bold text-[#737D8B] font-mono block mb-1">
               Final Official Resolution Summary
             </span>
-            <div className="p-3 bg-obsidian-950 rounded-lg border border-emerald-900/60 text-xs text-emerald-200 leading-relaxed font-medium">
+            <div className="p-3 bg-[#0B0D10] rounded-md border border-[#272D35] text-xs text-[#E8EAED] leading-relaxed">
               {caseRecord.resolutionSummary || caseRecord.lastAction}
             </div>
           </div>
@@ -231,52 +226,52 @@ export const CaseDetailView: React.FC = () => {
       )}
 
       {/* Main Dossier Card */}
-      <div className="bg-obsidian-850 rounded-lg border border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-[#111419] rounded-lg border border-[#272D35] shadow-sm overflow-hidden">
         {/* Header Ribbon */}
-        <div className="p-6 border-b border-slate-800 bg-obsidian-900 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-5 sm:p-6 border-b border-[#272D35] bg-[#161A20] flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex flex-wrap items-center gap-2.5 mb-2">
-              <span className="font-mono text-base font-bold text-slate-100">{caseRecord.caseId}</span>
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="font-mono text-base font-bold text-[#E8EAED]">{caseRecord.caseId}</span>
               <BureauBadge bureau={caseRecord.bureau} />
               <StatusBadge status={caseRecord.status} />
               <PriorityBadge priority={caseRecord.priority} />
             </div>
-            <h2 className="text-base font-bold text-slate-100">{caseRecord.category}</h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <h2 className="text-base font-bold text-[#E8EAED]">{caseRecord.category}</h2>
+            <p className="text-xs text-[#A0A7B2] mt-1">
               Received on {new Date(caseRecord.receivedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })} by {caseRecord.complainantType}
             </p>
           </div>
 
           {/* SLA Pill */}
-          <div className="p-3.5 bg-obsidian-950 rounded-lg border border-slate-800 text-right min-w-[180px]">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase block">Expected Disposal Target</span>
-            <span className={`font-mono text-sm font-bold block mt-0.5 ${isOverdue ? 'text-rose-400' : 'text-slate-200'}`}>
+          <div className="p-3 bg-[#0B0D10] rounded-lg border border-[#272D35] text-right min-w-[170px]">
+            <span className="text-[10px] font-semibold text-[#737D8B] uppercase font-mono block">Expected Disposal</span>
+            <span className={`font-mono text-sm font-bold block mt-0.5 ${isOverdue ? 'text-[#F16D75]' : 'text-[#E8EAED]'}`}>
               {caseRecord.expectedDisposalDate ? caseRecord.expectedDisposalDate.split('T')[0] : 'N/A'}
             </span>
-            <span className={`text-[10px] font-semibold inline-block px-1.5 py-0.5 rounded mt-1 ${
+            <span className={`text-[10px] font-mono font-semibold inline-block px-1.5 py-0.2 rounded mt-1 border ${
               caseRecord.status === 'Disposed'
-                ? 'bg-emerald-950/70 text-emerald-300 border border-emerald-800/60'
+                ? 'bg-[#69C9A0]/10 text-[#69C9A0] border-[#69C9A0]/30'
                 : isOverdue
-                ? 'bg-rose-950/70 text-rose-300 border border-rose-800/60 font-bold'
-                : 'bg-amber-950/70 text-amber-300 border border-amber-800/60'
+                ? 'bg-[#F16D75]/15 text-[#F16D75] border-[#F16D75]/35 font-bold'
+                : 'bg-[#E8B75C]/10 text-[#E8B75C] border-[#E8B75C]/30'
             }`}>
               {caseRecord.status === 'Disposed'
                 ? 'Resolved'
                 : isOverdue
-                ? `Overdue by ${Math.abs(diffDays)} Days`
-                : `Target in ${diffDays} Days`}
+                ? `Overdue by ${Math.abs(diffDays)}D`
+                : `Target in ${diffDays}D`}
             </span>
           </div>
         </div>
 
         {/* Institution Info & Metadata Grid */}
-        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-slate-800">
+        <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-5 border-b border-[#272D35]">
           <div className="space-y-1">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-[10px] font-semibold text-[#737D8B] uppercase tracking-wider font-mono">
               Technical Institution
             </span>
             <div
-              className="text-sm font-bold text-slate-100 hover:text-slate-300 cursor-pointer"
+              className="text-sm font-bold text-[#E8EAED] hover:text-[#A3B86C] cursor-pointer transition-colors"
               onClick={() => {
                 setSelectedInstitutionId(caseRecord.institutionId);
                 setActiveTab('institutions');
@@ -284,53 +279,53 @@ export const CaseDetailView: React.FC = () => {
             >
               {institution?.name || caseRecord.institutionName}
             </div>
-            <p className="text-xs text-slate-400 font-mono">PID: {caseRecord.institutionId}</p>
-            {institution && <p className="text-[11px] text-slate-400">{institution.address}</p>}
+            <p className="text-xs text-[#A0A7B2] font-mono">PID: {caseRecord.institutionId}</p>
+            {institution && <p className="text-[11px] text-[#737D8B]">{institution.address}</p>}
           </div>
 
           <div className="space-y-1">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-[10px] font-semibold text-[#737D8B] uppercase tracking-wider font-mono">
               Assigned Scrutiny Officer
             </span>
-            <div className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
-              <UserCheck className="w-4 h-4 text-slate-300" />
+            <div className="text-sm font-bold text-[#E8EAED] flex items-center gap-1.5">
+              <UserCheck className="w-4 h-4 text-[#A0A7B2]" />
               <span>{caseRecord.assignedOfficer}</span>
             </div>
-            <p className="text-xs text-slate-400">Bureau Jurisdiction: {caseRecord.bureau}</p>
-            <p className="text-[11px] text-slate-400">Regional Cell: {institution?.region || 'Central'}</p>
+            <p className="text-xs text-[#A0A7B2]">Bureau: {caseRecord.bureau}</p>
+            <p className="text-[11px] text-[#737D8B]">Regional Cell: {institution?.region || 'Central'}</p>
           </div>
 
           <div className="space-y-1">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-              Current Directive & Next Action
+            <span className="text-[10px] font-semibold text-[#737D8B] uppercase tracking-wider font-mono">
+              Directive & Action State
             </span>
-            <div className="text-xs font-semibold text-slate-200">
-              {caseRecord.nextAction || 'Under routine review'}
+            <div className="text-xs font-semibold text-[#E8EAED]">
+              {caseRecord.nextAction || 'Under routine scrutiny'}
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-[#737D8B] mt-1 leading-relaxed">
               Last Action: {caseRecord.lastAction} ({new Date(caseRecord.lastActionAt).toLocaleDateString('en-IN')})
             </p>
           </div>
         </div>
 
         {/* Narrative Description */}
-        <div className="p-6 border-b border-slate-800 bg-obsidian-900/40">
-          <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">
-            Detailed Complaint / Violation Particulars
+        <div className="p-5 sm:p-6 border-b border-[#272D35] bg-[#161A20]/50">
+          <h4 className="text-xs font-bold text-[#E8EAED] uppercase tracking-wider mb-2 font-mono">
+            Complaint / Violation Particulars
           </h4>
-          <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap bg-obsidian-950 p-4 rounded-lg border border-slate-800">
+          <p className="text-xs text-[#E8EAED] leading-relaxed whitespace-pre-wrap bg-[#0B0D10] p-4 rounded-lg border border-[#272D35]">
             {caseRecord.description}
           </p>
         </div>
 
         {/* Primary Case — Merged Children List if this is a primary case */}
         {caseRecord.mergedCaseIds && caseRecord.mergedCaseIds.length > 0 && (
-          <div className="p-6 border-b border-slate-800 bg-blue-950/20">
-            <h4 className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-blue-400" />
+          <div className="p-5 sm:p-6 border-b border-[#272D35] bg-[#86A9FF]/5">
+            <h4 className="text-xs font-bold text-[#86A9FF] uppercase tracking-wider mb-2 flex items-center gap-1.5 font-mono">
+              <Layers className="w-4 h-4 text-[#86A9FF]" />
               <span>Consolidated Duplicate / Concurrent Complaints ({caseRecord.mergedCaseIds.length})</span>
             </h4>
-            <p className="text-[11px] text-slate-400 mb-3">
+            <p className="text-[11px] text-[#A0A7B2] mb-3">
               The following complaints have been consolidated into this primary lead dossier:
             </p>
             <div className="flex flex-wrap gap-2">
@@ -338,11 +333,11 @@ export const CaseDetailView: React.FC = () => {
                 <button
                   key={childId}
                   onClick={() => setSelectedCaseId(childId)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-950/80 hover:bg-blue-900 text-blue-300 border border-blue-800/60 text-xs font-mono font-medium transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161A20] hover:bg-[#1C2129] text-[#86A9FF] border border-[#86A9FF]/30 text-xs font-mono font-medium transition-colors"
                 >
-                  <GitMerge className="w-3.5 h-3.5 text-blue-400" />
+                  <GitMerge className="w-3.5 h-3.5 text-[#86A9FF]" />
                   <span>{childId}</span>
-                  <ExternalLink className="w-3 h-3 text-blue-400" />
+                  <ExternalLink className="w-3 h-3 text-[#86A9FF]" />
                 </button>
               ))}
             </div>
@@ -350,23 +345,23 @@ export const CaseDetailView: React.FC = () => {
         )}
 
         {/* Cross-Referenced / Related Cases */}
-        <div className="p-6 border-b border-slate-800">
-          <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">
+        <div className="p-5 sm:p-6 border-b border-[#272D35]">
+          <h4 className="text-xs font-bold text-[#E8EAED] uppercase tracking-wider mb-2 font-mono">
             Cross-Referenced & Linked Case Matters ({caseRecord.relatedCaseIds.length})
           </h4>
           {caseRecord.relatedCaseIds.length === 0 ? (
-            <p className="text-xs text-slate-400">No linked cases currently associated.</p>
+            <p className="text-xs text-[#737D8B]">No linked cases currently associated.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {caseRecord.relatedCaseIds.map(relId => (
                 <button
                   key={relId}
                   onClick={() => setSelectedCaseId(relId)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-obsidian-950 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-mono font-medium transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161A20] hover:bg-[#1C2129] border border-[#272D35] text-[#A0A7B2] hover:text-[#E8EAED] text-xs font-mono font-medium transition-colors"
                 >
-                  <FileText className="w-3.5 h-3.5 text-slate-400" />
+                  <FileText className="w-3.5 h-3.5 text-[#737D8B]" />
                   <span>{relId}</span>
-                  <ExternalLink className="w-3 h-3 text-slate-400" />
+                  <ExternalLink className="w-3 h-3 text-[#737D8B]" />
                 </button>
               ))}
             </div>
@@ -374,12 +369,12 @@ export const CaseDetailView: React.FC = () => {
         </div>
 
         {/* Chronological Action History Timeline */}
-        <div className="p-6">
+        <div className="p-5 sm:p-6">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-bold text-slate-100">
+            <h4 className="text-sm font-bold text-[#E8EAED]">
               Chronological Regulatory Action History ({caseActions.length})
             </h4>
-            <span className="text-[11px] text-slate-400 font-mono">Immutable Audit Trail</span>
+            <span className="text-[10px] text-[#737D8B] font-mono">Immutable Audit Trail</span>
           </div>
 
           <ActionHistoryTimeline actions={caseActions} />

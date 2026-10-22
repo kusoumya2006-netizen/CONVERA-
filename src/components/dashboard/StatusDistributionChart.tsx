@@ -21,11 +21,11 @@ export const StatusDistributionChart: React.FC = () => {
     }
 
     const COLORS = {
-      'Pending': '#d97706',
-      'Under Process': '#2563eb',
-      'Disposed': '#059669',
-      'Transferred': '#64748b',
-      'Escalated': '#dc2626'
+      'Pending': '#E8B75C',
+      'Under Process': '#86A9FF',
+      'Disposed': '#69C9A0',
+      'Transferred': '#737D8B',
+      'Escalated': '#F16D75'
     };
 
     return Object.entries(counts).map(([name, value]) => ({
@@ -36,11 +36,11 @@ export const StatusDistributionChart: React.FC = () => {
   }, [cases]);
 
   return (
-    <div className="bg-obsidian-850 p-5 rounded-xl border border-slate-800 shadow-md">
+    <div className="bg-[#111419] p-4 sm:p-5 rounded-lg border border-[#272D35] shadow-sm">
       <div className="flex items-center justify-between mb-2">
         <div>
-          <h3 className="text-sm font-bold text-slate-100">Case Status Composition</h3>
-          <p className="text-xs text-slate-400">Live proportion of complaint stages</p>
+          <h3 className="text-sm font-bold text-[#E8EAED]">Case Status Composition</h3>
+          <p className="text-xs text-[#A0A7B2]">Proportion of complaint stages</p>
         </div>
       </div>
       <div className="h-64">
@@ -59,19 +59,17 @@ export const StatusDistributionChart: React.FC = () => {
             </Pie>
             <Tooltip
               contentStyle={{
-                backgroundColor: '#0F172A',
-                color: '#F8FAFC',
-                borderRadius: '8px',
+                backgroundColor: '#161A20',
+                color: '#E8EAED',
+                borderRadius: '6px',
                 fontSize: '12px',
-                border: '1px solid #334155',
-                boxShadow: '0 8px 16px -2px rgba(0, 0, 0, 0.5)'
+                border: '1px solid #272D35',
+                boxShadow: '0 8px 16px -2px rgba(0, 0, 0, 0.6)'
               }}
             />
             <Legend
-              layout="vertical"
-              align="right"
-              verticalAlign="middle"
-              wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}
+              wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }}
+              formatter={(value) => <span style={{ color: '#A0A7B2' }}>{value}</span>}
             />
           </PieChart>
         </ResponsiveContainer>

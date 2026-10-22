@@ -1,7 +1,7 @@
 import React from 'react';
 import { useCaseWatch } from '../../context/CaseWatchContext';
 import { useAuth } from '../../context/AuthContext';
-import { RotateCcw, Plus, AlertOctagon, Database, LogOut, UserCheck } from 'lucide-react';
+import { RotateCcw, Plus, AlertOctagon, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   onOpenNewCaseModal: () => void;
@@ -12,106 +12,104 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewCaseModal }) => {
   const { user, signOut } = useAuth();
 
   return (
-    <header className="sticky top-0 z-30 bg-obsidian-900 border-b border-slate-800/90 shadow-md">
-      {/* Top micro-bar: Government Identity strip */}
-      <div className="bg-obsidian-950 text-slate-400 text-[11px] px-6 py-1 flex items-center justify-between border-b border-slate-800/80 font-mono">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-200 tracking-wider">GOVERNMENT OF INDIA</span>
-          <span className="text-slate-700">|</span>
-          <span className="text-slate-300">All India Council for Technical Education (AICTE)</span>
-          <span className="text-slate-700">|</span>
-          <span className="text-emerald-400 font-medium">Regulation Bureau & PGRC Integrated Coordination</span>
-        </div>
+    <header className="sticky top-0 z-30 bg-[#0B0D10] border-b border-[#272D35] px-5 py-2.5 shadow-sm">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        {/* Brand identity: CONVERA wordmark & simple geometric symbol */}
         <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 text-slate-300">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            Operational Gateway Active
-          </span>
-          <span className="text-slate-700">•</span>
-          <span className="text-amber-400 font-medium">SIH 2026 Problem SIH26264</span>
-        </div>
-      </div>
-
-      {/* Main Header bar */}
-      <div className="px-6 py-3 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          {/* Emblem style badge */}
-          <div className="w-10 h-10 rounded-lg bg-obsidian-850 flex items-center justify-center text-white font-bold text-lg shadow-inner border border-slate-700/80">
-            <span className="text-amber-400 tracking-tighter">SY</span>
+          <div className="w-8 h-8 rounded-lg bg-[#161A20] border border-[#272D35] flex items-center justify-center text-white shadow-inner">
+            <svg
+              className="w-4 h-4 text-[#A3B86C]"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polygon points="12 2 2 7 12 12 22 7 12 2" />
+              <polyline points="2 17 12 22 22 17" />
+              <polyline points="2 12 12 17 22 12" />
+            </svg>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-lg font-bold tracking-tight text-white leading-none">
-                SYNCHRA
-              </h1>
-              <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-gov-olive/30 text-emerald-300 border border-emerald-600/30 font-mono">
-                AICTE CELL MONITOR
+              <span className="text-base font-bold tracking-tight text-[#E8EAED]">
+                CONVERA
+              </span>
+              <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-[#161A20] text-[#A0A7B2] border border-[#272D35]">
+                AICTE
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Unified Institutional Grievance Intelligence & Coordination Platform
+            <p className="text-[11px] text-[#737D8B] font-medium leading-none mt-0.5 hidden sm:block">
+              Integrated Complaint Intelligence & Overlap Monitor
             </p>
           </div>
         </div>
 
-        {/* Right side controls */}
+        {/* Operational status & Center controls */}
+        <div className="hidden md:flex items-center gap-3">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#111419] border border-[#272D35] text-[11px] text-[#A0A7B2]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#69C9A0] animate-pulse" />
+            <span className="font-mono">Gateway Active</span>
+            {isDemoMode && (
+              <>
+                <span className="text-[#272D35]">•</span>
+                <span className="text-[#737D8B]">Demo Sandbox</span>
+              </>
+            )}
+          </div>
+
+          <button
+            onClick={resetToSeedData}
+            title="Restore default test dataset (18 institutions, 35 cases)"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#111419] hover:bg-[#161A20] text-[#A0A7B2] hover:text-[#E8EAED] border border-[#272D35] hover:border-[#38414D] text-[11px] font-medium transition-colors"
+          >
+            <RotateCcw className="w-3 h-3 text-[#737D8B]" />
+            <span>Reset Data</span>
+          </button>
+        </div>
+
+        {/* Right side: Alerts, Action & Profile */}
         <div className="flex items-center gap-2.5">
-          {/* Overlap alert quick badge */}
+          {/* Restrained critical-overlap notification */}
           {stats.unresolvedOverlaps > 0 && (
             <button
               onClick={() => setActiveTab('overlaps')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-950/60 text-rose-300 border border-rose-800/80 text-xs font-semibold hover:bg-rose-900/60 transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#F16D75]/10 hover:bg-[#F16D75]/20 text-[#F16D75] border border-[#F16D75]/30 text-xs font-medium transition-colors"
             >
-              <AlertOctagon className="w-4 h-4 text-rose-400 animate-bounce" />
-              <span>{stats.unresolvedOverlaps} Overlaps Require Review</span>
+              <AlertOctagon className="w-3.5 h-3.5 text-[#F16D75]" />
+              <span className="font-mono font-bold">{stats.unresolvedOverlaps}</span>
+              <span className="hidden sm:inline">Overlaps Actionable</span>
             </button>
           )}
 
-          {/* Mode Pill */}
-          <div className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-obsidian-850 border border-slate-700/70 text-xs text-slate-300">
-            <Database className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="font-medium">
-              {isDemoMode ? 'Demo Mode (LocalStorage)' : 'Production Mode'}
-            </span>
-          </div>
-
-          {/* Reset Demo Data button */}
-          <button
-            onClick={resetToSeedData}
-            title="Restore original sample dataset of 18 institutions and 35 cases"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-obsidian-850 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-medium transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
-            <span className="hidden sm:inline">Reset Data</span>
-          </button>
-
-          {/* Register Complaint button */}
+          {/* Primary "Register Complaint" action */}
           <button
             onClick={onOpenNewCaseModal}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gov-olive hover:bg-gov-olive-light text-white text-xs font-semibold shadow-sm transition-colors border border-gov-olive-light/40"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#A3B86C] hover:bg-[#B7CA82] text-[#08090B] text-xs font-semibold shadow-sm transition-colors"
           >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Register Complaint</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Register Complaint</span>
           </button>
 
-          {/* Authenticated Officer Badge & Sign Out */}
+          {/* Compact user profile & sign-out control */}
           {user && (
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
+            <div className="flex items-center gap-2 pl-2 border-l border-[#272D35]">
               <div className="hidden lg:block text-right">
-                <span className="block text-xs font-bold text-slate-200 leading-tight">
+                <span className="block text-xs font-semibold text-[#E8EAED] leading-tight">
                   {user.displayName}
                 </span>
-                <span className="block text-[10px] text-emerald-400 font-medium">
-                  {user.designation}
+                <span className="block text-[10px] text-[#A0A7B2] font-mono leading-none">
+                  {user.bureau} • {user.designation}
                 </span>
               </div>
               <button
                 onClick={() => signOut()}
-                title="Sign out of SYNCHRA workspace"
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-700 bg-obsidian-850 hover:bg-rose-950/60 hover:text-rose-300 hover:border-rose-800 text-slate-300 text-xs font-medium transition-colors"
+                title="Sign out of CONVERA"
+                className="inline-flex items-center gap-1 p-1.5 lg:px-2.5 lg:py-1 rounded-md bg-[#111419] hover:bg-[#161A20] text-[#A0A7B2] hover:text-[#E8EAED] border border-[#272D35] hover:border-[#38414D] text-xs font-medium transition-colors"
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sign Out</span>
+                <LogOut className="w-3.5 h-3.5 text-[#737D8B]" />
+                <span className="hidden lg:inline">Sign Out</span>
               </button>
             </div>
           )}

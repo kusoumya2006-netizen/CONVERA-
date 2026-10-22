@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useCaseWatch } from '../../context/CaseWatchContext';
 import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../common/Modal';
-import { GitMerge, AlertCircle, ShieldCheck } from 'lucide-react';
+import { ShieldCheck, AlertTriangle } from 'lucide-react';
 
 interface MergeCasesModalProps {
   isOpen: boolean;
@@ -24,10 +24,7 @@ export const MergeCasesModal: React.FC<MergeCasesModalProps> = ({
   const [officerName, setOfficerName] = useState(user?.displayName || 'Authorized Bureau Officer');
   const [errorText, setErrorText] = useState<string | null>(null);
 
-  // Eligible primary cases: any case that is NOT an already merged child
   const eligiblePrimaryCases = cases.filter(c => !c.isMerged);
-
-  // Eligible child cases: any case that is NOT an already merged child and NOT the selected primary
   const eligibleChildCases = cases.filter(
     c => !c.isMerged && c.caseId !== primaryId
   );
@@ -63,47 +60,46 @@ export const MergeCasesModal: React.FC<MergeCasesModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Consolidate & Merge Duplicate Complaints"
-      subtitle="Link overlapping matters under a single primary regulatory dossier"
+      title="Consolidate Duplicate / Concurrent Grievances"
+      subtitle="Administrative Merger Protocol for Connected Complaints"
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-        {/* Informational Guidance */}
-        <div className="p-3 bg-blue-950/40 border border-blue-800/80 rounded-lg flex items-start gap-2.5">
-          <GitMerge className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+        {/* Compliance info notice */}
+        <div className="p-3 bg-[#E8B75C]/10 border border-[#E8B75C]/30 rounded-lg flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-[#E8B75C] shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <h5 className="font-bold text-blue-200 text-xs">Case Consolidation Protocol</h5>
-            <p className="text-[11px] text-blue-300/90 leading-relaxed">
-              Consolidating cases links the secondary complaint into the master dossier. All original records,
-              complainant statements, and historical audits remain permanently accessible and cross-referenced.
+            <h5 className="font-bold text-[#E8B75C] text-xs">Administrative Merger Guidelines</h5>
+            <p className="text-[11px] text-[#A0A7B2] leading-relaxed">
+              Consolidating complaints links the secondary case to the master lead dossier. The child complaint will mirror
+              disposition actions while preserving its original complainant particulars and chronological action ledger.
             </p>
           </div>
         </div>
 
         {errorText && (
-          <div className="p-3 bg-rose-950/60 border border-rose-800/80 rounded-lg flex items-center gap-2 text-rose-200 font-medium">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-            <span>{errorText}</span>
+          <div className="p-2.5 bg-[#F16D75]/10 text-[#F16D75] rounded-md border border-[#F16D75]/30 text-xs">
+            {errorText}
           </div>
         )}
 
         {/* Primary Case Selection */}
         <div>
-          <label className="block font-semibold text-slate-300 mb-1">
-            1. Master Primary Complaint (Lead Case) <span className="text-rose-400">*</span>
+          <label className="block font-semibold text-[#A0A7B2] mb-1">
+            1. Select Master Lead Dossier (Primary Case) <span className="text-[#F16D75]">*</span>
           </label>
           <select
             value={primaryId}
             onChange={e => {
               setPrimaryId(e.target.value);
-              setErrorText(null);
+              if (childId === e.target.value) setChildId('');
             }}
-            className="w-full px-3 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-xs font-medium text-slate-100 focus:outline-none focus:border-slate-500"
+            className="w-full px-3 py-2 bg-[#0B0D10] border border-[#272D35] rounded-md text-xs font-medium text-[#E8EAED] focus:outline-none focus:border-[#A3B86C]"
             required
           >
-            <option value="" className="bg-obsidian-900 text-slate-200">-- Select Master Complaint Dossier --</option>
+            <option value="">-- Choose Primary Dossier --</option>
             {eligiblePrimaryCases.map(c => (
-              <option key={c.caseId} value={c.caseId} className="bg-obsidian-900 text-slate-200">
+              <option key={c.caseId} value={c.caseId}>
                 {c.caseId} — [{c.bureau}] {c.institutionName} ({c.category})
               </option>
             ))}
@@ -112,78 +108,66 @@ export const MergeCasesModal: React.FC<MergeCasesModalProps> = ({
 
         {/* Child Case Selection */}
         <div>
-          <label className="block font-semibold text-slate-300 mb-1">
-            2. Secondary Complaint to Merge Into Lead Case <span className="text-rose-400">*</span>
+          <label className="block font-semibold text-[#A0A7B2] mb-1">
+            2. Select Complaint to Merge In (Sub-Complaint) <span className="text-[#F16D75]">*</span>
           </label>
           <select
             value={childId}
-            onChange={e => {
-              setChildId(e.target.value);
-              setErrorText(null);
-            }}
-            className="w-full px-3 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-xs font-medium text-slate-100 focus:outline-none focus:border-slate-500"
-            required
+            onChange={e => setChildId(e.target.value)}
             disabled={!primaryId}
+            className="w-full px-3 py-2 bg-[#0B0D10] border border-[#272D35] rounded-md text-xs font-medium text-[#E8EAED] focus:outline-none focus:border-[#A3B86C] disabled:opacity-40"
+            required
           >
-            <option value="" className="bg-obsidian-900 text-slate-200">-- Select Duplicate / Concurrent Complaint --</option>
+            <option value="">-- Choose Case to Consolidate --</option>
             {eligibleChildCases.map(c => (
-              <option key={c.caseId} value={c.caseId} className="bg-obsidian-900 text-slate-200">
+              <option key={c.caseId} value={c.caseId}>
                 {c.caseId} — [{c.bureau}] {c.institutionName} ({c.category})
               </option>
             ))}
           </select>
-          {!primaryId && (
-            <p className="text-[10px] text-slate-400 mt-1">Please select a master case first.</p>
-          )}
         </div>
 
-        {/* Merging Officer */}
+        {/* Justification / Reason */}
         <div>
-          <label className="block font-semibold text-slate-300 mb-1">
-            Consolidating Regulatory Officer
-          </label>
-          <input
-            type="text"
-            value={officerName}
-            onChange={e => setOfficerName(e.target.value)}
-            className="w-full px-3 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-xs text-slate-100 focus:outline-none focus:border-slate-500"
-            required
-          />
-        </div>
-
-        {/* Merge Reason */}
-        <div>
-          <label className="block font-semibold text-slate-300 mb-1">
-            Regulatory Justification for Consolidation <span className="text-rose-400">*</span>
+          <label className="block font-semibold text-[#A0A7B2] mb-1">
+            Official Consolidation Reason & Incident Context <span className="text-[#F16D75]">*</span>
           </label>
           <textarea
             rows={3}
             value={mergeReason}
-            onChange={e => {
-              setMergeReason(e.target.value);
-              setErrorText(null);
-            }}
-            placeholder="e.g. Multiple student submissions received concerning identical unapproved development fee imposition for 2025-26 academic term..."
-            className="w-full px-3 py-2 bg-obsidian-950 border border-slate-700/80 rounded-lg text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-500"
+            onChange={e => setMergeReason(e.target.value)}
+            placeholder="e.g. Duplicate grievance submitted by students of the same department regarding capitation fee demands..."
+            className="w-full px-3 py-2 bg-[#0B0D10] border border-[#272D35] rounded-md text-xs text-[#E8EAED] placeholder-[#737D8B] focus:outline-none focus:border-[#A3B86C]"
             required
           />
         </div>
 
-        {/* Footer actions */}
-        <div className="pt-3 border-t border-slate-800 flex justify-end gap-2">
+        {/* Officer name */}
+        <div>
+          <label className="block font-semibold text-[#A0A7B2] mb-1">Authorizing Official</label>
+          <input
+            type="text"
+            value={officerName}
+            onChange={e => setOfficerName(e.target.value)}
+            className="w-full px-3 py-2 bg-[#0B0D10] border border-[#272D35] rounded-md text-xs text-[#E8EAED] focus:outline-none focus:border-[#A3B86C]"
+            required
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="pt-3 border-t border-[#272D35] flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 font-medium"
+            className="px-3.5 py-1.5 rounded-md border border-[#272D35] text-[#A0A7B2] hover:bg-[#161A20] hover:text-[#E8EAED] font-medium transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-semibold shadow-sm"
+            className="px-3.5 py-1.5 rounded-md bg-[#A3B86C] hover:bg-[#B7CA82] text-[#08090B] font-semibold shadow-sm transition-colors"
           >
-            <GitMerge className="w-3.5 h-3.5" />
-            <span>Confirm & Consolidate Cases</span>
+            Execute Consolidation
           </button>
         </div>
       </form>
