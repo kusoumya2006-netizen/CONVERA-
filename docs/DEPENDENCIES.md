@@ -27,4 +27,4 @@ npm ci
 npm test
 npm run build
 ```
-Do not upgrade versions solely for documentation polish. Frontend `VITE_*` variables are exposed to the client at build time; never place passwords or service-role secrets in them. See [`.env.example`](.env.example).
+Do not upgrade versions solely for documentation polish. Frontend `VITE_*` variables are exposed to the client at build time; never place passwords or service-role secrets in them. See [`.env.example`](../.env.example).

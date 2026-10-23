@@ -23,7 +23,7 @@ npm ci
 npm test
 npm run build
 ```
-Record branch, commit SHA, date, environment, command, result, and evidence. Follow [the validation checklist](docs/VALIDATION_CHECKLIST.md).
+Record branch, commit SHA, date, environment, command, result, and evidence. Follow [the validation checklist](VALIDATION_CHECKLIST.md).
 
 ## Release gate
 - [ ] Checks re-run on intended commit.

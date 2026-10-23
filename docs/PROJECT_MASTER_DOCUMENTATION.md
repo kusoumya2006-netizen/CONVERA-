@@ -29,7 +29,7 @@ Separate teams can work on cases concerning the same institution without a share
 - **Cloud:** Supabase Auth and PostgreSQL; RLS and grants are required for authorization.
 - **Tests/build:** Vitest, TypeScript, Vite; Vercel configuration.
 
-See [Architecture](docs/ARCHITECTURE.md) for source locations and data flow.
+See [Architecture](ARCHITECTURE.md) for source locations and data flow.
 
 ## Data flow
 1. The user interacts with a case, institution, or coordination control.
@@ -53,7 +53,7 @@ npm run dev
 npm test
 npm run build
 ```
-For cloud mode, copy `.env.example` to `.env.local`, configure the public Supabase URL/key, apply migrations in order, and provision test accounts.
+For cloud mode, copy `../.env.example` to `.env.local`, configure the public Supabase URL/key, apply migrations in order, and provision test accounts.
 
 ## Evaluation walkthrough
 1. Explain fragmented institution-level complaint visibility.
@@ -63,10 +63,10 @@ For cloud mode, copy `.env.example` to `.env.local`, configure the public Supaba
 5. Show institution history and completed proceedings.
 6. Finish with analytics and disclose what has and has not been validated.
 
-See [Demo Walkthrough](docs/DEMO_WALKTHROUGH.md).
+See [Demo Walkthrough](DEMO_WALKTHROUGH.md).
 
 ## Validation
-Do not combine unit tests, build success, deployment availability, and live authorization into one claim. Record each separately in [VALIDATION_STATUS.md](VALIDATION_STATUS.md), and follow [the checklist](docs/VALIDATION_CHECKLIST.md).
+Do not combine unit tests, build success, deployment availability, and live authorization into one claim. Record each separately in [VALIDATION_STATUS.md](VALIDATION_STATUS.md), and follow [the checklist](VALIDATION_CHECKLIST.md).
 
 ## Known limitations
 - Academic prototype, not an official AICTE product.

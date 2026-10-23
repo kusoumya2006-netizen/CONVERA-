@@ -8,7 +8,7 @@
 
 Smart India Hackathon 2026 · Problem Statement **SIH26264**
 
-[Live Demo](https://convera-olvphbja7-kusoumya2006-netizens-projects.vercel.app/) · [Documentation Hub](docs/README.md) · [Architecture](docs/ARCHITECTURE.md) · [Validation Status](VALIDATION_STATUS.md)
+[Live Demo](https://convera-olvphbja7-kusoumya2006-netizens-projects.vercel.app/) · [Documentation Hub](docs/README.md) · [Architecture](docs/ARCHITECTURE.md) · [Validation Status](docs/VALIDATION_STATUS.md)
 
 </div>
 
@@ -154,19 +154,19 @@ Start at the [documentation hub](docs/README.md) for a guided index. The key ref
 
 | Document | Purpose |
 |---|---|
-| [Project master documentation](PROJECT_MASTER_DOCUMENTATION.md) | Project overview, modules, workflows, setup, and limitations |
+| [Project master documentation](docs/PROJECT_MASTER_DOCUMENTATION.md) | Project overview, modules, workflows, setup, and limitations |
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, source map, and data flow |
 | [SIH26264 requirement traceability](docs/SIH26264_REQUIREMENT_TRACEABILITY.md) | Requirements mapped to implementation and evidence |
 | [Database schema](docs/DATABASE_SCHEMA.md) | Schema and access-control review |
 | [Demo walkthrough](docs/DEMO_WALKTHROUGH.md) | Suggested evaluation flow |
-| [Validation status](VALIDATION_STATUS.md) | Current recorded checks and evidence boundaries |
+| [Validation status](docs/VALIDATION_STATUS.md) | Current recorded checks and evidence boundaries |
 | [Validation checklist](docs/VALIDATION_CHECKLIST.md) | Repeatable build, workflow, and cloud checks |
-| [Dependencies](DEPENDENCIES.md) | Runtime and development dependency inventory |
+| [Dependencies](docs/DEPENDENCIES.md) | Runtime and development dependency inventory |
 | [Contributing](docs/CONTRIBUTING.md) | Change and review conventions |
 
 ## Validation and limitations
 
-Use [VALIDATION_STATUS.md](VALIDATION_STATUS.md) for the current recorded validation evidence. Passing unit tests and a successful production build do not, by themselves, prove live Supabase authorization, multi-user behavior, or end-to-end deployment correctness. Those must be checked in the target environment.
+Use [VALIDATION_STATUS.md](docs/VALIDATION_STATUS.md) for the current recorded validation evidence. Passing unit tests and a successful production build do not, by themselves, prove live Supabase authorization, multi-user behavior, or end-to-end deployment correctness. Those must be checked in the target environment.
 
 Before a live demonstration, review the [validation checklist](docs/VALIDATION_CHECKLIST.md), confirm environment configuration and database policies, and use synthetic demonstration records only.
 

@@ -7,42 +7,42 @@
 ### 1. Landing page
 Introduce fragmented institution-level complaint visibility and position CONVERA as a coordination and decision-support prototype, not an autonomous adjudication system.
 
-![CONVERA landing page](assets/screenshots/01-convera-landing.png)
+![CONVERA landing page](../public/assets/01-convera-landing.jpg)
 
 ### 2. Authentication
 Explain that access depends on the configured provider, provisioned accounts, and backend authorization. Never display real credentials.
 
-![CONVERA authentication](assets/screenshots/02-authentication.png)
+![CONVERA authentication](../public/assets/02-authentication.jpg)
 
 ### 3. Overview dashboard
 Explain visible workload, urgency, case status, and activity; identify seeded demo data.
 
-![Overview dashboard](assets/screenshots/03-overview-dashboard.png)
+![Overview dashboard](../public/assets/03-overview-dashboard.jpg)
 
 ### 4. Case registry
 Demonstrate search/filter and inspect a synthetic case's institution, bureau, status, officer, and deadline.
 
-![Case registry](assets/screenshots/04-case-registry.png)
+![Case registry](../public/assets/04-case-registry.jpg)
 
 ### 5. Overlap monitoring
 Explain the candidate match rationale and coordination controls. An alert requests human review; it must not automatically merge, close, or dispose of either case.
 
-![Overlap monitoring](assets/screenshots/05-overlap-monitoring.png)
+![Overlap monitoring](../public/assets/05-overlap-monitoring.jpg)
 
 ### 6. Completed proceedings
 Show resolution records and clarify persistence behavior for any reopening demonstration.
 
-![Completed proceedings](assets/screenshots/06-completed-proceedings.png)
+![Completed proceedings](../public/assets/06-completed-proceedings.jpg)
 
 ### 7. Institution profiles
 Show consolidated institution activity while preserving each case's independent identity.
 
-![Institution profiles](assets/screenshots/07-institution-profiles.png)
+![Institution profiles](../public/assets/07-institution-profiles.jpg)
 
 ### 8. Reports and analytics
 Finish with workload/ageing summaries and exports. Identify illustrative metrics and validation gaps.
 
-![Reports and analytics](assets/screenshots/08-reports-analytics.png)
+![Reports and analytics](../public/assets/08-reports-analytics.jpg)
 
 ## Before presenting
 - Run `npm test` and `npm run build` on the demonstration commit.
