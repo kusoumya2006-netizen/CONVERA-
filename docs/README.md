@@ -1,64 +1,72 @@
-# CONVERA Documentation Hub
+# CONVERA Documentation
 
-Use this page as the starting point for understanding, running, reviewing, and validating CONVERA. The root [README](../README.md) is the short project introduction; this page routes you to the deeper technical material.
+Technical documentation is grouped here so the repository root stays focused on the application, setup, and project entry point.
 
-## Read in this order
+## Start here
 
-1. **[Project master documentation](../PROJECT_MASTER_DOCUMENTATION.md)** — purpose, modules, data flow, development setup, and limitations.
-2. **[Architecture](ARCHITECTURE.md)** — source map, application boundaries, persistence modes, and safety rules.
-3. **[Demo walkthrough](DEMO_WALKTHROUGH.md)** — a suggested evaluator journey through the product.
-4. **[Requirement traceability](SIH26264_REQUIREMENT_TRACEABILITY.md)** — SIH requirements mapped to implementation and evidence.
-5. **[Validation status](../VALIDATION_STATUS.md)** and **[validation checklist](VALIDATION_CHECKLIST.md)** — what has been reported, what remains environment-dependent, and how to verify it.
+1. **[Project master documentation](PROJECT_MASTER_DOCUMENTATION.md)** — purpose, modules, data flow, development setup, and limitations.
+2. **[Architecture](ARCHITECTURE.md)** — how the UI, workflow logic, decision-support engines, and persistence fit together.
+3. **[Demo walkthrough](DEMO_WALKTHROUGH.md)** — a repeatable evaluator journey using synthetic records.
+4. **[Requirement traceability](SIH26264_REQUIREMENT_TRACEABILITY.md)** — SIH requirements mapped to implementation evidence.
+5. **[Validation status](VALIDATION_STATUS.md)** and **[validation checklist](VALIDATION_CHECKLIST.md)** — recorded checks and what still needs environment-level verification.
 
 ## Technical references
 
-| Document | When to use it |
+| Document | Purpose |
 |---|---|
-| [Architecture](ARCHITECTURE.md) | Understand how UI, workflow logic, engines, and persistence connect |
-| [Database schema](DATABASE_SCHEMA.md) | Review migrations, tables, relationships, and access-control considerations |
+| [Project master documentation](PROJECT_MASTER_DOCUMENTATION.md) | Product overview, modules, workflows, setup, and limitations |
+| [Architecture](ARCHITECTURE.md) | Source map, application boundaries, data flow, and persistence modes |
+| [Database schema](DATABASE_SCHEMA.md) | Migration-led schema and access-control review |
 | [Requirement traceability](SIH26264_REQUIREMENT_TRACEABILITY.md) | Map the problem statement to implementation evidence |
-| [Demo walkthrough](DEMO_WALKTHROUGH.md) | Prepare a repeatable synthetic-data demonstration |
+| [Demo walkthrough](DEMO_WALKTHROUGH.md) | Prepare a consistent demonstration |
+| [Validation status](VALIDATION_STATUS.md) | Separate recorded results from checks that must be re-run |
 | [Validation checklist](VALIDATION_CHECKLIST.md) | Re-run build, workflow, and cloud checks |
-| [Contributing guide](CONTRIBUTING.md) | Make changes without destabilising existing behavior |
-| [Master documentation](../PROJECT_MASTER_DOCUMENTATION.md) | Read the full project overview |
-| [Validation status](../VALIDATION_STATUS.md) | Distinguish recorded results from checks that still need to be run |
-| [Dependencies](../DEPENDENCIES.md) | Review runtime and development dependencies |
+| [Dependencies](DEPENDENCIES.md) | Runtime and development dependency inventory |
+| [Contributing guide](CONTRIBUTING.md) | Change and review conventions |
 
-## Repository layout
+## Repository map
 
 ```text
 CONVERA/
-├── README.md                    # Project landing page and quick start
-├── PROJECT_MASTER_DOCUMENTATION.md
-├── VALIDATION_STATUS.md         # Evidence-based validation record
-├── DEPENDENCIES.md
-├── .env.example
+├── README.md                  # Project landing page, screenshots, quick start
+├── .env.example               # Safe environment-variable template
+├── package.json / lockfile    # Scripts and pinned dependency graph
 ├── src/
-│   ├── components/              # UI grouped by product domain
-│   ├── context/                 # Shared authentication and case workflow state
-│   ├── engine/                  # Priority, urgency, overlap, and history logic
-│   ├── services/                # Authentication, exports, and persistence adapters
-│   ├── types/                   # Shared domain types
-│   └── App.tsx / main.tsx       # Application entry points
-├── public/assets/               # Static assets and README product screenshots
-├── scripts/                     # Demo-data utilities
-├── supabase/migrations/         # Database schema, policies, and synthetic seed data
-└── docs/                        # Architecture, schema, demo, validation, and contributor guides
+│   ├── components/            # UI grouped by product domain
+│   ├── context/               # Shared authentication and case workflow state
+│   ├── engine/                # Priority, urgency, overlap, and history logic
+│   ├── services/              # Auth, exports, and persistence adapters
+│   ├── types/                 # Shared domain types
+│   └── App.tsx / main.tsx     # Application entry points
+├── public/assets/             # Static UI assets and canonical product screenshots
+├── scripts/                   # Demo-data utilities
+├── supabase/migrations/       # Schema, access policies, and synthetic seed migrations
+└── docs/
+    ├── README.md              # This documentation index
+    ├── PROJECT_MASTER_DOCUMENTATION.md
+    ├── VALIDATION_STATUS.md
+    ├── DEPENDENCIES.md
+    ├── ARCHITECTURE.md
+    ├── DATABASE_SCHEMA.md
+    ├── DEMO_WALKTHROUGH.md
+    ├── SIH26264_REQUIREMENT_TRACEABILITY.md
+    ├── VALIDATION_CHECKLIST.md
+    └── CONTRIBUTING.md
 ```
 
-This map is intentionally logical rather than exhaustive. Use the actual source tree when locating a specific component or service.
+This map is intentionally concise rather than exhaustive. Feature-level components live under `src/components/`; core decision-support logic and tests live under `src/engine/`; persistence implementations and their tests live under `src/services/storage/`.
 
-## Product screenshots
+## Screenshots and assets
 
-The eight README/product-tour screenshots are maintained in `public/assets/` so the root README can render them using repository-relative paths. The same screenshots should not be copied into this folder; keeping one canonical copy avoids stale or mismatched duplicates.
+The root README and demo walkthrough use the canonical screenshot files in `public/assets/`. Do not duplicate them under `docs/`; keeping one copy prevents stale screenshots and broken relative links. The campus image used by the interface is also kept in the asset locations currently referenced by the app.
 
 ## Validation boundary
 
-A passing unit-test suite or production build does not prove that deployed authentication, Supabase Row-Level Security (RLS), grants, multi-user workflows, or cloud persistence are correct. Record current test results with the commit SHA and verify environment-dependent behavior using the [validation checklist](VALIDATION_CHECKLIST.md).
+A passing unit-test suite or production build does not prove deployed authentication, Supabase Row-Level Security (RLS), grants, multi-user workflows, or cloud persistence. Record results against the exact commit and verify environment-dependent behavior with the [validation checklist](VALIDATION_CHECKLIST.md).
 
 ## Safety and data handling
 
 - Use synthetic complaint records in public demos.
-- Never commit secrets, passwords, service-role keys, or real sensitive complaint data.
+- Never commit secrets, passwords, service-role keys, or sensitive complaint data.
 - Treat overlap results as review signals, not final administrative decisions.
-- Keep case identity and history intact when changing workflow or storage code.
+- Preserve case identity and history when changing workflow or storage code.
