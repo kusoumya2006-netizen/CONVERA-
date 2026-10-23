@@ -1,50 +1,38 @@
 # CONVERA — Validation Status
 
-**Purpose:** distinguish automated evidence from manual and deployment-dependent checks.
+## Previously reported release results
+The latest release notes in this repository reported commit `7de1b393a6ff98fd8843b107c375442519e76036`, 108/108 automated tests across 12 suites, a successful TypeScript/Vite production build, and a completed Vercel deployment.
 
-## Latest repository-reported status
-
-The most recently documented release reports:
-- commit: `7de1b393a6ff98fd8843b107c375442519e76036`;
-- automated tests: 108/108 across 12 suites;
-- TypeScript check and Vite production build: reported successful;
-- Vercel deployment: reported completed.
-
-These are historical/repository-reported results, not a fresh execution performed by this document update. Re-run the commands on the current commit before relying on them for evaluation.
+These are historical/repository-reported results, not a fresh execution performed during this documentation update. Re-run commands on the current commit before relying on them.
 
 ## Evidence categories
-
-| Check | Current documentation status | What counts as verification |
+| Check | Status | Evidence required |
 |---|---|---|
-| Unit tests | Previously reported passing; re-run required | Current terminal output and commit SHA |
-| TypeScript + production build | Previously reported passing; re-run required | Successful `npm run build` on the current commit |
-| Vercel deployment | Previously reported completed; re-check required | Current deployment status and live smoke test |
-| Supabase migrations | Environment-dependent | Migration history and resulting schema in the target project |
-| RLS and grants | Not established by build success | Positive and negative access tests with distinct accounts |
-| Case lifecycle persistence | Environment-dependent | Create/update/reload verification against the intended storage mode |
-| Cross-bureau overlap behavior | Unit/UI tests plus manual scenarios needed | Same-ID, different-ID, false-positive, and review-action scenarios |
-| End-to-end multi-user behavior | Not established by unit tests alone | Reproducible end-to-end run against configured cloud mode |
+| Unit tests | Previously reported passing; re-run | Current terminal output and commit SHA |
+| TypeScript + production build | Previously reported passing; re-run | Successful `npm run build` on current commit |
+| Vercel deployment | Previously reported completed; re-check | Current deployment and live smoke test |
+| Supabase migrations | Environment-dependent | Migration history and resulting schema |
+| RLS and grants | Not established by build success | Allowed and denied tests with distinct accounts |
+| Case lifecycle persistence | Environment-dependent | Create/update/reload verification |
+| Overlap behavior | Unit/UI tests plus scenarios | Same ID, different ID, false-positive and review scenarios |
+| Multi-user end-to-end | Not established by unit tests alone | Reproducible cloud-mode test |
 
 ## Re-run locally
-
 ```bash
 npm ci
 npm test
 npm run build
 ```
-
-Record the branch, commit SHA, date, environment, command, result, and evidence. Follow the detailed [validation checklist](docs/VALIDATION_CHECKLIST.md).
+Record branch, commit SHA, date, environment, command, result, and evidence. Follow [the validation checklist](docs/VALIDATION_CHECKLIST.md).
 
 ## Release gate
-
-Before a live evaluation, confirm:
-- [ ] All checks above were re-run on the intended commit.
-- [ ] Demo data is synthetic and clearly identified.
-- [ ] Authentication and direct-route behavior work in the target environment.
+- [ ] Checks re-run on intended commit.
+- [ ] Demo data is synthetic and identified.
+- [ ] Authentication and direct-route behavior verified.
 - [ ] Case writes persist after refresh.
-- [ ] Overlap review does not merge or dispose of cases automatically.
-- [ ] Cloud RLS/grants are tested with both authorized and unauthorized accounts.
-- [ ] No secrets are present in repository files or client bundles.
-- [ ] Known limitations are disclosed to evaluators.
+- [ ] Overlap review never merges/disposes cases automatically.
+- [ ] Cloud RLS/grants tested with authorized and unauthorized accounts.
+- [ ] No secrets in repository or client bundles.
+- [ ] Limitations disclosed to evaluators.
 
-Do not publish a pass percentage unless the test set and the exact executed checks are stated.
+Do not publish a pass percentage without defining the test set and listing executed checks.
