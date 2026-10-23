@@ -3,6 +3,7 @@ import { IStorageService, AppStorageData, StorageMode } from './types';
 import { getSupabaseClient, isSupabaseConfigured } from '../supabaseClient';
 import { LocalStorageService } from './localStorageService';
 import { detectCrossBureauOverlaps } from '../../engine/overlapDetector';
+import { parseActionMetadata } from '../../engine/actionHistoryHelper';
 
 export class SupabaseStorageService implements IStorageService {
   readonly mode: StorageMode = 'supabase';
@@ -104,15 +105,26 @@ export class SupabaseStorageService implements IStorageService {
         mergeReason: r.merge_reason || undefined
       }));
 
-      const actions: CaseAction[] = (actionsData || []).map(r => ({
-        actionId: r.action_id,
-        caseId: r.case_id,
-        actionType: r.action_type,
-        remarks: r.remarks,
-        bureau: r.bureau,
-        officer: r.officer,
-        timestamp: r.timestamp
-      }));
+      const actions: CaseAction[] = (actionsData || []).map(r => {
+        const baseAction: CaseAction = {
+          actionId: r.action_id,
+          caseId: r.case_id,
+          actionType: r.action_type,
+          remarks: r.remarks,
+          bureau: r.bureau,
+          officer: r.officer,
+          timestamp: r.timestamp
+        };
+        const meta = parseActionMetadata(baseAction);
+        return {
+          ...baseAction,
+          activityCategory: meta.activityCategory,
+          evidenceRef: meta.evidenceRef,
+          nextAction: meta.nextAction,
+          previousValue: meta.previousValue,
+          newValue: meta.newValue
+        };
+      });
 
       let alerts: OverlapAlert[] = (alertsData || []).map(r => ({
         alertId: r.alert_id,

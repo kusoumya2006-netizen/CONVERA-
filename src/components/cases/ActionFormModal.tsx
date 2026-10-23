@@ -246,18 +246,17 @@ export const ActionFormModal: React.FC<ActionFormModalProps> = ({ isOpen, onClos
           </div>
         )}
 
-        {/* Officer name */}
+        {/* Authorizing Officer (Derived from authenticated session to prevent tampering) */}
         <div>
-          <label className="block font-semibold text-[#A0A7B2] mb-1">
-            Authorizing Officer Name & Designation
+          <label className="block font-semibold text-[#737D8B] text-[10px] uppercase font-mono mb-1">
+            Authorizing Official (Verified Session)
           </label>
-          <input
-            type="text"
-            value={officerName}
-            onChange={e => setOfficerName(e.target.value)}
-            className="w-full px-3 py-2 bg-[#0B0D10] border border-[#272D35] rounded-md text-xs text-[#E8EAED] focus:outline-none focus:border-[#A3B86C]"
-            required
-          />
+          <div className="px-3 py-2 bg-[#0B0D10] border border-[#272D35] rounded-md text-xs text-[#E8EAED] flex items-center justify-between">
+            <span className="font-semibold">{officerName}</span>
+            <span className="text-[10px] text-[#A3B86C] font-mono px-1.5 py-0.2 rounded bg-[#A3B86C]/10 border border-[#A3B86C]/30">
+              {user?.designation || user?.role || 'Authorized Scrutiny Officer'}
+            </span>
+          </div>
         </div>
 
         {/* Remarks / Log */}

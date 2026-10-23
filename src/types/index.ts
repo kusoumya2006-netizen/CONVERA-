@@ -90,6 +90,14 @@ export type ActionType =
   | 'CASE_UNMERGED'
   | 'REMARKS_ADDED';
 
+export type HistoryActivityType =
+  | 'Progress Update'
+  | 'Investigation Note'
+  | 'Evidence Added'
+  | 'Communication'
+  | 'Status Change'
+  | 'Other';
+
 export interface CaseAction {
   actionId: string;
   caseId: string;
@@ -103,6 +111,9 @@ export interface CaseAction {
   fieldChanged?: string;
   justification?: string;
   relatedCaseId?: string;
+  evidenceRef?: string;
+  activityCategory?: HistoryActivityType;
+  nextAction?: string;
 }
 
 export type AlertConfidence = 'HIGH' | 'MEDIUM';

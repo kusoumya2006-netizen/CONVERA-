@@ -9,6 +9,7 @@ import {
   CaseStatus,
   Bureau,
   ActionType,
+  HistoryActivityType,
   ReviewStatus,
   NavTab
 } from '../types';
@@ -16,6 +17,7 @@ import { loadInitialData, saveDataToStorage, resetStorage, getStorageService, is
 import { getSupabaseClient } from '../services/supabaseClient';
 import { detectCrossBureauOverlaps } from '../engine/overlapDetector';
 import { calculateDeterministicUrgency, sortCasesByDeterministicUrgency } from '../engine/urgencyCalculator';
+import { formatActionRemarks, mapActivityTypeToDbAction } from '../engine/actionHistoryHelper';
 import { AuthContext } from './AuthContext';
 
 interface CaseWatchContextType {
@@ -39,6 +41,15 @@ interface CaseWatchContextType {
   addCase: (caseData: Omit<CaseRecord, 'createdAt' | 'updatedAt'>) => Promise<{ success: boolean; error?: string }>;
   updateCaseStatus: (caseId: string, status: CaseStatus, remarks: string, officer: string, resolutionSummary?: string, officerId?: string) => Promise<{ success: boolean; error?: string }>;
   addCaseAction: (caseId: string, actionType: ActionType, remarks: string, officer: string, nextAction?: string) => Promise<{ success: boolean; error?: string }>;
+  addCaseHistoryEntry: (entry: {
+    caseId: string;
+    activityType: HistoryActivityType;
+    description: string;
+    newStatus?: CaseStatus;
+    evidenceRef?: string;
+    nextAction?: string;
+    resolutionSummary?: string;
+  }) => Promise<{ success: boolean; error?: string }>;
   reassignBureau: (caseId: string, newBureau: Bureau, remarks: string, officer: string) => Promise<{ success: boolean; error?: string }>;
   recordEscalation: (caseId: string, remarks: string, officer: string) => Promise<{ success: boolean; error?: string }>;
   linkRelatedCases: (caseId1: string, caseId2: string, remarks: string, officer: string) => Promise<{ success: boolean; error?: string; alreadyLinked?: boolean }>;
@@ -696,6 +707,112 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return { success: true };
   };
 
+  // Add Case History Entry (Comprehensive activity timeline support)
+  const addCaseHistoryEntry = async (entry: {
+    caseId: string;
+    activityType: HistoryActivityType;
+    description: string;
+    newStatus?: CaseStatus;
+    evidenceRef?: string;
+    nextAction?: string;
+    resolutionSummary?: string;
+  }): Promise<{ success: boolean; error?: string }> => {
+    const targetCase = cases.find(c => c.caseId === entry.caseId);
+    if (!targetCase) {
+      return { success: false, error: `Case ${entry.caseId} not found.` };
+    }
+
+    if (!entry.description.trim()) {
+      return { success: false, error: 'Activity description is required.' };
+    }
+
+    const hasJurisdiction = !authUser ||
+      authUser.role === 'SUPER_ADMIN' ||
+      authUser.bureau === 'ALL' ||
+      authUser.bureau === targetCase.bureau;
+
+    if (!hasJurisdiction) {
+      const errorMsg = `Jurisdiction Denied: Official (${authUser?.displayName} - ${authUser?.bureau}) cannot record activity on case ${entry.caseId} under jurisdiction of ${targetCase.bureau}.`;
+      showToast(errorMsg, 'warning');
+      return { success: false, error: errorMsg };
+    }
+
+    const now = new Date().toISOString();
+    const actingOfficer = authUser ? authUser.displayName : targetCase.assignedOfficer;
+    const actingBureau: Bureau = (authUser?.bureau && authUser.bureau !== 'ALL') ? authUser.bureau : targetCase.bureau;
+    const oldStatus = targetCase.status;
+    const isStatusChanging = !!(entry.newStatus && entry.newStatus !== oldStatus);
+    const isDisposing = entry.newStatus === 'Disposed';
+
+    if (isDisposing && !entry.resolutionSummary?.trim()) {
+      return { success: false, error: 'Disposal requires a formal resolution summary.' };
+    }
+
+    const actionType = mapActivityTypeToDbAction(entry.activityType, entry.newStatus);
+    const remarksWithMeta = formatActionRemarks(entry.activityType, entry.description.trim(), {
+      evidenceRef: entry.evidenceRef,
+      nextAction: entry.nextAction,
+      previousStatus: isStatusChanging ? oldStatus : undefined,
+      newStatus: isStatusChanging ? entry.newStatus : undefined
+    });
+
+    const caseUpdates: Partial<CaseRecord> = {
+      lastAction: entry.description.trim(),
+      nextAction: entry.nextAction?.trim() || targetCase.nextAction,
+      lastActionAt: now,
+      updatedAt: now,
+      ...(isStatusChanging ? { status: entry.newStatus! } : {}),
+      ...(isDisposing ? {
+        completedAt: now,
+        completedBy: actingOfficer,
+        completedByOfficerId: authUser?.uid,
+        resolutionSummary: entry.resolutionSummary?.trim() || entry.description.trim()
+      } : {})
+    };
+
+    const newAction: CaseAction = {
+      actionId: `ACT-HIST-${Date.now()}`,
+      caseId: entry.caseId,
+      actionType,
+      remarks: remarksWithMeta,
+      bureau: actingBureau,
+      officer: actingOfficer,
+      timestamp: now,
+      previousValue: isStatusChanging ? oldStatus : undefined,
+      newValue: isStatusChanging ? entry.newStatus : undefined,
+      fieldChanged: isStatusChanging ? 'status' : undefined,
+      justification: entry.resolutionSummary || (isStatusChanging ? entry.description.trim() : undefined),
+      evidenceRef: entry.evidenceRef?.trim() || undefined,
+      activityCategory: entry.activityType,
+      nextAction: entry.nextAction?.trim() || undefined
+    };
+
+    const storage = getStorageService();
+    const isCloud = storage.mode === 'supabase' && isSupabaseConfigured();
+
+    if (isCloud) {
+      try {
+        await storage.updateCase(entry.caseId, caseUpdates);
+        await storage.saveAction(newAction);
+      } catch (err: any) {
+        const errorMsg = err?.message || 'Failed to record case history in Supabase database';
+        showToast(`History recording failed: ${errorMsg}`, 'warning');
+        return { success: false, error: errorMsg };
+      }
+    } else {
+      await storage.updateCase(entry.caseId, caseUpdates);
+      await storage.saveAction(newAction);
+    }
+
+    const updatedCases = cases.map(c => (c.caseId === entry.caseId ? { ...c, ...caseUpdates } : c));
+    const updatedActions = [newAction, ...actions];
+    setCases(updatedCases);
+    setActions(updatedActions);
+    refreshOverlaps(updatedCases, institutions, alerts);
+    showToast(`Case history entry [${entry.activityType}] recorded successfully.`, 'success');
+    return { success: true };
+  };
+
   // Reassign Bureau
   const reassignBureau = async (
     caseId: string,
@@ -1205,6 +1322,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         addCase,
         updateCaseStatus,
         addCaseAction,
+        addCaseHistoryEntry,
         reassignBureau,
         recordEscalation,
         linkRelatedCases,

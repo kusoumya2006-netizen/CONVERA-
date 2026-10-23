@@ -152,4 +152,84 @@ describe('P2 — Merged Cases Validation & Integrity Rules', () => {
     // Valid merge
     expect(validateMerge({ caseId: 'CASE-1' }, { caseId: 'CASE-2' }).valid).toBe(true);
   });
+
+  it('Scenario 4: Case History Activity Entries with Status Transitions and Evidence References', () => {
+    const initialCase: CaseRecord = {
+      caseId: 'AICTE/RB/2026/7821',
+      institutionId: '1-10029',
+      category: 'Unauthorized Course / Intake',
+      description: 'Campus operating engineering degrees without AICTE Council approval.',
+      bureau: 'RB',
+      assignedOfficer: 'Dr. Amitabh Ghosh',
+      status: 'Pending',
+      priority: 'CRITICAL',
+      complainantType: 'Anonymous',
+      receivedAt: '2026-10-15T10:00:00.000Z',
+      lastAction: 'Initial scrutiny assigned',
+      nextAction: 'Issue formal notice',
+      lastActionAt: '2026-10-15T10:00:00.000Z',
+      expectedDisposalDate: '2026-11-15T10:00:00.000Z',
+      relatedCaseIds: [],
+      createdAt: '2026-10-15T10:00:00.000Z',
+      updatedAt: '2026-10-15T10:00:00.000Z'
+    };
+
+    // Simulate recording an Investigation Note activity with status transition
+    const recordHistoryEntry = (
+      currentCase: CaseRecord,
+      activity: {
+        activityType: string;
+        description: string;
+        newStatus?: string;
+        evidenceRef?: string;
+        nextAction?: string;
+        officer: string;
+        bureau: string;
+      }
+    ) => {
+      const isStatusChanged = activity.newStatus && activity.newStatus !== currentCase.status;
+      const updatedCase: CaseRecord = {
+        ...currentCase,
+        status: (activity.newStatus as any) || currentCase.status,
+        lastAction: activity.description,
+        nextAction: activity.nextAction || currentCase.nextAction,
+        lastActionAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      const newAction: CaseAction = {
+        actionId: `ACT-HIST-${Date.now()}`,
+        caseId: currentCase.caseId,
+        actionType: activity.activityType === 'Investigation Note' ? 'COMMITTEE_INSPECTION' : 'REMARKS_ADDED',
+        remarks: `[${activity.activityType}] ${activity.description}${activity.evidenceRef ? ` [Evidence: ${activity.evidenceRef}]` : ''}`,
+        bureau: activity.bureau as any,
+        officer: activity.officer,
+        timestamp: new Date().toISOString(),
+        previousValue: isStatusChanged ? currentCase.status : undefined,
+        newValue: isStatusChanged ? activity.newStatus : undefined,
+        fieldChanged: isStatusChanged ? 'status' : undefined,
+        evidenceRef: activity.evidenceRef
+      };
+
+      return { updatedCase, newAction };
+    };
+
+    const result = recordHistoryEntry(initialCase, {
+      activityType: 'Investigation Note',
+      description: 'Site inspection completed by Expert Committee; verified unauthorized laboratories.',
+      newStatus: 'Under Process',
+      evidenceRef: 'EXPERT-COMMITTEE-INSP-2026.pdf',
+      nextAction: 'Issue Standing Appellate Committee hearing summons',
+      officer: 'Dr. Amitabh Ghosh',
+      bureau: 'RB'
+    });
+
+    expect(result.updatedCase.status).toBe('Under Process');
+    expect(result.updatedCase.nextAction).toBe('Issue Standing Appellate Committee hearing summons');
+    expect(result.newAction.actionType).toBe('COMMITTEE_INSPECTION');
+    expect(result.newAction.previousValue).toBe('Pending');
+    expect(result.newAction.newValue).toBe('Under Process');
+    expect(result.newAction.evidenceRef).toBe('EXPERT-COMMITTEE-INSP-2026.pdf');
+    expect(result.newAction.officer).toBe('Dr. Amitabh Ghosh');
+  });
 });
