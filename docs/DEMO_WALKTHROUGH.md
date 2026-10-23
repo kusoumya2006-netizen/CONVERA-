@@ -1,53 +1,65 @@
 # CONVERA Demo Walkthrough
 
-**Audience:** SIH evaluators and project collaborators. Use synthetic/demo records only; metrics and institution details are illustrative unless independently verified.
+**Audience:** SIH evaluators, reviewers, and project collaborators  
+**Scenario:** show how institution-level visibility can help authorized officials review concurrent complaints.
 
-## Suggested 5–7 minute sequence
+Use synthetic/demo records only. Metrics and institution details shown in screenshots are illustrative unless independently verified.
 
-### 1. Landing page
-Introduce fragmented institution-level complaint visibility and position CONVERA as a coordination and decision-support prototype, not an autonomous adjudication system.
+## Suggested 5–7 minute walkthrough
 
-![CONVERA landing page](assets/screenshots/01-convera-landing.jpg)
+### 01 · Landing page — establish the problem
 
-### 2. Authentication
-Explain that access depends on the configured provider, provisioned accounts, and backend authorization. Never display real credentials.
+Introduce the challenge: separate bureaus can have fragmented visibility into complaints concerning the same institution. Position CONVERA as a coordination and decision-support prototype, not an autonomous adjudication system.
 
-![CONVERA authentication](assets/screenshots/02-authentication.jpg)
+![Landing page](assets/screenshots/01-convera-landing.jpg)
 
-### 3. Overview dashboard
-Explain visible workload, urgency, case status, and activity; identify seeded demo data.
+### 02 · Authentication — explain access boundaries
+
+Show the sign-in/registration surface. Explain that actual access depends on the configured provider, provisioned accounts, and backend authorization. Do not show real credentials.
+
+![Authentication](assets/screenshots/02-authentication.jpg)
+
+### 03 · Overview dashboard — orient the evaluator
+
+Explain the displayed workload, urgency indicators, case status, and action stream. Identify which values are seeded demonstration data.
 
 ![Overview dashboard](assets/screenshots/03-overview-dashboard.jpg)
 
-### 4. Case registry
-Demonstrate search/filter and inspect a synthetic case's institution, bureau, status, officer, and deadline.
+### 04 · Case registry — locate a record
+
+Demonstrate search and supported filters. Select a synthetic case and explain its institution, bureau, status, assigned officer, and deadline.
 
 ![Case registry](assets/screenshots/04-case-registry.jpg)
 
-### 5. Overlap monitoring
-Explain the candidate match rationale and coordination controls. An alert requests human review; it must not automatically merge, close, or dispose of either case.
+### 05 · Overlap monitoring — show the differentiator
+
+Explain why active cases may be flagged and walk through the match rationale and coordination controls. An alert requests human review; it must not automatically merge, close, or dispose of either case.
 
 ![Overlap monitoring](assets/screenshots/05-overlap-monitoring.jpg)
 
-### 6. Completed proceedings
-Show resolution records and clarify persistence behavior for any reopening demonstration.
+### 06 · Completed proceedings — show outcomes
+
+Show recently disposed cases and resolution summaries. If reopening is demonstrated, confirm its actual persistence behavior in the active environment.
 
 ![Completed proceedings](assets/screenshots/06-completed-proceedings.jpg)
 
-### 7. Institution profiles
-Show consolidated institution activity while preserving each case's independent identity.
+### 07 · Institution profiles — connect the history
+
+Show the consolidated institution view while preserving the independent identity of each complaint.
 
 ![Institution profiles](assets/screenshots/07-institution-profiles.jpg)
 
-### 8. Reports and analytics
-Finish with workload/ageing summaries and exports. Identify illustrative metrics and validation gaps.
+### 08 · Reports and analytics — close with visibility
+
+Finish with workload/ageing summaries and exports. Explain which values are illustrative and which workflows have been validated.
 
 ![Reports and analytics](assets/screenshots/08-reports-analytics.jpg)
 
 ## Before presenting
-- Run `npm test` and `npm run build` on the demonstration commit.
+
+- Run `npm test` and `npm run build` on the evaluation commit.
 - Confirm the intended demo/cloud mode is active.
-- Use synthetic records and hide secrets.
+- Use synthetic records and keep secrets off-screen.
 - Test one case workflow and one overlap-review workflow.
-- Verify direct refresh and auth redirects in the deployed environment.
-- Disclose outstanding database, RLS, multi-user, and end-to-end checks.
+- Verify direct refresh and authentication redirects in the deployed environment.
+- Disclose any outstanding database, RLS, multi-user, or end-to-end checks.
