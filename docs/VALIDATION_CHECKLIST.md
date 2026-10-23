@@ -1,86 +1,87 @@
 # CONVERA Validation Checklist
 
-Use this checklist for a repeatable local and deployed smoke test. Record the date, commit SHA, environment (local/demo/cloud), tester and evidence for each run. A checkbox should be marked complete only after the step has actually been executed.
+Use this checklist for a repeatable local and deployed smoke test. Record the date, commit SHA, environment (local/demo/cloud), tester, and evidence for each run. Check an item only after it has been exercised.
 
-## 1. Build and automated tests
+## 1. Repository and build
 
-- [ ] Record the current commit SHA.
-- [ ] Install dependencies from the lockfile with `npm ci`.
-- [ ] Run `npm test` and save the terminal result.
-- [ ] Run `npm run build` and confirm TypeScript/Vite complete successfully.
-- [ ] Inspect browser console and terminal output for unexpected errors.
+- [ ] Confirm the branch and commit SHA being evaluated.
+- [ ] Install from the lockfile using `npm ci`.
+- [ ] Run `npm test` and save the output.
+- [ ] Run `npm run build` and save the output.
+- [ ] Check browser console and terminal for runtime errors.
 
-## 2. Authentication and route protection
+## 2. Landing and navigation
 
-- [ ] A valid, provisioned account can sign in.
-- [ ] Invalid credentials produce a clear error without exposing secrets.
-- [ ] Sign-out clears the authenticated session as expected.
-- [ ] Protected views do not become accessible by bypassing the UI.
-- [ ] Role/Bureau behavior matches the configured account and permissions.
-- [ ] Direct URL navigation and page refresh behave as expected.
+- [ ] Landing page renders at the intended viewport.
+- [ ] Live demo and internal navigation links work.
+- [ ] Direct URL refresh works for supported routes.
+- [ ] Empty, loading, error, and no-result states are understandable.
+- [ ] Layout remains usable at a smaller viewport.
 
-## 3. Case lifecycle and history
+## 3. Authentication and access
 
-- [ ] Create a synthetic case with a unique reference.
-- [ ] Confirm institution, receiving Bureau/Cell, status and deadline are saved correctly.
-- [ ] Update the case status and verify the persisted value after refresh.
-- [ ] Record an officer action and inspect the chronological history.
-- [ ] Verify actor identity, timestamp, action type and details are correct where supported.
-- [ ] Test reassignment, escalation, reopening and resolution flows that are enabled.
-- [ ] Simulate or safely test a failed write; the UI must not show false success.
-- [ ] For multi-step writes, inspect behavior when one operation fails after another succeeds.
+- [ ] Sign-in success and failure are handled correctly.
+- [ ] Sign-out returns to the expected access boundary.
+- [ ] Protected routes do not expose private views to signed-out users.
+- [ ] Password/reset or registration behavior is checked if enabled.
+- [ ] Cloud mode uses separate test accounts with different permissions.
+- [ ] Unauthorized direct database requests are denied by policy.
 
-## 4. Overlap review and coordination
+## 4. Case lifecycle
 
-- [ ] Create two synthetic cases for the same canonical institution ID in different Bureaus.
-- [ ] Confirm the expected potential-overlap candidate is surfaced.
-- [ ] Test a similar institution name with a different canonical ID to check false-positive behavior.
-- [ ] Inspect the match rationale/confidence information available in the UI.
-- [ ] Record a coordination decision and verify it persists.
-- [ ] Confirm an overlap alert alone does not merge, close or dispose of either case.
-- [ ] Verify cross-references do not erase each case's independent identity or history.
+- [ ] Register a synthetic case.
+- [ ] Search and filter it in the registry.
+- [ ] Change supported status/priority/assignment fields.
+- [ ] Confirm values after reload in the intended storage mode.
+- [ ] Verify invalid inputs and failed writes show useful feedback.
+- [ ] Check that the case remains identifiable through history and exports.
 
-## 5. Supabase authorization and persistence
+## 5. Overlap and coordination
 
-Run these checks in a non-production/test project with synthetic data.
+- [ ] Same institution identifier across bureaus produces the expected candidate result.
+- [ ] Similar institution names with different identifiers are checked for false positives.
+- [ ] Missing or malformed identifiers are handled safely.
+- [ ] Resolved/closed cases follow the intended eligibility rules.
+- [ ] Alert rationale is understandable to a reviewer.
+- [ ] Review/coordination action is persisted where supported.
+- [ ] No overlap signal automatically merges or disposes of independent cases.
 
-- [ ] Apply and review migrations in order against the intended schema.
-- [ ] Confirm every required table has the expected RLS policies and grants.
-- [ ] Test allowed reads/writes using an authorized account.
-- [ ] Test denied reads/writes using a less-privileged or unrelated account.
-- [ ] Confirm one Bureau cannot access records beyond its intended scope, if that restriction is part of the policy.
-- [ ] Confirm auth identity/profile mapping works for provisioned users.
-- [ ] Verify a successful write in the database and after a fresh page load.
-- [ ] Confirm no service-role key, secret key, password or real complaint data is exposed in the browser bundle or Git history.
+## 6. Institution profiles and reporting
 
-## 6. Deployment and demo readiness
+- [ ] Institution search/filter returns expected synthetic records.
+- [ ] Profile case counts reconcile with visible case records.
+- [ ] Completed proceedings display the intended resolution metadata.
+- [ ] CSV exports open and match the selected filters.
+- [ ] Charts and summary metrics reconcile with the underlying demo dataset.
 
-- [ ] Required Vercel environment variables are set for the target environment.
-- [ ] Supabase production site URL and allowed auth redirect URLs are configured.
-- [ ] The deployed landing page and dashboard load without console errors.
-- [ ] Direct route refresh works.
-- [ ] Case creation, case history, overlap review and coordination write paths are smoke-tested against the deployed environment.
-- [ ] The demonstration dataset is synthetic and labeled as such.
-- [ ] Screenshots and demo instructions reflect the current UI.
-- [ ] Known limitations are documented before presentation.
+## 7. Supabase cloud checks
 
-## Evidence log template
+- [ ] Required migrations are applied in order.
+- [ ] Tables, indexes, foreign keys, grants, and RLS policies are inspected.
+- [ ] Allowed reads/writes work with an authorized account.
+- [ ] Disallowed reads/writes fail with a separate account.
+- [ ] User role/profile mapping cannot be escalated from client-controlled data.
+- [ ] Auth redirect URLs match the deployed environment.
+- [ ] No service-role key or secret is included in the client bundle.
 
-Copy this block for each validation run:
+## 8. Release evidence
 
-```text
-Date/time:
-Commit SHA:
-Environment: local / demo / cloud
-Tester:
-Command or workflow:
-Expected result:
-Observed result:
-Evidence link or file:
-Status: PASS / FAIL / BLOCKED
-Follow-up issue:
-```
+- [ ] All checks are recorded against the exact evaluation commit.
+- [ ] Demo data is synthetic and identified.
+- [ ] Screenshots match the current application.
+- [ ] Deployment status and live smoke test are recorded separately from build results.
+- [ ] Remaining limitations are disclosed to evaluators.
 
-## Reporting rule
+## Run record template
 
-Do not publish a pass percentage without defining the test set and showing which checks were run. Unit tests, successful builds, UI walkthroughs, database authorization tests and end-to-end tests cover different failure modes; report them separately.
+| Field | Value |
+|---|---|
+| Date / tester | |
+| Branch / commit SHA | |
+| Environment | Local demo / Supabase cloud / deployed |
+| Commands and scenarios | |
+| Result | Pass / Fail / Blocked |
+| Evidence link or notes | |
+| Follow-up owner | |
+
+Do not convert unchecked or blocked items into a passing score.
