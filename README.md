@@ -8,133 +8,138 @@
 Smart India Hackathon 2026 · Problem Statement **SIH26264**
 
 [![React](https://img.shields.io/badge/React-18-20232A?logo=react&logoColor=61DAFB)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20Postgres-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
 [![Vitest](https://img.shields.io/badge/Tests-Vitest-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
-[![SIH](https://img.shields.io/badge/SIH-26264-A3B86C)](https://sih.gov.in/)
+[![SIH](https://img.shields.io/badge/Smart%20India%20Hackathon-2026-A3B86C)](https://www.sih.gov.in/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[![Open Live Demo](https://img.shields.io/badge/OPEN%20LIVE%20DEMO-Visit%20CONVERA-1F2937?style=for-the-badge&logo=vercel&logoColor=white)](https://convera-olvphbja7-kusoumya2006-netizens-projects.vercel.app/)\n\n[Architecture](docs/ARCHITECTURE.md) · [Master Documentation](PROJECT_MASTER_DOCUMENTATION.md) · [Validation Status](VALIDATION_STATUS.md)
+[![Open Live Demo](https://img.shields.io/badge/OPEN%20LIVE%20DEMO-Visit%20CONVERA-1F2937?style=for-the-badge&logo=vercel&logoColor=white)](https://convera-olvphbja7-kusoumya2006-netizens-projects.vercel.app/)
+
+[Architecture](docs/ARCHITECTURE.md) · [Master Documentation](PROJECT_MASTER_DOCUMENTATION.md) · [Validation Status](VALIDATION_STATUS.md)
 
 </div>
 
 ---
 
-## The problem
+## At a glance
 
-Institution-related complaints can be handled by separate regulatory bureaus and grievance cells. Without a consolidated view, officials may struggle to spot concurrent proceedings, coordinate action, follow deadlines, and reconstruct case history.
+CONVERA is an academic prototype for monitoring institution-related complaints across administrative bureaus/cells. It brings case status, urgency, institution history, potential cross-bureau overlaps, and reporting into one workspace.
 
-**CONVERA** is an academic prototype for monitoring institution-related complaints across the Regulation Bureau (RB), Public Grievance Redressal Cell (PGRC), and related administrative units. It brings case status, urgency, potential cross-bureau overlaps, institution history, and reporting into one workspace.
+**The problem:** teams working in silos can miss concurrent proceedings concerning the same institution, duplicate administrative effort, and lose visibility into deadlines or prior actions.
 
-> **Prototype notice:** CONVERA is an SIH 2026 prototype, not an officially endorsed or deployed AICTE system. Dashboard figures and institution records shown in demonstrations may be synthetic. Do not use the demo with real or sensitive complaint data.
+**The approach:** provide a connected operational view while preserving each complaint's independent identity and keeping coordination decisions with authorized people.
 
-## Product tour
+> **Prototype notice:** CONVERA is not an officially endorsed or deployed AICTE system. Dashboard metrics and institution records shown in demonstrations may be synthetic. Do not use the public demo with real or sensitive complaint data.
 
-The product gallery is built around the actual CONVERA UI screenshots. Keep the original captures in `docs/assets/screenshots/` with the filenames below; do not replace them with generated mockups.
+## Product gallery
 
-| Screen | What it demonstrates |
-|---|---|
-| Landing page | Product purpose and entry points |
-| Authentication | Official sign-in and demo persona flow |
-| Overview dashboard | Workload, urgency, case status, and action stream |
-| Case registry | Searchable and filterable consolidated case list |
-| Overlap monitoring | Potential cross-bureau conflicts and coordination review |
-| Completed proceedings | Recently disposed cases and resolution summaries |
-| Institution profiles | Institution records and consolidated case history |
-| Reports & analytics | SLA ageing, bureau workload, and export options |
+The screenshots are the visual record of the application. Add the supplied image files to `docs/assets/screenshots/` using the exact names below; GitHub resolves these relative paths when the assets are committed.
 
-### Screenshots
+<details open>
+<summary><strong>01 · Landing page</strong></summary>
 
-
+![CONVERA landing page](docs/assets/screenshots/01-convera-landing.jpg)
+</details>
 
 <details>
-<summary>View product screenshots</summary>
+<summary><strong>02 · Authentication</strong></summary>
 
-#### 01 · Landing page
-![CONVERA landing page](docs/assets/screenshots/01-convera-landing.jpg)
-
-#### 02 · Authentication
 ![CONVERA authentication](docs/assets/screenshots/02-authentication.jpg)
+</details>
 
-#### 03 · Overview dashboard
+<details>
+<summary><strong>03 · Overview dashboard</strong></summary>
+
 ![CONVERA overview dashboard](docs/assets/screenshots/03-overview-dashboard.jpg)
+</details>
 
-#### 04 · Case registry
+<details>
+<summary><strong>04 · Case registry</strong></summary>
+
 ![CONVERA case registry](docs/assets/screenshots/04-case-registry.jpg)
+</details>
 
-#### 05 · Overlap monitoring
+<details>
+<summary><strong>05 · Cross-bureau overlap monitoring</strong></summary>
+
 ![CONVERA overlap monitoring](docs/assets/screenshots/05-overlap-monitoring.jpg)
+</details>
 
-#### 06 · Completed proceedings
+<details>
+<summary><strong>06 · Completed proceedings</strong></summary>
+
 ![CONVERA completed proceedings](docs/assets/screenshots/06-completed-proceedings.jpg)
+</details>
 
-#### 07 · Institution profiles
+<details>
+<summary><strong>07 · Institution profiles</strong></summary>
+
 ![CONVERA institution profiles](docs/assets/screenshots/07-institution-profiles.jpg)
+</details>
 
-#### 08 · Reports and analytics
+<details>
+<summary><strong>08 · Reports and analytics</strong></summary>
+
 ![CONVERA reports and analytics](docs/assets/screenshots/08-reports-analytics.jpg)
-
 </details>
 
 ## Core capabilities
 
-| Capability | Purpose |
+| Capability | What it supports |
 |---|---|
-| Consolidated case registry | Search and filter cases across supported bureaus/cells |
-| Priority and deadline indicators | Bring overdue and urgent work into view |
-| Cross-bureau overlap detection | Surface potentially related active proceedings for human review |
-| Institution profiles | Show institution information alongside related case activity |
-| Case lifecycle and history | Support status changes and a traceable sequence of actions |
-| Coordination workflow | Help authorized users review overlaps and record follow-up |
-| Reports and exports | Present workload and ageing summaries with supported CSV exports |
-| Local demo and cloud modes | Support standalone demonstration and configured Supabase persistence |
+| Unified case registry | Search and filter supported complaint records across bureaus |
+| Urgency and deadline visibility | Surface overdue and approaching deadlines for review |
+| Cross-bureau overlap detection | Flag potentially related active proceedings for human review |
+| Institution profiles | View institution information alongside related case activity |
+| Case lifecycle and history | Inspect status, resolution, and recorded actions |
+| Coordination workflow | Support review and follow-up on overlap alerts |
+| Reports and exports | Summarize supported workload/ageing information and export data |
+| Demo and cloud storage modes | Support local demonstration and configured Supabase persistence |
 
-**Important:** an overlap is a review signal, not a verdict. It must not automatically merge, dismiss, or dispose of independent complaints. Authorized officials remain responsible for decisions.
+**An overlap is a review signal, not a verdict.** CONVERA should not automatically merge, dismiss, or dispose of independent complaints based only on a match.
 
-## How it fits together
+## System architecture
 
 ```mermaid
 flowchart TD
-    PERSON[Authorized user] --> UI[React + TypeScript interface]
-    UI --> AUTH[Authentication context and service]
+    USER[Authorized user] --> UI[React + TypeScript UI]
+    UI --> AUTH[Authentication context / service]
     UI --> CASES[Case workflow context]
-    CASES --> PRIORITY[Urgency and priority logic]
-    CASES --> OVERLAP[Overlap detection and comparison]
-    CASES --> HISTORY[Action history helpers]
+    CASES --> PRIORITY[Priority and deadline logic]
+    CASES --> OVERLAP[Candidate overlap detection]
+    CASES --> HISTORY[Case history and actions]
     CASES --> STORAGE[Storage abstraction]
     STORAGE --> DEMO[Local demo storage]
     STORAGE --> SUPA[Supabase adapter]
-    SUPA --> SA[Supabase Auth]
+    SUPA --> SAUTH[Supabase Auth]
     SUPA --> DB[(PostgreSQL)]
-    DB --> RLS[Row-Level Security and grants]
+    DB --> POLICY[RLS and database grants]
 ```
 
-See [Architecture](docs/ARCHITECTURE.md) for module responsibilities, deployment modes, data flow, and safety boundaries.
+The architecture and source map are documented in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Technology stack
 
 | Layer | Technologies |
 |---|---|
-| Frontend | React 18, TypeScript, Vite |
+| Frontend | React, TypeScript, Vite |
 | Styling | Tailwind CSS |
 | Charts and icons | Recharts, Lucide React |
-| Cloud authentication and persistence | Supabase Auth, PostgreSQL, PostgREST |
+| Cloud auth and persistence | Supabase Auth, PostgreSQL |
 | Testing | Vitest |
-| Hosting configuration | Vercel |
+| Deployment configuration | Vercel |
 
-The application uses a storage abstraction for local demo and configured Supabase modes. Cloud-mode behavior depends on valid environment configuration, applied migrations, provisioned users, database grants, and RLS policies.
+The npm lockfile defines the resolved dependency versions. See [DEPENDENCIES.md](DEPENDENCIES.md).
 
 ## Quick start
 
 ### Requirements
-
-- Node.js compatible with the project's Vite/TypeScript toolchain
+- Node.js compatible with the repository's Vite/TypeScript toolchain
 - npm
-- Git
 
 ### Install and run
-
 ```bash
 git clone https://github.com/kusoumya2006-netizen/CONVERA-.git
 cd CONVERA-
@@ -142,50 +147,42 @@ npm ci
 npm run dev
 ```
 
-Use the local URL printed by Vite. The project also defines:
-
+Useful verification commands:
 ```bash
 npm test
 npm run build
 npm run preview
 ```
 
-The build script runs TypeScript checking before creating the Vite production bundle.
-
-### Environment configuration
-
-The repository includes [`.env.example`](.env.example). Copy it to `.env.local` only if you are configuring Supabase cloud mode, then replace the placeholders with your project's public URL and publishable/anon key.
+### Environment setup
+The repository includes [`.env.example`](.env.example). For Supabase cloud mode, copy it to `.env.local` and configure the required public project URL and client key:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Never put a Supabase `service_role` key, private credential, or password in frontend environment variables. Local demo mode and cloud mode have different persistence and security properties; see [Architecture](docs/ARCHITECTURE.md).
+Never place a service-role key, password, or private server secret in a frontend `VITE_*` variable. Cloud behavior depends on the actual project configuration, migrations, grants, RLS policies, and provisioned users.
 
-## Documentation
+## Documentation index
 
-| Document | Purpose |
+| Document | Contents |
 |---|---|
-| [Project master documentation](PROJECT_MASTER_DOCUMENTATION.md) | Project overview, modules, workflows, setup, and limitations |
-| [Architecture](docs/ARCHITECTURE.md) | System boundaries, source map, and data flow |
-| [SIH26264 traceability](docs/SIH26264_REQUIREMENT_TRACEABILITY.md) | Requirements mapped to implementation and evidence |
-| [Database schema](docs/DATABASE_SCHEMA.md) | Migration-led schema and access-control review guide |
-| [Demo walkthrough](docs/DEMO_WALKTHROUGH.md) | Suggested evaluation flow using the UI |
-| [Validation status](VALIDATION_STATUS.md) | Automated and manual checks, with evidence boundaries |
-| [Validation checklist](docs/VALIDATION_CHECKLIST.md) | Repeatable build, workflow, and cloud verification |
-| [Dependencies](DEPENDENCIES.md) | Runtime and development dependency inventory |
+| [Project master documentation](PROJECT_MASTER_DOCUMENTATION.md) | Scope, modules, workflows, setup, limitations |
+| [Architecture](docs/ARCHITECTURE.md) | Source map, boundaries, and data flow |
+| [SIH26264 traceability](docs/SIH26264_REQUIREMENT_TRACEABILITY.md) | Outcomes mapped to implementation and verification |
+| [Database schema guide](docs/DATABASE_SCHEMA.md) | Migration review and access-control checks |
+| [Demo walkthrough](docs/DEMO_WALKTHROUGH.md) | Suggested evaluator journey |
+| [Validation status](VALIDATION_STATUS.md) | Reported results and outstanding checks |
+| [Validation checklist](docs/VALIDATION_CHECKLIST.md) | Repeatable local and cloud verification |
+| [Dependencies](DEPENDENCIES.md) | Dependency roles and reproducibility |
 | [Contributing](docs/CONTRIBUTING.md) | Change and review conventions |
 
-## Validation and limitations
+## Validation and known limitations
 
-Use [VALIDATION_STATUS.md](VALIDATION_STATUS.md) for the current evidence-backed state. Automated unit tests and a successful production build do not, by themselves, prove live Supabase authorization, multi-user behavior, or end-to-end deployment correctness. Those checks must be run against the target environment.
+Previously reported test/build results are summarized in [VALIDATION_STATUS.md](VALIDATION_STATUS.md); they must be re-run against the exact commit used for evaluation. A successful build does not prove live authentication, RLS, multi-user authorization, or cloud persistence.
 
-Known deployment dependencies include Supabase configuration, database migrations, RLS and grants, user/profile provisioning, and authentication redirect settings. Review the [validation checklist](docs/VALIDATION_CHECKLIST.md) before a live demonstration.
-
-## Contributing
-
-Keep changes focused, preserve case identity and history, and add tests for behavior changes. Follow [CONTRIBUTING.md](docs/CONTRIBUTING.md). Never commit secrets or real complaint data.
+Before a live demo, follow [the validation checklist](docs/VALIDATION_CHECKLIST.md). Clearly identify synthetic records and disclose any unverified integration.
 
 ## License
 
-Distributed under the repository's [MIT License](LICENSE), unless a specific third-party asset or dependency carries separate terms.
+See [LICENSE](LICENSE). Third-party assets and dependencies may have separate terms.
