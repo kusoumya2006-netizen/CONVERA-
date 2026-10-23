@@ -7,6 +7,14 @@
 **Institution Complaint Monitoring & Cross-Bureau Intelligence Dashboard**  
 Smart India Hackathon 2026 · Problem Statement **SIH26264**
 
+[![React](https://img.shields.io/badge/React-18-20232A?logo=react&logoColor=61DAFB)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20Postgres-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![Vitest](https://img.shields.io/badge/Tests-Vitest-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![SIH](https://img.shields.io/badge/SIH-26264-A3B86C)](https://sih.gov.in/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 [Live Demo](https://convera-olvphbja7-kusoumya2006-netizens-projects.vercel.app/) · [Architecture](docs/ARCHITECTURE.md) · [Master Documentation](PROJECT_MASTER_DOCUMENTATION.md) · [Validation Status](VALIDATION_STATUS.md)
 
 </div>
@@ -23,7 +31,7 @@ Institution-related complaints can be handled by separate regulatory bureaus and
 
 ## Product tour
 
-The screenshots below document the intended product walkthrough. Place the eight supplied screenshots in `docs/assets/screenshots/` using the filenames shown; these paths are the canonical gallery locations.
+The product gallery is built around the actual CONVERA UI screenshots. Keep the original captures in `docs/assets/screenshots/` with the filenames below; do not replace them with generated mockups.
 
 | Screen | What it demonstrates |
 |---|---|
@@ -38,7 +46,7 @@ The screenshots below document the intended product walkthrough. Place the eight
 
 ### Screenshots
 
-> Screenshot assets are being organized alongside this documentation. Add the supplied image files at the relative paths below so the gallery renders on GitHub.
+
 
 <details>
 <summary>View product screenshots</summary>
