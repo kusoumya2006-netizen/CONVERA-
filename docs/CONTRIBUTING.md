@@ -1,57 +1,50 @@
 # Contributing to CONVERA
 
-The goal is to improve reliability and readability without destabilizing working case-management flows.
+Thanks for helping improve CONVERA. The priority is to improve reliability, clarity, and reviewability without destabilizing existing case-management workflows.
 
 ## Before making a change
 
-1. Pull the latest `main` and create a focused branch.
-2. Read the relevant component, engine/service and tests before editing.
-3. Identify whether the change affects local demo mode, Supabase cloud mode or both.
-4. Keep unrelated refactors out of the same change.
-5. Never commit credentials, real complaint data or private user information.
+1. Sync with the latest `main` and create a focused branch.
+2. Read the relevant source, tests, migrations, and documentation.
+3. Confirm whether a change affects local demo mode, Supabase cloud mode, or both.
+4. Keep unrelated formatting and generated-file changes out of the diff.
+5. Never include real complaint data, credentials, tokens, or private environment files.
 
-## Branch naming
-
-Use short, descriptive branch names:
-
-- `docs/readme-and-architecture`
-- `fix/case-history-persistence`
-- `feat/deadline-notifications`
-- `test/overlap-edge-cases`
-
-## Commit message convention
-
-Use a concise type and imperative description:
-
-- `docs: clarify cloud setup and architecture`
-- `fix: preserve case history after status update`
-- `feat: add deadline escalation indicator`
-- `test: cover duplicate institution identifiers`
-- `refactor: isolate case persistence adapter`
-- `chore: update development tooling`
-
-Keep commits small enough to review. Prefer one logical change per commit; avoid messages such as `update`, `final`, `changes` or `working version`.
-
-## Validation before sharing
-
-Run the checks relevant to the change:
+## Development workflow
 
 ```bash
+npm ci
 npm test
 npm run build
 ```
 
-For changes to case lifecycle, overlap review, auth, storage, RLS or migrations, also follow the applicable steps in [VALIDATION_CHECKLIST.md](./VALIDATION_CHECKLIST.md). Do not claim a check passed unless it was run.
+Use the package scripts defined by the repository. If a script is unavailable on your branch, report that rather than silently substituting a different command.
 
-## Pull request / review notes
+## Engineering expectations
 
-A useful change description should explain:
+- Keep React components focused and accessible.
+- Prefer explicit TypeScript types over broad unsafe casts.
+- Keep business rules testable outside the UI where practical.
+- Add or update tests for overlap, priority, status, and persistence behavior.
+- Preserve each case's identity and history when changing coordination flows.
+- Do not let a candidate overlap automatically merge, dismiss, or dispose of cases.
+- Treat database migrations as ordered, forward-moving changes; inspect RLS and grants carefully.
+- Never put server-side secrets into frontend `VITE_*` variables.
 
-- **Why:** the problem or user workflow being improved.
-- **What changed:** the behavior and files affected.
-- **Risk:** whether authentication, persistence, migrations or permissions are affected.
-- **Validation:** exact commands and manual flows run, with results.
-- **Evidence:** screenshots for UI changes and redacted logs where useful.
-- **Limitations:** anything not tested or still incomplete.
+## Documentation expectations
 
-Database migrations should be reviewed for existing-data impact and RLS behavior. Never disable security policies to make a demo pass.
+- Update README/docs when behavior, setup, environment variables, or limitations change.
+- Use real screenshots of the current UI and synthetic records only.
+- Keep links relative where possible so documentation works in GitHub and local clones.
+- Label results as verified, reported, or pending; do not fabricate metrics or test outcomes.
+
+## Pull request checklist
+
+- [ ] Scope is focused and existing changes are preserved.
+- [ ] Relevant tests were added or updated.
+- [ ] `npm test` was run.
+- [ ] `npm run build` was run.
+- [ ] Database/RLS implications were reviewed where applicable.
+- [ ] Screenshots and docs match actual behavior.
+- [ ] No secrets or sensitive records are included.
+- [ ] Known limitations are stated clearly.
