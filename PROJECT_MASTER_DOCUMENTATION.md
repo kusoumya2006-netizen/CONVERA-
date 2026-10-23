@@ -1,76 +1,101 @@
 # CONVERA — Project Master Documentation
 
-> Smart India Hackathon 2026 · SIH26264 · Academic prototype
+<div align="center">
 
-## Executive overview
-CONVERA is an institution complaint-monitoring and cross-bureau coordination prototype. It gives authorized users a consolidated view of cases, deadlines, institution records, potential overlaps, actions, and reporting across administrative bureaus/cells.
+**Smart India Hackathon 2026 · SIH26264**  
+*Institution complaint monitoring and cross-bureau coordination prototype*
 
-**Design principle:** connected visibility without erasing case independence. A potential overlap prompts human review; it must not automatically merge, close, or dismiss a complaint. This is not an officially endorsed or deployed AICTE service. Demo metrics and records may be synthetic.
+</div>
 
-## Problem and objectives
-Separate teams can work on cases concerning the same institution without a shared view, causing duplicated effort, inconsistent follow-up, missed deadlines, and fragmented history. CONVERA aims to consolidate supported complaint records, surface urgency, identify potential cross-bureau overlaps for review, provide institution-centric visibility, and support traceable actions and reporting.
+## 1. Executive overview
 
-## Modules
+CONVERA brings case status, urgency, institution history, potential overlaps, and supported reporting into one administrative workspace. It is designed to improve visibility across supported bureaus/cells while preserving the independent identity of each complaint.
+
+This is an academic prototype, not an officially endorsed or deployed AICTE service. Public demo records and dashboard metrics may be synthetic.
+
+## 2. Problem and intended outcomes
+
+Separate teams may investigate complaints concerning the same institution without a consolidated view. That can lead to duplicated effort, inconsistent follow-up, missed deadlines, and fragmented history.
+
+CONVERA aims to:
+- consolidate supported complaint records into a searchable workspace;
+- make status, urgency, and deadline information easier to review;
+- surface potential cross-bureau overlaps for human review;
+- connect institution information with related case activity;
+- support traceable actions and summary reporting.
+
+## 3. Functional modules
+
 | Module | Purpose |
 |---|---|
-| Overview dashboard | Summary metrics, urgency queue, workload, and activity |
+| Overview dashboard | Workload, urgency, status summaries, and activity |
 | Case registry | Search, filter, inspect, and register cases |
 | Overlap monitoring | Review potential cross-bureau conflicts and coordination state |
 | Recent completions | Inspect recently disposed proceedings |
-| Institution profiles | View institution details and related case activity |
-| Reports & analytics | Review supported workload/SLA summaries and exports |
+| Institution profiles | View institution information and related case activity |
+| Reports & analytics | Review supported workload/ageing summaries and exports |
 | Authentication | Sign-in and access flow for configured environments |
 
-## Technical architecture
-- **UI:** React 18, TypeScript, Vite, Tailwind CSS.
+See [the demo walkthrough](docs/DEMO_WALKTHROUGH.md) for the presentation sequence.
+
+## 4. Technology and architecture
+
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS.
+- **Charts and icons:** Recharts and Lucide React.
 - **Application state:** authentication and case workflow contexts.
-- **Decision support:** urgency/deadline calculations and candidate overlap detection/comparison.
-- **Persistence:** storage abstraction with local demo and Supabase-backed implementations.
-- **Cloud:** Supabase Auth and PostgreSQL; RLS and grants are required for authorization.
-- **Tests/build:** Vitest, TypeScript, Vite; Vercel configuration.
+- **Decision support:** urgency/deadline calculations and candidate overlap detection.
+- **Persistence:** storage abstraction with local demo and configured Supabase implementations.
+- **Cloud services:** Supabase Auth and PostgreSQL, with RLS/grants required for authorization.
+- **Quality tooling:** Vitest and the project's TypeScript/Vite build scripts.
 
-See [Architecture](docs/ARCHITECTURE.md) for source locations and data flow.
+The architecture diagram and source responsibilities are described in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Data flow
-1. The user interacts with a case, institution, or coordination control.
-2. React components use shared auth and case workflow contexts.
-3. Application logic calculates urgency or identifies possible overlaps.
-4. Storage routes operations to local demo storage or configured Supabase.
-5. Cloud access must be enforced by database policy, not only hidden UI controls.
-6. Relevant actions should remain reviewable in case history or audit-oriented records.
+## 5. Data flow and review boundary
 
-## Privacy and security
-- Use synthetic data in public demos.
-- Never commit secrets or real sensitive complaint data.
-- Never expose a Supabase service-role key through a frontend `VITE_*` variable.
-- Verify RLS and grants using both allowed and denied access tests.
-- Do not claim production security without a security review.
+1. The user opens a view or interacts with a case/institution.
+2. UI components coordinate through shared application contexts and services.
+3. Logic derives urgency or candidate overlap information from available records.
+4. The storage abstraction routes operations to local demo or configured cloud storage.
+5. The UI presents the outcome and any available error state.
+6. Supported actions can be reviewed through the record's history.
 
-## Local development
+A candidate overlap is a signal for authorized review. It must not automatically merge, dismiss, or dispose of independent cases.
+
+## 6. Local development
+
 ```bash
 npm ci
 npm run dev
+```
+
+Quality checks:
+
+```bash
 npm test
 npm run build
+npm run preview
 ```
-For cloud mode, copy `.env.example` to `.env.local`, configure the public Supabase URL/key, apply migrations in order, and provision test accounts.
 
-## Evaluation walkthrough
-1. Explain fragmented institution-level complaint visibility.
-2. Show the dashboard and urgency indicators.
-3. Find a synthetic case in the registry.
-4. Review a potential overlap and its rationale.
-5. Show institution history and completed proceedings.
-6. Finish with analytics and disclose what has and has not been validated.
+For Supabase cloud mode, copy `.env.example` to `.env.local`, configure the public client URL/key, apply migrations in order, and provision appropriate test accounts.
 
-See [Demo Walkthrough](docs/DEMO_WALKTHROUGH.md).
+## 7. Security and privacy boundaries
 
-## Validation
-Do not combine unit tests, build success, deployment availability, and live authorization into one claim. Record each separately in [VALIDATION_STATUS.md](VALIDATION_STATUS.md), and follow [the checklist](docs/VALIDATION_CHECKLIST.md).
+- Use synthetic records in public demonstrations and automated tests.
+- Never commit secrets or real sensitive complaint data.
+- Never expose a service-role key through a frontend `VITE_*` variable.
+- Verify RLS and grants with allowed and denied operations using separate accounts.
+- Do not claim production security without an appropriate security review.
 
-## Known limitations
-- Academic prototype, not an official AICTE product.
+## 8. Validation and release evidence
+
+A passing unit test suite, successful build, deployment availability, and live authorization are separate kinds of evidence. Record them separately in [VALIDATION_STATUS.md](VALIDATION_STATUS.md) and follow [docs/VALIDATION_CHECKLIST.md](docs/VALIDATION_CHECKLIST.md).
+
+Previously reported results must be re-run on the exact commit used for evaluation.
+
+## 9. Known limitations
+
+- Academic prototype; not an official AICTE product.
 - Demo records and metrics may be illustrative.
 - Overlap detection can produce false positives and false negatives.
-- Cloud correctness depends on environment setup, migrations, grants, RLS, auth configuration, and provisioned users.
-- Live multi-user, security, and end-to-end checks must be verified in the target environment.
+- Cloud behavior depends on configuration, migrations, RLS/grants, auth redirects, and provisioned users.
+- Live multi-user, security, and end-to-end checks must be verified in the intended environment.
