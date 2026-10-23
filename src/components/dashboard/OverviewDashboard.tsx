@@ -6,6 +6,7 @@ import { StatusDistributionChart } from './StatusDistributionChart';
 import { RegionSummaryTable } from './RegionSummaryTable';
 import { ApproachingDeadlines } from './ApproachingDeadlines';
 import { RecentActivityFeed } from './RecentActivityFeed';
+import { PriorityActionQueue } from './PriorityActionQueue';
 import { SIHDemoGuide } from './SIHDemoGuide';
 import { AlertOctagon, ArrowRight } from 'lucide-react';
 
@@ -51,6 +52,9 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({ onOpenNewC
 
       {/* KPI Metric Cards */}
       <MetricCardsRow />
+
+      {/* Prioritized Attention Required: Explainable Action Queue */}
+      <PriorityActionQueue />
 
       {/* Primary Analytics Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

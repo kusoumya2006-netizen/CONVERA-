@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   GitMerge,
+  Share2,
   LucideIcon
 } from 'lucide-react';
 
@@ -49,6 +50,13 @@ export const Sidebar: React.FC = () => {
       icon: GitCompare,
       badge: stats.potentialOverlaps > 0 ? `${stats.potentialOverlaps}` : null,
       badgeStyle: stats.unresolvedOverlaps > 0 ? 'bg-[#F16D75]/15 text-[#F16D75] border-[#F16D75]/35 font-bold' : undefined
+    },
+    {
+      id: 'graph',
+      label: 'Intelligence Graph',
+      icon: Share2,
+      badge: 'Interactive',
+      badgeStyle: 'bg-[#A3B86C]/15 text-[#A3B86C] border-[#A3B86C]/35 font-mono text-[9px]'
     },
     {
       id: 'completed',

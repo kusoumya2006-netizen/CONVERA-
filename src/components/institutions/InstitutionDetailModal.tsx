@@ -18,7 +18,8 @@ import {
   History,
   Building2,
   FileText,
-  UserCheck
+  UserCheck,
+  Share2
 } from 'lucide-react';
 
 interface InstitutionDetailModalProps {
@@ -32,7 +33,7 @@ export const InstitutionDetailModal: React.FC<InstitutionDetailModalProps> = ({
   onClose,
   institution
 }) => {
-  const { cases, actions, alerts, setSelectedCaseId, setActiveTab } = useCaseWatch();
+  const { cases, actions, alerts, setSelectedCaseId, setActiveTab, navigateToGraph } = useCaseWatch();
   const [activeSubTab, setActiveSubTab] = useState<'overview' | 'cases' | 'overlaps' | 'history'>('overview');
   const [selectedCoordAlert, setSelectedCoordAlert] = useState<OverlapAlert | null>(null);
 
@@ -77,31 +78,45 @@ export const InstitutionDetailModal: React.FC<InstitutionDetailModalProps> = ({
       maxWidth="4xl"
     >
       <div className="space-y-4">
-        {/* Navigation Sub-Tabs */}
-        <div className="flex items-center gap-1.5 border-b border-[#272D35] pb-2">
-          {[
-            { id: 'overview', label: '360° Overview', icon: Building2 },
-            { id: 'cases', label: `Cross-Bureau Complaints (${instCases.length})`, icon: FileText },
-            { id: 'overlaps', label: `Overlap Intelligence (${instAlerts.length})`, icon: GitCompare },
-            { id: 'history', label: `Institutional Audit Trail (${instActions.length})`, icon: History }
-          ].map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeSubTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveSubTab(tab.id as any)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
-                  isActive
-                    ? 'bg-[#161A20] text-[#E8EAED] border border-[#272D35]'
-                    : 'text-[#737D8B] hover:text-[#A0A7B2] hover:bg-[#111419]'
-                }`}
-              >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#A3B86C]' : 'text-[#737D8B]'}`} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+        {/* Navigation Sub-Tabs & Graph Action */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#272D35] pb-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {[
+              { id: 'overview', label: '360° Overview', icon: Building2 },
+              { id: 'cases', label: `Cross-Bureau Complaints (${instCases.length})`, icon: FileText },
+              { id: 'overlaps', label: `Overlap Intelligence (${instAlerts.length})`, icon: GitCompare },
+              { id: 'history', label: `Institutional Audit Trail (${instActions.length})`, icon: History }
+            ].map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeSubTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveSubTab(tab.id as any)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                    isActive
+                      ? 'bg-[#161A20] text-[#E8EAED] border border-[#272D35]'
+                      : 'text-[#737D8B] hover:text-[#A0A7B2] hover:bg-[#111419]'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#A3B86C]' : 'text-[#737D8B]'}`} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => {
+              onClose();
+              navigateToGraph({ type: 'institution', id: institution.institutionId });
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161A20] hover:bg-[#1C2129] border border-[#272D35] text-[#A3B86C] text-xs font-semibold transition-colors shrink-0"
+            title="View institution in Cross-Bureau Intelligence Graph"
+          >
+            <Share2 className="w-3.5 h-3.5 text-[#A3B86C]" />
+            <span>View in Graph</span>
+          </button>
         </div>
 
         {/* TAB 1: 360° OVERVIEW */}

@@ -1,9 +1,10 @@
-import { Institution, CaseRecord, CaseAction, OverlapAlert } from '../../types';
+import { Institution, CaseRecord, CaseAction, OverlapAlert, SemanticComparisonResult } from '../../types';
 import { IStorageService, AppStorageData, StorageMode } from './types';
 import { getSupabaseClient, isSupabaseConfigured } from '../supabaseClient';
 import { LocalStorageService } from './localStorageService';
 import { detectCrossBureauOverlaps } from '../../engine/overlapDetector';
 import { parseActionMetadata } from '../../engine/actionHistoryHelper';
+import { computeAlertSemanticComparisons } from '../../engine/semanticComparator';
 
 export class SupabaseStorageService implements IStorageService {
   readonly mode: StorageMode = 'supabase';
@@ -115,33 +116,69 @@ export class SupabaseStorageService implements IStorageService {
           officer: r.officer,
           timestamp: r.timestamp
         };
-        const meta = parseActionMetadata(baseAction);
+        const parsedMeta = parseActionMetadata(baseAction);
         return {
           ...baseAction,
-          activityCategory: meta.activityCategory,
-          evidenceRef: meta.evidenceRef,
-          nextAction: meta.nextAction,
-          previousValue: meta.previousValue,
-          newValue: meta.newValue
+          activityCategory: r.activity_category || parsedMeta.activityCategory,
+          evidenceRef: r.evidence_ref || parsedMeta.evidenceRef,
+          nextAction: r.next_action || parsedMeta.nextAction,
+          previousValue: r.previous_value || parsedMeta.previousValue,
+          newValue: r.new_value || parsedMeta.newValue,
+          fieldChanged: r.field_changed || (r.previous_value && r.new_value ? 'status' : undefined),
+          justification: r.justification || undefined,
+          relatedCaseId: r.related_case_id || undefined
         };
       });
 
-      let alerts: OverlapAlert[] = (alertsData || []).map(r => ({
-        alertId: r.alert_id,
-        institutionId: r.institution_id,
-        institutionName: r.institution_name,
-        caseIds: r.case_ids || [],
-        involvedBureaus: r.involved_bureaus || [],
-        reason: r.reason,
-        confidence: r.confidence,
-        reviewStatus: r.review_status,
-        detectedAt: r.detected_at,
-        coordinationRemarks: r.coordination_remarks || undefined,
-        leadBureau: r.lead_bureau || undefined,
-        reviewedBy: r.reviewed_by || undefined,
-        reviewedAt: r.reviewed_at || undefined,
-        semanticComparisons: []
-      }));
+      let alerts: OverlapAlert[] = (alertsData || []).map(r => {
+        let comparisons: SemanticComparisonResult[] = [];
+        if (r.semantic_comparisons) {
+          try {
+            const raw = typeof r.semantic_comparisons === 'string'
+              ? JSON.parse(r.semantic_comparisons)
+              : r.semantic_comparisons;
+            if (Array.isArray(raw)) {
+              comparisons = raw.filter((item: any) => item && typeof item.similarityPercentage === 'number');
+            }
+          } catch {
+            comparisons = [];
+          }
+        }
+
+        // Reconstruct derived semantic comparisons if absent/empty on persisted record
+        if (comparisons.length === 0 && r.case_ids && r.case_ids.length >= 2) {
+          const alertCases = cases.filter(c => r.case_ids.includes(c.caseId));
+          if (alertCases.length >= 2) {
+            try {
+              comparisons = computeAlertSemanticComparisons(alertCases);
+            } catch {
+              comparisons = [];
+            }
+          }
+        }
+
+        return {
+          alertId: r.alert_id,
+          institutionId: r.institution_id,
+          institutionName: r.institution_name,
+          caseIds: r.case_ids || [],
+          involvedBureaus: r.involved_bureaus || [],
+          reason: r.reason,
+          confidence: r.confidence,
+          reviewStatus: r.review_status,
+          detectedAt: r.detected_at,
+          coordinationRemarks: r.coordination_remarks || undefined,
+          leadBureau: r.lead_bureau || undefined,
+          reviewedBy: r.reviewed_by || undefined,
+          reviewedAt: r.reviewed_at || undefined,
+          matchingStrategy: r.matching_strategy || undefined,
+          categoryCorrelation: r.category_correlation || undefined,
+          matchingEvidence: r.matching_evidence || undefined,
+          dismissalReason: r.dismissal_reason || undefined,
+          recommendedAction: r.recommended_action || undefined,
+          semanticComparisons: comparisons
+        };
+      });
 
       // If no persisted alerts exist in cloud database or table access is restricted,
       // dynamically compute authoritative cross-bureau overlap alerts using the detection engine
@@ -259,17 +296,41 @@ export class SupabaseStorageService implements IStorageService {
     }
     if (actions.length === 0) return;
 
-    const payloads = actions.map(act => ({
+    // Structured forward-only payload
+    const structuredPayloads = actions.map(act => ({
       action_id: act.actionId,
       case_id: act.caseId,
       action_type: act.actionType,
       remarks: act.remarks,
       bureau: act.bureau,
       officer: act.officer,
-      timestamp: act.timestamp
+      timestamp: act.timestamp,
+      previous_value: act.previousValue || null,
+      new_value: act.newValue || null,
+      field_changed: act.fieldChanged || null,
+      justification: act.justification || null,
+      related_case_id: act.relatedCaseId || null,
+      evidence_ref: act.evidenceRef || null,
+      activity_category: act.activityCategory || null,
+      next_action: act.nextAction || null
     }));
 
-    const { error } = await supabase.from('case_actions').insert(payloads);
+    let { error } = await supabase.from('case_actions').insert(structuredPayloads);
+    if (error && (error.code === '42703' || error.message.includes('column'))) {
+      console.warn('Forward-only audit columns not yet migrated in Supabase table; falling back to core 7-column schema.');
+      const fallbackPayloads = actions.map(act => ({
+        action_id: act.actionId,
+        case_id: act.caseId,
+        action_type: act.actionType,
+        remarks: act.remarks,
+        bureau: act.bureau,
+        officer: act.officer,
+        timestamp: act.timestamp
+      }));
+      const fallbackRes = await supabase.from('case_actions').insert(fallbackPayloads);
+      error = fallbackRes.error;
+    }
+
     if (error) {
       console.error('Failed to append actions in Supabase:', error.message);
       throw new Error(`Failed to append actions to Supabase: ${error.message}${error.code ? ` (Code: ${error.code})` : ''}`);
@@ -287,7 +348,7 @@ export class SupabaseStorageService implements IStorageService {
     }
     if (alerts.length === 0) return;
 
-    const payloads = alerts.map(alt => ({
+    const structuredPayloads = alerts.map(alt => ({
       alert_id: alt.alertId,
       institution_id: alt.institutionId,
       institution_name: alt.institutionName,
@@ -300,14 +361,136 @@ export class SupabaseStorageService implements IStorageService {
       coordination_remarks: alt.coordinationRemarks || null,
       lead_bureau: alt.leadBureau || null,
       reviewed_by: alt.reviewedBy || null,
-      reviewed_at: alt.reviewedAt || null
+      reviewed_at: alt.reviewedAt || null,
+      matching_strategy: alt.matchingStrategy || null,
+      category_correlation: alt.categoryCorrelation || null,
+      matching_evidence: alt.matchingEvidence || null,
+      dismissal_reason: alt.dismissalReason || null,
+      recommended_action: alt.recommendedAction || null,
+      semantic_comparisons: alt.semanticComparisons ? JSON.stringify(alt.semanticComparisons) : '[]'
     }));
 
-    const { error } = await supabase.from('overlap_alerts').upsert(payloads, { onConflict: 'alert_id' });
+    let { error } = await supabase.from('overlap_alerts').upsert(structuredPayloads, { onConflict: 'alert_id' });
+    if (error && (error.code === '42703' || error.message.includes('column'))) {
+      console.warn('Forward-only overlap columns not yet migrated in Supabase table; falling back to core schema.');
+      const fallbackPayloads = alerts.map(alt => ({
+        alert_id: alt.alertId,
+        institution_id: alt.institutionId,
+        institution_name: alt.institutionName,
+        case_ids: alt.caseIds,
+        involved_bureaus: alt.involvedBureaus,
+        reason: alt.reason,
+        confidence: alt.confidence,
+        review_status: alt.reviewStatus,
+        detected_at: alt.detectedAt,
+        coordination_remarks: alt.coordinationRemarks || null,
+        lead_bureau: alt.leadBureau || null,
+        reviewed_by: alt.reviewedBy || null,
+        reviewed_at: alt.reviewedAt || null
+      }));
+      const fallbackRes = await supabase.from('overlap_alerts').upsert(fallbackPayloads, { onConflict: 'alert_id' });
+      error = fallbackRes.error;
+    }
+
     if (error) {
       console.error('Failed to save overlap alerts in Supabase:', error.message);
       throw new Error(`Failed to save overlap alerts in Supabase: ${error.message}${error.code ? ` (Code: ${error.code})` : ''}`);
     }
+  }
+
+  // Multi-Record Atomic RPC Helpers with Graceful Compensating Fallbacks
+  async linkCases(
+    caseId1: string,
+    caseId2: string,
+    remarks: string,
+    officer: string
+  ): Promise<{ usedRpc: boolean }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { usedRpc: false };
+
+    try {
+      const { data, error } = await supabase.rpc('rpc_link_related_cases', {
+        p_case_id1: caseId1,
+        p_case_id2: caseId2,
+        p_remarks: remarks,
+        p_officer: officer
+      });
+
+      if (!error && data?.success) {
+        return { usedRpc: true };
+      }
+      if (error && error.code !== 'PGRST202' && !error.message.includes('function')) {
+        throw new Error(error.message);
+      }
+    } catch (rpcErr: any) {
+      if (rpcErr.message && !rpcErr.message.includes('function') && !rpcErr.message.includes('does not exist')) {
+        throw rpcErr;
+      }
+    }
+
+    return { usedRpc: false };
+  }
+
+  async mergeCases(
+    primaryCaseId: string,
+    childCaseId: string,
+    mergeReason: string,
+    officer: string
+  ): Promise<{ usedRpc: boolean }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { usedRpc: false };
+
+    try {
+      const { data, error } = await supabase.rpc('rpc_merge_cases', {
+        p_primary_case_id: primaryCaseId,
+        p_child_case_id: childCaseId,
+        p_merge_reason: mergeReason,
+        p_officer: officer
+      });
+
+      if (!error && data?.success) {
+        return { usedRpc: true };
+      }
+      if (error && error.code !== 'PGRST202' && !error.message.includes('function')) {
+        throw new Error(error.message);
+      }
+    } catch (rpcErr: any) {
+      if (rpcErr.message && !rpcErr.message.includes('function') && !rpcErr.message.includes('does not exist')) {
+        throw rpcErr;
+      }
+    }
+
+    return { usedRpc: false };
+  }
+
+  async unmergeCase(
+    childCaseId: string,
+    reason: string,
+    officer: string
+  ): Promise<{ usedRpc: boolean }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { usedRpc: false };
+
+    try {
+      const { data, error } = await supabase.rpc('rpc_unmerge_case', {
+        p_child_case_id: childCaseId,
+        p_reason: reason,
+        p_officer: officer
+      });
+
+      if (!error && data?.success) {
+        return { usedRpc: true };
+      }
+      if (error && error.code !== 'PGRST202' && !error.message.includes('function')) {
+        throw new Error(error.message);
+      }
+    } catch (rpcErr: any) {
+      if (rpcErr.message && !rpcErr.message.includes('function') && !rpcErr.message.includes('does not exist')) {
+        throw rpcErr;
+      }
+    }
+
+    return { usedRpc: false };
   }
 
   async resetStorage(): Promise<AppStorageData> {

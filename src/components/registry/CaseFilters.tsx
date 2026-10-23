@@ -37,6 +37,15 @@ export const CaseFilters: React.FC = () => {
     'Substandard Lab / Workshop Equipment'
   ];
 
+  const dateRanges = [
+    { label: 'All Time', value: 'ALL' },
+    { label: 'Last 7 Days', value: '7_DAYS' },
+    { label: 'Last 30 Days', value: '30_DAYS' },
+    { label: 'Last 90 Days', value: '90_DAYS' },
+    { label: 'Overdue SLA', value: 'OVERDUE' },
+    { label: 'Completed (Last 14 Days)', value: 'COMPLETED_14_DAYS' }
+  ] as const;
+
   return (
     <div className="bg-[#111419] p-4 rounded-lg border border-[#272D35] shadow-sm space-y-3 mb-4">
       {/* Search Input Row */}
@@ -70,7 +79,7 @@ export const CaseFilters: React.FC = () => {
       </div>
 
       {/* Dropdown Filters Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 pt-2 border-t border-[#272D35]">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 pt-2 border-t border-[#272D35]">
         <div>
           <label className="block text-[10px] font-mono uppercase text-[#737D8B] mb-1">Bureau / Cell</label>
           <select
@@ -119,6 +128,19 @@ export const CaseFilters: React.FC = () => {
           >
             {categories.map(c => (
               <option key={c} value={c}>{c === 'ALL' ? 'All Categories' : c}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-[10px] font-mono uppercase text-[#737D8B] mb-1">Date Range / SLA</label>
+          <select
+            value={filters.dateRange}
+            onChange={e => setFilters({ dateRange: e.target.value as any })}
+            className="w-full px-2.5 py-1.5 bg-[#0B0D10] border border-[#272D35] rounded-md text-xs text-[#E8EAED] focus:outline-none focus:border-[#A3B86C]"
+          >
+            {dateRanges.map(d => (
+              <option key={d.value} value={d.value}>{d.label}</option>
             ))}
           </select>
         </div>

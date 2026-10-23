@@ -173,7 +173,8 @@ export type NavTab =
   | 'merged' 
   | 'institutions' 
   | 'overlaps' 
-  | 'reports';
+  | 'reports'
+  | 'graph';
 
 export interface DashboardStats {
   totalComplaints: number;
@@ -193,4 +194,33 @@ export interface DashboardStats {
   disposalRate: number; // percentage
   completedLast14Days: number;
   mergedCasesCount: number;
+}
+
+export type GraphEntityType = 'institution' | 'case' | 'bureau';
+export type GraphRelationshipType = 'AFFILIATION' | 'JURISDICTION' | 'POTENTIAL_OVERLAP' | 'CONFIRMED_LINK' | 'MERGED';
+
+export interface GraphNode {
+  id: string;
+  type: GraphEntityType;
+  label: string;
+  sublabel?: string;
+  bureau?: Bureau;
+  status?: CaseStatus;
+  priority?: Priority;
+  data: any;
+  x?: number;
+  y?: number;
+}
+
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  type: GraphRelationshipType;
+  label: string;
+  isConfirmed: boolean;
+  isPotential: boolean;
+  isMerged: boolean;
+  evidence?: string;
+  alertId?: string;
 }

@@ -568,4 +568,170 @@ describe('CONVERA — Cloud Persistence & Two-Write Safety Verification', () => 
     expect(capturedBatch[0].action_type).toBe('INTER_BUREAU_COORDINATED');
     expect(capturedBatch[1].action_type).toBe('INTER_BUREAU_COORDINATED');
   });
+
+  it('15. saveAction & saveActions persist structured audit fields and loadInitialData round-trips them properly', async () => {
+    let capturedRow: any = null;
+    const mockSupabase = {
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'case_actions') {
+          return {
+            insert: vi.fn().mockImplementation((rows: any[]) => {
+              capturedRow = rows[0];
+              return Promise.resolve({ data: rows, error: null });
+            })
+          };
+        }
+        return {};
+      })
+    };
+
+    vi.spyOn(supabaseClientModule, 'getSupabaseClient').mockReturnValue(mockSupabase as any);
+
+    const storage = new SupabaseStorageService();
+    const structuredAction: CaseAction = {
+      actionId: 'ACT-STRUC-5001',
+      caseId: 'AICTE-RB-2026-0041',
+      actionType: 'REMARKS_ADDED',
+      remarks: 'Status updated to Under Process with evidence ref DOC-401.',
+      bureau: 'RB',
+      officer: 'Dr. Suresh Patil',
+      timestamp: '2026-10-23T10:00:00.000Z',
+      previousValue: 'Pending',
+      newValue: 'Under Process',
+      fieldChanged: 'status',
+      justification: 'Preliminary inquiry initiated upon evidence review',
+      evidenceRef: 'DOC-401',
+      activityCategory: 'Investigation Note',
+      nextAction: 'Summon institution head'
+    };
+
+    await storage.saveAction(structuredAction);
+    expect(capturedRow).not.toBeNull();
+    expect(capturedRow.previous_value).toBe('Pending');
+    expect(capturedRow.new_value).toBe('Under Process');
+    expect(capturedRow.field_changed).toBe('status');
+    expect(capturedRow.justification).toBe('Preliminary inquiry initiated upon evidence review');
+    expect(capturedRow.evidence_ref).toBe('DOC-401');
+    expect(capturedRow.activity_category).toBe('Investigation Note');
+    expect(capturedRow.next_action).toBe('Summon institution head');
+  });
+
+  it('16. saveAlert persists structured overlap metadata and semantic_comparisons JSONB', async () => {
+    let capturedAlertRow: any = null;
+    const mockSupabase = {
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'overlap_alerts') {
+          return {
+            upsert: vi.fn().mockImplementation((payload: any) => {
+              capturedAlertRow = Array.isArray(payload) ? payload[0] : payload;
+              return Promise.resolve({ data: payload, error: null });
+            })
+          };
+        }
+        return {};
+      })
+    };
+
+    vi.spyOn(supabaseClientModule, 'getSupabaseClient').mockReturnValue(mockSupabase as any);
+
+    const storage = new SupabaseStorageService();
+    const overlapAlert: any = {
+      alertId: 'OVL-TEST-6001',
+      institutionId: '1-4328901',
+      institutionName: 'Sri Venkateswara College of Engineering (SVCE)',
+      caseIds: ['AICTE/RB/2026/7821', 'AICTE/PGRC/2026/4102'],
+      involvedBureaus: ['RB', 'PGRC'],
+      reason: 'Concurrent infrastructure complaints pending across distinct bureaus.',
+      confidence: 'CONFIRMED_HIGH',
+      matchingStrategy: 'EXACT_PID',
+      categoryCorrelation: 'IDENTICAL_CATEGORY',
+      matchingEvidence: 'Shared Permanent Institute ID 1-4328901',
+      reviewStatus: 'PENDING_REVIEW',
+      detectedAt: '2026-10-23T10:00:00.000Z',
+      recommendedAction: 'Consolidate into joint hearing',
+      dismissalReason: undefined,
+      semanticComparisons: [
+        {
+          caseId1: 'AICTE/RB/2026/7821',
+          caseId2: 'AICTE/PGRC/2026/4102',
+          semanticSimilarity: 0.85,
+          similarityPercentage: 85,
+          label: 'HIGH_SEMANTIC_SIMILARITY',
+          interpretation: 'High topical overlap',
+          scoreType: 'SEMANTIC_SIMILARITY',
+          disclaimer: 'Uses heuristic domain vocabulary',
+          modelName: 'CONVERA Domain-Based Similarity Heuristic'
+        }
+      ]
+    };
+
+    await storage.saveAlert(overlapAlert);
+    expect(capturedAlertRow).not.toBeNull();
+    expect(capturedAlertRow.matching_strategy).toBe('EXACT_PID');
+    expect(capturedAlertRow.category_correlation).toBe('IDENTICAL_CATEGORY');
+    expect(capturedAlertRow.matching_evidence).toBe('Shared Permanent Institute ID 1-4328901');
+    expect(capturedAlertRow.recommended_action).toBe('Consolidate into joint hearing');
+    expect(capturedAlertRow.semantic_comparisons).toBeDefined();
+    const parsedSem = typeof capturedAlertRow.semantic_comparisons === 'string'
+      ? JSON.parse(capturedAlertRow.semantic_comparisons)
+      : capturedAlertRow.semantic_comparisons;
+    expect(parsedSem.length).toBe(1);
+    expect(parsedSem[0].similarityPercentage).toBe(85);
+  });
+
+  it('17. Multi-record RPC helpers linkCases, mergeCases, and unmergeCase call corresponding Supabase RPCs', async () => {
+    const mockRpc = vi.fn().mockResolvedValue({
+      data: { success: true },
+      error: null
+    });
+    const mockSupabase = {
+      rpc: mockRpc
+    };
+
+    vi.spyOn(supabaseClientModule, 'getSupabaseClient').mockReturnValue(mockSupabase as any);
+
+    const storage = new SupabaseStorageService();
+
+    const linkResult = await storage.linkCases('CASE-1', 'CASE-2', 'Cross-bureau correlation', 'Dr. Suresh Patil');
+    expect(linkResult.usedRpc).toBe(true);
+    expect(mockRpc).toHaveBeenCalledWith('rpc_link_related_cases', {
+      p_case_id1: 'CASE-1',
+      p_case_id2: 'CASE-2',
+      p_remarks: 'Cross-bureau correlation',
+      p_officer: 'Dr. Suresh Patil'
+    });
+
+    const mergeResult = await storage.mergeCases('CASE-1', 'CASE-2', 'Duplicate grievance', 'Dr. Suresh Patil');
+    expect(mergeResult.usedRpc).toBe(true);
+    expect(mockRpc).toHaveBeenCalledWith('rpc_merge_cases', {
+      p_primary_case_id: 'CASE-1',
+      p_child_case_id: 'CASE-2',
+      p_merge_reason: 'Duplicate grievance',
+      p_officer: 'Dr. Suresh Patil'
+    });
+
+    const unmergeResult = await storage.unmergeCase('CASE-2', 'Different academic session', 'Dr. Suresh Patil');
+    expect(unmergeResult.usedRpc).toBe(true);
+    expect(mockRpc).toHaveBeenCalledWith('rpc_unmerge_case', {
+      p_child_case_id: 'CASE-2',
+      p_reason: 'Different academic session',
+      p_officer: 'Dr. Suresh Patil'
+    });
+  });
+
+  it('18. Multi-record RPC helpers return usedRpc: false when RPC function is not yet deployed', async () => {
+    const mockRpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { code: 'PGRST202', message: 'Could not find the function rpc_link_related_cases' }
+    });
+    const mockSupabase = {
+      rpc: mockRpc
+    };
+
+    vi.spyOn(supabaseClientModule, 'getSupabaseClient').mockReturnValue(mockSupabase as any);
+
+    const storage = new SupabaseStorageService();
+    const linkResult = await storage.linkCases('CASE-1', 'CASE-2', 'Cross-bureau correlation', 'Dr. Suresh Patil');
+    expect(linkResult.usedRpc).toBe(false);
+  });
 });

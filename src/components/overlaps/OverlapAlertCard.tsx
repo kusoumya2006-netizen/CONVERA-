@@ -16,7 +16,8 @@ import {
   Clock,
   XCircle,
   Activity,
-  Sparkles
+  Sparkles,
+  Share2
 } from 'lucide-react';
 
 interface OverlapAlertCardProps {
@@ -24,7 +25,7 @@ interface OverlapAlertCardProps {
 }
 
 export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => {
-  const { cases, setSelectedCaseId, setActiveTab } = useCaseWatch();
+  const { cases, setSelectedCaseId, setActiveTab, navigateToGraph } = useCaseWatch();
   const [isCoordinateOpen, setIsCoordinateOpen] = useState(false);
 
   // Retrieve full case records involved in this overlap
@@ -112,18 +113,29 @@ export const OverlapAlertCard: React.FC<OverlapAlertCardProps> = ({ alert }) => 
           </h3>
         </div>
 
-        {/* Action Button */}
-        <button
-          onClick={() => setIsCoordinateOpen(true)}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold shadow-sm transition-colors shrink-0 ${
-            isActionRequired
-              ? 'bg-[#F16D75]/15 hover:bg-[#F16D75]/25 text-[#F16D75] border border-[#F16D75]/40'
-              : 'bg-[#161A20] hover:bg-[#1C2129] border border-[#272D35] hover:border-[#38414D] text-[#E8EAED]'
-          }`}
-        >
-          <GitCompare className="w-3.5 h-3.5" />
-          <span>{isActionRequired ? 'Coordinate Matters' : 'Update Review'}</span>
-        </button>
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => navigateToGraph({ type: 'alert', id: alert.alertId })}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161A20] hover:bg-[#1C2129] border border-[#272D35] text-[#A3B86C] text-xs font-semibold transition-colors"
+            title="Inspect connections in Cross-Bureau Intelligence Graph"
+          >
+            <Share2 className="w-3.5 h-3.5 text-[#A3B86C]" />
+            <span>Inspect in Graph</span>
+          </button>
+
+          <button
+            onClick={() => setIsCoordinateOpen(true)}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold shadow-sm transition-colors ${
+              isActionRequired
+                ? 'bg-[#F16D75]/15 hover:bg-[#F16D75]/25 text-[#F16D75] border border-[#F16D75]/40'
+                : 'bg-[#161A20] hover:bg-[#1C2129] border border-[#272D35] hover:border-[#38414D] text-[#E8EAED]'
+            }`}
+          >
+            <GitCompare className="w-3.5 h-3.5" />
+            <span>{isActionRequired ? 'Coordinate Matters' : 'Update Review'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Detection Engine Analysis & Evidence */}

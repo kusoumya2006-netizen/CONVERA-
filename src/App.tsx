@@ -17,6 +17,7 @@ import { OverlapMonitoringView } from './components/overlaps/OverlapMonitoringVi
 import { ReportsView } from './components/reports/ReportsView';
 import { CompletedCasesView } from './components/completed/CompletedCasesView';
 import { MergedCasesView } from './components/merged/MergedCasesView';
+import { CrossBureauIntelligenceGraph } from './components/graph/CrossBureauIntelligenceGraph';
 
 type AppRoute = 'landing' | 'login' | 'app';
 
@@ -96,6 +97,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ onNavigateLanding }) => {
           )}
 
           {activeTab === 'overlaps' && <OverlapMonitoringView />}
+
+          {activeTab === 'graph' && <CrossBureauIntelligenceGraph />}
 
           {activeTab === 'completed' && <CompletedCasesView />}
 

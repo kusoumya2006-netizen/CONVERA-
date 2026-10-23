@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { AuthService, AUTHORIZED_DEMO_ACCOUNTS } from './authService';
+import { AuthService, AUTHORIZED_DEMO_ACCOUNTS, setDemoFallbackOverride, isDemoFallbackAllowed } from './authService';
 
 // Polyfill in-memory storage for Vitest Node environment
 function createStorageMock() {
@@ -155,5 +155,34 @@ describe('AuthService Authentication Engine', () => {
         password: ''
       })
     ).rejects.toThrow('Account password is required');
+  });
+
+  it('Scenario 12: Production auth security disallows offline demo fallback when demo fallback is disabled', async () => {
+    setDemoFallbackOverride(false);
+    expect(isDemoFallbackAllowed()).toBe(false);
+
+    const directorRB = AUTHORIZED_DEMO_ACCOUNTS[0];
+    await expect(
+      AuthService.signIn({
+        email: directorRB.user.email,
+        password: directorRB.passwordHash
+      })
+    ).rejects.toThrow(/Authentication service unavailable|Production Auth Security/);
+
+    setDemoFallbackOverride(null);
+  });
+
+  it('Scenario 13: Offline fallback operates normally when demo fallback is explicitly enabled', async () => {
+    setDemoFallbackOverride(true);
+    expect(isDemoFallbackAllowed()).toBe(true);
+
+    const directorRB = AUTHORIZED_DEMO_ACCOUNTS[0];
+    const user = await AuthService.signIn({
+      email: directorRB.user.email,
+      password: directorRB.passwordHash
+    });
+    expect(user.email).toBe(directorRB.user.email);
+
+    setDemoFallbackOverride(null);
   });
 });

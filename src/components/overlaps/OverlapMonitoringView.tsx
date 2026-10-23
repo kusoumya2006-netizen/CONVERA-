@@ -12,12 +12,13 @@ import {
   AlertTriangle,
   Search,
   Filter,
-  RotateCcw
+  RotateCcw,
+  Share2
 } from 'lucide-react';
 import { exportOverlapsToCsv } from '../../services/exportService';
 
 export const OverlapMonitoringView: React.FC = () => {
-  const { alerts, institutions } = useCaseWatch();
+  const { alerts, institutions, navigateToGraph } = useCaseWatch();
 
   // Filter States
   const [filterReview, setFilterReview] = useState<ReviewStatus | 'ALL'>('ALL');
@@ -128,13 +129,24 @@ export const OverlapMonitoringView: React.FC = () => {
             </p>
           </div>
 
-          <button
-            onClick={handleExport}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161A20] hover:bg-[#1C2129] border border-[#272D35] hover:border-[#38414D] text-[#E8EAED] text-xs font-semibold shadow-sm transition-colors shrink-0"
-          >
-            <Download className="w-3.5 h-3.5 text-[#737D8B]" />
-            <span>Export Overlaps CSV ({filteredAlerts.length})</span>
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => navigateToGraph()}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161A20] hover:bg-[#1C2129] border border-[#272D35] hover:border-[#38414D] text-[#A3B86C] text-xs font-semibold shadow-sm transition-colors"
+              title="Explore all inter-bureau connections in Intelligence Graph"
+            >
+              <Share2 className="w-3.5 h-3.5 text-[#A3B86C]" />
+              <span>Intelligence Graph View</span>
+            </button>
+
+            <button
+              onClick={handleExport}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161A20] hover:bg-[#1C2129] border border-[#272D35] hover:border-[#38414D] text-[#E8EAED] text-xs font-semibold shadow-sm transition-colors"
+            >
+              <Download className="w-3.5 h-3.5 text-[#737D8B]" />
+              <span>Export Overlaps CSV ({filteredAlerts.length})</span>
+            </button>
+          </div>
         </div>
 
         {/* Overlap Metrics: Dark graphite cards with subtle borders */}

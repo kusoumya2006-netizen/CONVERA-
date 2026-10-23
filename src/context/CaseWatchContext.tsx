@@ -65,6 +65,9 @@ interface CaseWatchContextType {
   syncCloudData: () => Promise<void>;
   toastMessage: { text: string; type: 'success' | 'info' | 'warning' } | null;
   showToast: (text: string, type?: 'success' | 'info' | 'warning') => void;
+  focusedGraphEntity: { type: 'institution' | 'case' | 'alert'; id: string } | null;
+  setFocusedGraphEntity: (entity: { type: 'institution' | 'case' | 'alert'; id: string } | null) => void;
+  navigateToGraph: (entity?: { type: 'institution' | 'case' | 'alert'; id: string }) => void;
 }
 
 const defaultFilters: FilterState = {
@@ -96,6 +99,16 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'info' | 'warning' } | null>(null);
   const [isLoadingCloudData, setIsLoadingCloudData] = useState<boolean>(false);
   const [cloudError, setCloudError] = useState<string | null>(null);
+  const [focusedGraphEntity, setFocusedGraphEntity] = useState<{ type: 'institution' | 'case' | 'alert'; id: string } | null>(null);
+
+  const navigateToGraph = useCallback((entity?: { type: 'institution' | 'case' | 'alert'; id: string }) => {
+    setSelectedCaseId(null);
+    setSelectedInstitutionId(null);
+    if (entity) {
+      setFocusedGraphEntity(entity);
+    }
+    setActiveTab('graph');
+  }, []);
 
   const syncCloudData = useCallback(async () => {
     if (!isSupabaseConfigured()) {
@@ -124,23 +137,50 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
-  // Sync on mount and subscribe to auth state changes so institutions re-fetch when authenticated
+  // Sync on mount and subscribe to auth state changes and Realtime data events
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
 
     syncCloudData();
 
     const supabase = getSupabaseClient();
-    if (supabase) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || (session && event === 'INITIAL_SESSION')) {
-          syncCloudData();
-        }
-      });
-      return () => {
-        subscription.unsubscribe();
-      };
+    if (!supabase) return;
+
+    // 1. Auth state subscription
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || (session && event === 'INITIAL_SESSION')) {
+        syncCloudData();
+      }
+    });
+
+    // 2. Multi-User Realtime Synchronization
+    let debounceTimer: any = null;
+    const triggerDebouncedSync = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        syncCloudData();
+      }, 500);
+    };
+
+    let realtimeChannel: any = null;
+    try {
+      realtimeChannel = supabase
+        .channel('convera_realtime_events')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cases' }, triggerDebouncedSync)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'case_actions' }, triggerDebouncedSync)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'overlap_alerts' }, triggerDebouncedSync)
+        .subscribe();
+    } catch (rtErr) {
+      console.warn('Realtime channel subscription error:', rtErr);
     }
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(debounceTimer);
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+      }
+    };
   }, [syncCloudData]);
 
   const showToast = useCallback((text: string, type: 'success' | 'info' | 'warning' = 'info') => {
@@ -163,6 +203,28 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       existingAlerts: currentAlerts
     });
     setAlerts(updatedAlerts);
+    return updatedAlerts;
+  }, []);
+
+  // Recalculate and persist updated overlap alerts across all case lifecycle operations
+  const syncAndPersistAlerts = useCallback(async (
+    currentCases: CaseRecord[],
+    currentInstitutions: Institution[],
+    currentAlerts: OverlapAlert[]
+  ): Promise<OverlapAlert[]> => {
+    const updatedAlerts = detectCrossBureauOverlaps(currentCases, currentInstitutions, {
+      existingAlerts: currentAlerts
+    });
+    setAlerts(updatedAlerts);
+
+    const storage = getStorageService();
+    if (storage.mode === 'supabase' && isSupabaseConfigured() && updatedAlerts.length > 0) {
+      try {
+        await storage.saveAlerts(updatedAlerts);
+      } catch (alertErr: any) {
+        console.warn('Could not persist updated overlap alerts to Supabase:', alertErr);
+      }
+    }
     return updatedAlerts;
   }, []);
 
@@ -234,14 +296,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setCases(updatedCases);
     setActions(updatedActions);
 
-    const newAlerts = refreshOverlaps(updatedCases, institutions, alerts);
-    if (isCloud && newAlerts.length > 0) {
-      try {
-        await storage.saveAlerts(newAlerts);
-      } catch (alertErr) {
-        console.warn('Could not persist updated overlap alerts to Supabase:', alertErr);
-      }
-    }
+    const newAlerts = await syncAndPersistAlerts(updatedCases, institutions, alerts);
 
     const triggeredAlert = newAlerts.find(a => a.caseIds.includes(newRecord.caseId));
     if (triggeredAlert) {
@@ -334,7 +389,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const updatedActions = [newAction, ...actions];
     setCases(updatedCases);
     setActions(updatedActions);
-    refreshOverlaps(updatedCases, institutions, alerts);
+    await syncAndPersistAlerts(updatedCases, institutions, alerts);
     showToast(`Case ${caseId} status updated to ${status}.`, 'success');
     return { success: true };
   };
@@ -405,7 +460,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const updatedActions = [newAction, ...actions];
     setCases(updatedCases);
     setActions(updatedActions);
-    refreshOverlaps(updatedCases, institutions, alerts);
+    await syncAndPersistAlerts(updatedCases, institutions, alerts);
     showToast(`Case ${caseId} reopened and restored to Under Process.`, 'info');
     return { success: true };
   };
@@ -511,9 +566,23 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     if (isCloud) {
       try {
-        await storage.updateCase(childCaseId, childUpdates);
-        await storage.updateCase(primaryCaseId, primaryUpdates);
-        await storage.saveActions([actionChild, actionPrimary]);
+        let usedRpc = false;
+        if (storage.mergeCases) {
+          const rpcRes = await storage.mergeCases(primaryCaseId, childCaseId, mergeReason, actingOfficer);
+          usedRpc = rpcRes.usedRpc;
+        }
+
+        if (!usedRpc) {
+          await storage.updateCase(childCaseId, childUpdates);
+          try {
+            await storage.updateCase(primaryCaseId, primaryUpdates);
+          } catch (primErr: any) {
+            // Rollback child update to prevent inconsistent dangling merge
+            await storage.updateCase(childCaseId, { isMerged: false, mergedIntoCaseId: undefined, updatedAt: now });
+            throw primErr;
+          }
+          await storage.saveActions([actionChild, actionPrimary]);
+        }
       } catch (err: any) {
         showToast(`Merge failed in database: ${err?.message || 'Unknown error'}`, 'warning');
         return false;
@@ -532,7 +601,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     setCases(updatedCases);
     setActions([actionChild, actionPrimary, ...actions]);
-    refreshOverlaps(updatedCases, institutions, alerts);
+    await syncAndPersistAlerts(updatedCases, institutions, alerts);
     showToast(`Case ${childCaseId} successfully merged into ${primaryCaseId}.`, 'success');
     return true;
   };
@@ -595,11 +664,19 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     if (isCloud) {
       try {
-        await storage.updateCase(childCaseId, childUpdates);
-        if (primaryCase) {
-          await storage.updateCase(primaryCaseId, primaryUpdates);
+        let usedRpc = false;
+        if (storage.unmergeCase) {
+          const rpcRes = await storage.unmergeCase(childCaseId, reason, actingOfficer);
+          usedRpc = rpcRes.usedRpc;
         }
-        await storage.saveAction(actionChild);
+
+        if (!usedRpc) {
+          await storage.updateCase(childCaseId, childUpdates);
+          if (primaryCase) {
+            await storage.updateCase(primaryCaseId, primaryUpdates);
+          }
+          await storage.saveAction(actionChild);
+        }
       } catch (err: any) {
         showToast(`Unmerge failed in database: ${err?.message || 'Unknown error'}`, 'warning');
         return false;
@@ -637,7 +714,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     setCases(updatedCases);
     setActions([actionChild, ...actions]);
-    refreshOverlaps(updatedCases, institutions, alerts);
+    await syncAndPersistAlerts(updatedCases, institutions, alerts);
     showToast(`Case ${childCaseId} unmerged successfully.`, 'info');
     return true;
   };
@@ -808,7 +885,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const updatedActions = [newAction, ...actions];
     setCases(updatedCases);
     setActions(updatedActions);
-    refreshOverlaps(updatedCases, institutions, alerts);
+    await syncAndPersistAlerts(updatedCases, institutions, alerts);
     showToast(`Case history entry [${entry.activityType}] recorded successfully.`, 'success');
     return { success: true };
   };
@@ -878,7 +955,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const updatedCases = cases.map(c => (c.caseId === caseId ? { ...c, ...caseUpdates } : c));
     setCases(updatedCases);
     setActions([newAction, ...actions]);
-    refreshOverlaps(updatedCases, institutions, alerts);
+    await syncAndPersistAlerts(updatedCases, institutions, alerts);
     showToast(`Case ${caseId} transferred to ${newBureau}.`, 'info');
     return { success: true };
   };
@@ -947,6 +1024,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const updatedCases = cases.map(c => (c.caseId === caseId ? { ...c, ...caseUpdates } : c));
     setCases(updatedCases);
     setActions([newAction, ...actions]);
+    await syncAndPersistAlerts(updatedCases, institutions, alerts);
     showToast(`Case ${caseId} escalated to higher regulatory authority.`, 'warning');
     return { success: true };
   };
@@ -1008,9 +1086,23 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     if (isCloud) {
       try {
-        await storage.updateCase(caseId1, { relatedCaseIds: related1, updatedAt: now });
-        await storage.updateCase(caseId2, { relatedCaseIds: related2, updatedAt: now });
-        await storage.saveActions([newAction1, newAction2]);
+        let usedRpc = false;
+        if (storage.linkCases) {
+          const rpcRes = await storage.linkCases(caseId1, caseId2, remarks, actingOfficer);
+          usedRpc = rpcRes.usedRpc;
+        }
+
+        if (!usedRpc) {
+          await storage.updateCase(caseId1, { relatedCaseIds: related1, updatedAt: now });
+          try {
+            await storage.updateCase(caseId2, { relatedCaseIds: related2, updatedAt: now });
+          } catch (linkErr: any) {
+            // Compensating rollback on case1
+            await storage.updateCase(caseId1, { relatedCaseIds: case1.relatedCaseIds || [], updatedAt: now });
+            throw linkErr;
+          }
+          await storage.saveActions([newAction1, newAction2]);
+        }
       } catch (err: any) {
         const errorMsg = err?.message || 'Failed to cross-link cases in database';
         showToast(`Cross-link failed: ${errorMsg}`, 'warning');
@@ -1030,7 +1122,7 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     setCases(updatedCases);
     setActions([newAction1, newAction2, ...actions]);
-    refreshOverlaps(updatedCases, institutions, alerts);
+    await syncAndPersistAlerts(updatedCases, institutions, alerts);
     showToast(`Cases ${caseId1} and ${caseId2} cross-linked.`, 'success');
     return { success: true };
   };
@@ -1337,7 +1429,10 @@ export const CaseWatchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         cloudError,
         syncCloudData,
         toastMessage,
-        showToast
+        showToast,
+        focusedGraphEntity,
+        setFocusedGraphEntity,
+        navigateToGraph
       }}
     >
       {children}

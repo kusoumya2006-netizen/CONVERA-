@@ -4,6 +4,34 @@ import { getSupabaseClient, isSupabaseConfigured } from './supabaseClient';
 const AUTH_STORAGE_KEY = 'synchra_auth_session_v1';
 const REMEMBER_STORAGE_KEY = 'synchra_remember_me_v1';
 
+let _demoFallbackOverride: boolean | null = null;
+
+/**
+ * Configure or override whether demo accounts fallback is permitted.
+ * Useful for automated tests simulating production vs development environments.
+ */
+export function setDemoFallbackOverride(allowed: boolean | null): void {
+  _demoFallbackOverride = allowed;
+}
+
+/**
+ * Determine if fallback to hardcoded demo accounts is allowed.
+ * Production builds strictly forbid demo credential fallback when Supabase is configured.
+ */
+export function isDemoFallbackAllowed(): boolean {
+  if (_demoFallbackOverride !== null) {
+    return _demoFallbackOverride;
+  }
+  // In production builds, if Supabase is configured, strictly disable demo fallback
+  if (import.meta.env.PROD && isSupabaseConfigured()) {
+    return false;
+  }
+  if (import.meta.env.VITE_DISABLE_DEMO_AUTH === 'true') {
+    return false;
+  }
+  return true;
+}
+
 /**
  * Pre-authorized AICTE administrative officials for demonstration and testing.
  * In production, identity is validated against Supabase Auth & public.profiles.
@@ -115,13 +143,16 @@ export class AuthService {
 
           authUserRecord = authData.user;
         } catch (authErr: any) {
-          // If network is completely unreachable (e.g. running in an offline test suite or sandbox),
-          // allow deterministic demo accounts fallback
-          if (
-            authErr.message.includes('fetch failed') ||
-            authErr.message.includes('Failed to fetch') ||
-            authErr.message.includes('NetworkError')
-          ) {
+          const isNetworkError =
+            authErr.message?.includes('fetch failed') ||
+            authErr.message?.includes('Failed to fetch') ||
+            authErr.message?.includes('NetworkError') ||
+            authErr.message?.includes('network error');
+
+          if (isNetworkError) {
+            if (!isDemoFallbackAllowed()) {
+              throw new Error(`Authentication service unavailable: network connection to Supabase failed. (${authErr.message})`);
+            }
             console.warn('Network unreachable in test/offline environment; falling back to offline demo credentials.');
           } else {
             // DO NOT replace or mask auth errors — preserve the exact error from Supabase Auth
@@ -169,6 +200,12 @@ export class AuthService {
     }
 
     // 2. Fallback to pre-authorized demo accounts (deterministic offline simulation)
+    if (!isDemoFallbackAllowed()) {
+      throw new Error(
+        'Cloud authentication is strictly enforced in production. Hardcoded demo credentials cannot be used when Supabase is unavailable.'
+      );
+    }
+
     // Simulate network latency (350ms)
     await new Promise(resolve => setTimeout(resolve, 350));
 

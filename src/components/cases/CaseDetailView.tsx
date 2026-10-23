@@ -3,6 +3,7 @@ import { useCaseWatch } from '../../context/CaseWatchContext';
 import { useAuth } from '../../context/AuthContext';
 import { StatusBadge, BureauBadge, PriorityBadge, UrgencyBadgeView } from '../common/StatusBadge';
 import { calculateDeterministicUrgency } from '../../engine/urgencyCalculator';
+import { calculateExplainablePriority } from '../../engine/priorityEngine';
 import { parseActionMetadata } from '../../engine/actionHistoryHelper';
 import { ActionHistoryTimeline } from './ActionHistoryTimeline';
 import { ActionFormModal } from './ActionFormModal';
@@ -26,7 +27,10 @@ import {
   ShieldAlert,
   Lock,
   ChevronRight,
-  FileCheck2
+  FileCheck2,
+  Share2,
+  Flame,
+  HelpCircle
 } from 'lucide-react';
 
 export const CaseDetailView: React.FC = () => {
@@ -38,7 +42,8 @@ export const CaseDetailView: React.FC = () => {
     institutions,
     alerts,
     setActiveTab,
-    setSelectedInstitutionId
+    setSelectedInstitutionId,
+    navigateToGraph
   } = useCaseWatch();
 
   const { user } = useAuth();
@@ -85,6 +90,7 @@ export const CaseDetailView: React.FC = () => {
   );
   const urgency = calculateDeterministicUrgency(caseRecord, activeOverlapCaseIds);
   const isOverdue = urgency.isOverdue;
+  const priorityAnalysis = calculateExplainablePriority(caseRecord, alerts);
 
   // Extract evidence references recorded across all actions
   const evidenceRecords = caseActions
@@ -149,6 +155,16 @@ export const CaseDetailView: React.FC = () => {
           >
             <Edit3 className="w-3.5 h-3.5 text-[#A0A7B2]" />
             <span>Transfer / Escalate</span>
+          </button>
+
+          {/* View in Cross-Bureau Intelligence Graph */}
+          <button
+            onClick={() => navigateToGraph({ type: 'case', id: caseRecord.caseId })}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161A20] hover:bg-[#1C2129] border border-[#272D35] text-[#A3B86C] text-xs font-semibold transition-colors"
+            title="Inspect relational connections in Cross-Bureau Intelligence Graph"
+          >
+            <Share2 className="w-3.5 h-3.5 text-[#A3B86C]" />
+            <span>View in Graph</span>
           </button>
         </div>
       </div>
@@ -282,6 +298,82 @@ export const CaseDetailView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Explainable Priority & Escalation Engine Recommendation */}
+      <div className={`p-4 rounded-lg bg-[#111419] border ${
+        priorityAnalysis.level === 'CRITICAL'
+          ? 'border-l-4 border-l-[#F16D75] border-y-[#272D35] border-r-[#272D35]'
+          : priorityAnalysis.level === 'HIGH'
+          ? 'border-l-4 border-l-[#FFC759] border-y-[#272D35] border-r-[#272D35]'
+          : 'border-[#272D35]'
+      } space-y-3`}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-[#272D35]">
+          <div className="flex items-center gap-2">
+            <Flame className={`w-4 h-4 ${
+              priorityAnalysis.level === 'CRITICAL'
+                ? 'text-[#F16D75]'
+                : priorityAnalysis.level === 'HIGH'
+                ? 'text-[#FFC759]'
+                : 'text-[#86A9FF]'
+            }`} />
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs font-bold text-[#E8EAED] uppercase tracking-wide font-mono">
+                  Explainable Priority & Escalation Engine
+                </h4>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${priorityAnalysis.badgeClass}`}>
+                  SCORE {priorityAnalysis.score}/100 — {priorityAnalysis.level} PRIORITY
+                </span>
+              </div>
+              <p className="text-[11px] text-[#A0A7B2] mt-0.5">
+                {priorityAnalysis.summaryExplanation}
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <span className="text-[10px] uppercase font-bold text-[#737D8B] font-mono block">Scrutiny Urgency</span>
+            <span className="font-mono text-xs font-bold text-[#E8EAED]">{urgency.indicatorText}</span>
+          </div>
+        </div>
+
+        {/* Contributing Factors Pills */}
+        <div className="space-y-1.5">
+          <span className="text-[10px] uppercase font-bold text-[#737D8B] font-mono block">Contributing Factors</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {priorityAnalysis.factors.map((f, i) => (
+              <div key={i} className="p-2 rounded bg-[#0B0D10] border border-[#272D35] text-xs space-y-0.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-[#E8EAED] flex items-center gap-1.5">
+                    <span className={`w-1.5 h-1.5 rounded-full ${
+                      f.impact === 'CRITICAL' ? 'bg-[#F16D75]' : f.impact === 'HIGH' ? 'bg-[#FFC759]' : 'bg-[#86A9FF]'
+                    }`} />
+                    {f.label}
+                  </span>
+                  <span className="font-mono text-[10px] text-[#A3B86C] font-bold">+{f.scoreContribution} pts</span>
+                </div>
+                <p className="text-[11px] text-[#737D8B]">{f.detail}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recommended Action */}
+        <div className="p-3 rounded bg-[#161A20] border border-[#272D35] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span className="text-[10px] uppercase font-bold text-[#A3B86C] font-mono block">Recommended Next Action</span>
+            <p className="text-xs text-[#E8EAED] font-medium mt-0.5">{priorityAnalysis.recommendedNextAction}</p>
+          </div>
+          {hasJurisdiction && caseRecord.status !== 'Disposed' && (
+            <button
+              onClick={() => handleOpenAddHistory('Status Change')}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-[#A3B86C] hover:bg-[#B7CA82] text-[#08090B] text-xs font-bold shrink-0 transition-colors"
+            >
+              <span>Take Recommended Action</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Main Dossier Container */}
       <div className="bg-[#111419] rounded-lg border border-[#272D35] shadow-sm overflow-hidden">
