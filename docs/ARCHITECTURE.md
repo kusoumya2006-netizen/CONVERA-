@@ -1,76 +1,77 @@
 # CONVERA Architecture
 
-This document describes the current repository structure and the intended boundaries between UI, application logic and persistence. It is an implementation guide, not a claim that every deployment has been independently security- or load-tested.
+> A practical source map for the current React/TypeScript prototype. Confirm implementation details against the active branch before making architectural claims.
 
-## System context
+## 1. Architectural goals
+
+- Provide a unified operational view across supported complaint bureaus/cells.
+- Keep presentation, decision-support logic, and persistence concerns separated.
+- Make potential overlaps visible for human review without automatically merging independent cases.
+- Support local demonstration and a separately configured cloud mode.
+- Treat database policies—not frontend visibility—as the authority for cloud access.
+
+## 2. High-level component view
 
 ```mermaid
-flowchart LR
-    Official[Authorized official] --> UI[React UI]
-    UI --> Auth[AuthContext / auth service]
-    UI --> CaseCtx[CaseWatchContext]
-    CaseCtx --> Urgency[Urgency calculator]
-    CaseCtx --> Overlap[Overlap detector / semantic comparator]
-    CaseCtx --> History[Action-history helpers]
-    CaseCtx --> Storage[Storage abstraction]
-    Storage --> Local[Local demo storage]
-    Storage --> Supabase[Supabase storage adapter]
-    Supabase --> AuthCloud[Supabase Auth]
-    Supabase --> DB[(PostgreSQL)]
-    DB --> RLS[Row-Level Security + grants]
+flowchart TD
+    U[User] --> V[React views and components]
+    V --> C[Auth and case contexts]
+    C --> E[Priority / overlap / history logic]
+    C --> S[Storage abstraction]
+    S --> L[Local demo persistence]
+    S --> P[Supabase storage adapter]
+    P --> A[Supabase Auth]
+    P --> D[(PostgreSQL)]
+    D --> RLS[Policies and grants]
 ```
 
-## Code map
+The diagram shows logical responsibilities. It does not imply that every environment has live cloud connectivity or that database policies have been independently security-audited.
 
-| Location | Responsibility |
-|---|---|
-| `src/App.tsx` | App shell and route/view composition |
-| `src/components/auth/` | Login, protected-route and auth presentation components |
-| `src/components/dashboard/` | Overview, metrics, workload and activity views |
-| `src/components/cases/` | Case details, actions and history interactions |
-| `src/components/registry/` | Case registry, filtering and case creation |
-| `src/components/overlaps/` | Overlap review and coordination UI |
-| `src/components/institutions/` | Institution directory and details |
-| `src/components/reports/` | Reporting UI |
-| `src/context/AuthContext.tsx` | Auth state and app-level auth coordination |
-| `src/context/CaseWatchContext.tsx` | Shared case workflow state and orchestration |
-| `src/engine/urgencyCalculator.ts` | Deadline/urgency calculations |
-| `src/engine/overlapDetector.ts` | Candidate overlap detection |
-| `src/engine/semanticComparator.ts` | Similarity comparison used by overlap analysis |
-| `src/engine/actionHistoryHelper.ts` | Action-history construction and audit-oriented helpers |
-| `src/services/authService.ts` | Auth service boundary |
-| `src/services/storage/` | Local and Supabase storage implementations and shared types |
-| `src/services/exportService.ts` | Export utilities |
-| `src/types/` | Shared domain and auth types |
-| `supabase/migrations/` | Schema, RLS policies and synthetic/demo seed migrations |
-| `scripts/` | Demo-data utilities |
-| `docs/` | Architecture, validation and contributor process |
+## 3. Main layers
 
-## Main data flow
+| Layer | Responsibility | Verification |
+|---|---|---|
+| UI | Dashboards, case tables, forms, profiles, charts | Browser walkthrough and component tests |
+| Shared state | Auth/session state and case workflow coordination | Context/service tests and route smoke tests |
+| Decision support | Urgency, deadline indicators, overlap candidates | Unit tests for boundary cases and false positives |
+| Storage adapter | Routes operations to the configured persistence implementation | Adapter tests and create/update/reload scenarios |
+| Supabase | Auth and PostgreSQL persistence in configured cloud mode | Migration inspection, RLS/grant tests, multi-user checks |
+| Build/test | TypeScript, Vite, Vitest | Run current package scripts on the evaluation commit |
 
-1. A user interacts with the React UI.
-2. Auth and case workflow contexts coordinate state and service calls.
-3. Application engines calculate urgency and identify potential overlaps; they provide decision support, not final regulatory decisions.
-4. The storage abstraction routes operations to local demo storage or the configured Supabase adapter.
-5. In cloud mode, Supabase Auth identifies the user and PostgreSQL/RLS/grants must enforce access to records.
-6. Case-action/history workflows should retain the actor, action, timestamp and relevant details needed to reconstruct what happened.
+## 4. Data flow
 
-## Cloud and demo modes
+1. A user opens a dashboard or selects a case/institution.
+2. The UI reads state through shared application contexts and services.
+3. Decision-support logic derives urgency or candidate overlap information from available records.
+4. The storage abstraction sends reads/writes to the active demo or cloud adapter.
+5. The UI presents the outcome and any validation/error state exposed by the service.
+6. Where supported, case actions and coordination decisions remain inspectable in the record history.
 
-- **Local demo mode:** useful for development and synthetic demonstrations. Browser-local persistence is not a shared, authoritative multi-user database.
-- **Supabase cloud mode:** intended for shared persistence. It depends on valid environment variables, provisioned auth users/profiles, correct schema migrations, RLS policies, database grants and auth redirect configuration.
+## 5. Overlap detection boundary
 
-Do not assume cloud mode is secure simply because login works. Test both permitted and forbidden operations using separate accounts and verify the database state after writes.
+Overlap detection identifies candidates that deserve review. Institution identifiers, normalized names, bureau, status, and other implemented matching inputs should be understood from the actual engine source and tests. A candidate match can be a false positive or miss a true relationship.
 
-## Safety and integrity rules
+**Required safety property:** an overlap signal alone must not merge or dispose of separate cases. Human review and an explicit authorized workflow remain necessary.
 
-- An overlap alert must not automatically merge or dispose of a complaint.
-- A UI role check is not an authorization boundary; enforce access in database policies too.
-- Show a successful save only after the required write has succeeded.
-- For workflows that write multiple related records, test partial-failure behavior and document whether operations are transactional or compensating.
-- Preserve the individual identity and history of cases even when they are cross-referenced.
-- Use synthetic records in public demonstrations; do not commit secrets or real sensitive complaint data.
+## 6. Persistence modes
 
-## Change discipline
+### Local demonstration
+Useful for UI walkthroughs and seeded synthetic data. Do not assume local state is shared between users or durable across browser resets unless the active implementation explicitly provides that behavior.
 
-When changing the architecture, prefer small, isolated commits. Add or update tests for logic changes, update the validation checklist for workflow changes, and keep this document synchronized with actual code. Do not rename or move source folders solely for visual neatness without checking imports, build configuration and deployment behavior.
+### Supabase cloud
+Requires correct public client configuration, ordered migrations, provisioned users, database grants, RLS policies, and authentication redirect settings. Frontend route guards do not replace database authorization.
+
+## 7. Security and privacy
+
+- Never commit secrets or real complaint records.
+- Never expose a service-role key through a frontend environment variable.
+- Test allowed and denied operations using separate accounts.
+- Confirm failed writes are visible to the user and not presented as successful.
+- Treat demonstration institution names and metrics as illustrative unless independently verified.
+
+## 8. Further reading
+
+- [Project master documentation](../PROJECT_MASTER_DOCUMENTATION.md)
+- [Database schema review](DATABASE_SCHEMA.md)
+- [Requirement traceability](SIH26264_REQUIREMENT_TRACEABILITY.md)
+- [Validation status](../VALIDATION_STATUS.md)
