@@ -15,7 +15,7 @@ Smart India Hackathon 2026 · Problem Statement **SIH26264**
 [![SIH](https://img.shields.io/badge/SIH-26264-A3B86C)](https://sih.gov.in/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[Live Demo](https://convera-olvphbja7-kusoumya2006-netizens-projects.vercel.app/) · [Architecture](docs/ARCHITECTURE.md) · [Master Documentation](PROJECT_MASTER_DOCUMENTATION.md) · [Validation Status](VALIDATION_STATUS.md)
+[![Open Live Demo](https://img.shields.io/badge/OPEN%20LIVE%20DEMO-Visit%20CONVERA-1F2937?style=for-the-badge&logo=vercel&logoColor=white)](https://convera-olvphbja7-kusoumya2006-netizens-projects.vercel.app/)\n\n[Architecture](docs/ARCHITECTURE.md) · [Master Documentation](PROJECT_MASTER_DOCUMENTATION.md) · [Validation Status](VALIDATION_STATUS.md)
 
 </div>
 
