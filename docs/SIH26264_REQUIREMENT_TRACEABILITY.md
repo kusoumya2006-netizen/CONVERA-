@@ -1,22 +1,23 @@
 # SIH26264 Requirement Traceability
 
-This is an implementation-oriented mapping, not a claim of formal acceptance by SIH or AICTE.
+This table maps the intended problem outcomes to CONVERA's implementation areas and verification methods. It is not a claim of formal acceptance or endorsement by SIH or AICTE.
 
 | Intended outcome | Relevant implementation area | Verification approach |
 |---|---|---|
-| Consolidated complaint view | Case registry, dashboard, case context, storage services | Inspect cases from multiple supported bureaus |
-| Institution-level visibility | Institution profiles and institution/case relationships | Compare profile with active/completed cases |
-| Potential cross-bureau overlap | `src/engine/overlapDetector.ts`, semantic comparison, overlap UI | Test same canonical ID across bureaus and similar names with different IDs |
-| Urgency and deadlines | Urgency calculator and dashboard views | Test past, near-term, and future deadlines |
-| Coordination review | Overlap review and case workflow components | Record a decision and reload; ensure cases remain independent |
-| Case action history | History helpers and storage/migration layer | Verify actor, timestamp, ordering, and persistence |
-| Search and reporting | Registry filters and export/report services | Compare filtered results with exported rows |
-| Multi-user access control | Auth service/context, Supabase policies and grants | Test allowed and denied actions using separate accounts |
-| Deployment readiness | Vite build and hosting configuration | Build, deploy, refresh routes, smoke-test critical flows |
+| Consolidated complaint visibility | Case registry, dashboard, case context, storage services | Inspect supported cases across bureaus in the active storage mode |
+| Institution-level history | Institution profiles and institution/case relationships | Compare profile counts with active and completed case records |
+| Detect potential cross-bureau overlaps | `src/engine/overlapDetector.ts`, comparison logic, overlap UI | Test shared canonical IDs, similar names with distinct IDs, and missing identifiers |
+| Surface urgency and deadlines | Priority/deadline logic and dashboard views | Test past, near-term, future, and boundary deadlines |
+| Coordinate overlap review | Overlap review and case workflow components | Record review action and reload; confirm independent cases remain separate |
+| Preserve case actions | History helpers and storage/migration layer | Verify actor, timestamp, order, and persistence where implemented |
+| Search and report | Registry filters and export/report services | Compare selected filters and CSV rows |
+| Support multi-user access boundaries | Auth service/context, Supabase policies and grants | Test permitted and denied operations with separate accounts |
+| Demonstrate release readiness | Package scripts and deployment configuration | Run tests/build and perform deployed smoke tests |
 
 ## Evidence rules
-1. Link each requirement to exact source, test, migration, or captured run when available.
-2. Do not mark a feature complete from a screenshot alone.
-3. Frontend navigation checks do not prove database authorization.
-4. Keep implemented capabilities separate from future proposals.
-5. Update this table when requirements or implementation change.
+
+1. Link rows to exact source files, tests, migrations, or validation records when available.
+2. A screenshot alone does not prove a backend workflow is complete.
+3. Frontend route guards do not prove database authorization.
+4. Keep implemented capabilities separate from planned enhancements.
+5. Record the branch and commit SHA for every validation run.
