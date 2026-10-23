@@ -14,13 +14,13 @@ Start here to understand the implementation, validate the prototype, or prepare 
 
 ## Screenshot gallery
 The README and walkthrough expect these supplied UI screenshots in `assets/screenshots/`:
-- `01-convera-landing.png`
-- `02-authentication.png`
-- `03-overview-dashboard.png`
-- `04-case-registry.png`
-- `05-overlap-monitoring.png`
-- `06-completed-proceedings.png`
-- `07-institution-profiles.png`
-- `08-reports-analytics.png`
+- `01-convera-landing.jpg`
+- `02-authentication.jpg`
+- `03-overview-dashboard.jpg`
+- `04-case-registry.jpg`
+- `05-overlap-monitoring.jpg`
+- `06-completed-proceedings.jpg`
+- `07-institution-profiles.jpg`
+- `08-reports-analytics.jpg`
 
 Keep screenshots current and free of sensitive data. Label synthetic metrics and sample records as demo data.
