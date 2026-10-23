@@ -36,38 +36,7 @@ The screenshots below document the intended product walkthrough. Place the eight
 | Institution profiles | Institution records and consolidated case history |
 | Reports & analytics | SLA ageing, bureau workload, and export options |
 
-### Screenshots
 
-> Screenshot assets are being organized alongside this documentation. Add the supplied image files at the relative paths below so the gallery renders on GitHub.
-
-<details>
-<summary>View product screenshots</summary>
-
-#### 01 · Landing page
-![CONVERA landing page](docs/assets/screenshots/01-convera-landing.png)
-
-#### 02 · Authentication
-![CONVERA authentication](docs/assets/screenshots/02-authentication.png)
-
-#### 03 · Overview dashboard
-![CONVERA overview dashboard](docs/assets/screenshots/03-overview-dashboard.png)
-
-#### 04 · Case registry
-![CONVERA case registry](docs/assets/screenshots/04-case-registry.png)
-
-#### 05 · Overlap monitoring
-![CONVERA overlap monitoring](docs/assets/screenshots/05-overlap-monitoring.png)
-
-#### 06 · Completed proceedings
-![CONVERA completed proceedings](docs/assets/screenshots/06-completed-proceedings.png)
-
-#### 07 · Institution profiles
-![CONVERA institution profiles](docs/assets/screenshots/07-institution-profiles.png)
-
-#### 08 · Reports and analytics
-![CONVERA reports and analytics](docs/assets/screenshots/08-reports-analytics.png)
-
-</details>
 
 ## Core capabilities
 
