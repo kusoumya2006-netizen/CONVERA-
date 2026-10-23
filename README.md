@@ -1,148 +1,96 @@
-# CONVERA — Integrated Institution Complaint Monitoring & Status Dashboard
+# CONVERA
 
-> **One Institution. Connected Intelligence. Coordinated Action.**
->
-> Developed for Smart India Hackathon 2026 · Problem Statement SIH26264
+<p align="center">
+  <strong>One Institution. Connected Intelligence. Coordinated Action.</strong><br/>
+  An institution complaint-monitoring and cross-bureau coordination prototype for Smart India Hackathon 2026 · SIH26264
+</p>
 
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
-[![Tests](https://img.shields.io/badge/Tests-Vitest-6E9F18)](https://vitest.dev/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+<p align="center">
+  <a href="https://react.dev/"><img alt="React 18" src="https://img.shields.io/badge/React-18-20232A?logo=react&logoColor=61DAFB" /></a>
+  <a href="https://www.typescriptlang.org/"><img alt="TypeScript 5.6" src="https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white" /></a>
+  <a href="https://vitejs.dev/"><img alt="Vite 5" src="https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white" /></a>
+  <a href="https://supabase.com/"><img alt="Supabase" src="https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase&logoColor=white" /></a>
+  <a href="https://vitest.dev/"><img alt="Vitest" src="https://img.shields.io/badge/Tests-Vitest-6E9F18?logo=vitest&logoColor=white" /></a>
+  <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-yellow.svg" /></a>
+</p>
 
-**Live demo:** [Open CONVERA](https://convera-olvphbja7-kusoumya2006-netizens-projects.vercel.app/)  
-**Repository:** [kusoumya2006-netizen/CONVERA-](https://github.com/kusoumya2006-netizen/CONVERA-)
+<p align="center">
+  <a href="https://convera-olvphbja7-kusoumya2006-netizens-projects.vercel.app/"><strong>Open the demo</strong></a>
+  ·
+  <a href="#quick-start">Run locally</a>
+  ·
+  <a href="./docs/ARCHITECTURE.md">Architecture</a>
+  ·
+  <a href="./docs/VALIDATION_CHECKLIST.md">Validation checklist</a>
+</p>
 
 ---
 
-## Overview
+## At a glance
 
-CONVERA is a centralized complaint-monitoring and cross-bureau coordination prototype designed around the AICTE problem statement. It gives authorized officials a consolidated view of institution-related cases handled by the Regulation Bureau (RB), Public Grievance Redressal Cell (PGRC), and other configured Bureaus/Cells.
+CONVERA gives authorized officials a consolidated operational view of institution-related complaints handled by multiple Bureaus and Cells, including the Regulation Bureau (RB) and Public Grievance Redressal Cell (PGRC).
 
-The core objective is to help officials identify potentially overlapping actions, understand who is handling each case, coordinate next steps, track timelines, and preserve a clear history of decisions—without accidentally merging, disposing of, or dismissing independent complaints.
+When separate teams handle cases involving the same institution, duplicated effort, conflicting action, delayed follow-up and unclear ownership can occur. CONVERA is designed to surface possible overlaps, explain why cases may be related, coordinate follow-up and preserve an auditable history—while keeping each complaint's identity and decision history intact.
 
-### The problem
+> **Project status:** Academic prototype for SIH 2026. Feature descriptions below describe the intended/current application workflow; they are not a claim of production certification, formal security audit or government deployment. Validate the deployed environment before using real or sensitive case data.
 
-When different Bureaus handle complaints about the same technical institution, separate workflows can lead to duplicated effort, conflicting action, delayed disposal, and uncertainty about case ownership. CONVERA provides a shared operational view to help surface these risks and support coordinated decisions.
+## Core workflow
 
-### The proposed workflow
-
-1. Register or load an institution-related complaint.
-2. Associate it with the institution's canonical ID and receiving Bureau/Cell.
-3. Detect potentially overlapping active cases across Bureaus.
-4. Explain the match and allow authorized officials to review it.
-5. Record coordination decisions, ownership, follow-up and escalation.
-6. Track case history, deadlines, status and performance through the dashboard and reports.
+1. **Register or review a case** and associate it with the relevant institution and Bureau/Cell.
+2. **Prioritize follow-up** using case status, deadlines and urgency indicators.
+3. **Surface possible overlaps** between active cases across Bureaus/Cells.
+4. **Review the match rationale** before making a coordination decision.
+5. **Record officer actions and case history** so updates remain traceable.
+6. **Track progress** through the dashboard, filters and supported reports.
 
 ## Key capabilities
 
-### 1. Unified dashboard and urgency queue
-- Consolidated case counts and status indicators based on loaded records.
-- Deadline-aware prioritization for overdue, due-soon, high-priority and escalated cases.
-- Explainable urgency indicators and countdowns when valid deadline data is available.
-- Bureau and status views intended to help officials identify cases requiring attention.
+| Area | What CONVERA is designed to support |
+|---|---|
+| **Dashboard & urgency queue** | Case counts, status summaries, ageing, deadline visibility and priority-focused views. |
+| **Cross-bureau overlap intelligence** | Matching by normalized institution identifiers, with lower-confidence institution-name fallback when an ID is unavailable. |
+| **Institution profiles** | A consolidated view of institution details and related case activity. |
+| **Case lifecycle** | Case registration, status updates, reassignment, escalation, reopening and recorded resolution details. |
+| **Case history** | Chronological activity records for relevant case actions and decisions. |
+| **Coordination console** | Lead Bureau/Cell, coordination notes, review decisions and cross-references between cases. |
+| **Search & reporting** | Supported filters, dashboard summaries and CSV export. |
+| **Authentication & persistence** | Supabase Auth and PostgreSQL for configured cloud mode, with a local demo-storage implementation for development. |
 
-### 2. Cross-bureau overlap intelligence
-- Primary matching using normalized institution identifiers.
-- Institution-name fallback where an ID is unavailable, with lower-confidence matching.
-- Identification of active cases spanning multiple Bureaus, including RB and PGRC.
-- Reviewable potential-overlap alerts and explanations.
-- Case linking and coordination workflows designed to preserve each complaint's individual identity and history.
+**Safety principle:** An overlap is a review signal, not a verdict. It must not automatically merge, dispose of or dismiss independent complaints. Authorized officials remain responsible for decisions.
 
-### 3. Institution profiles
-- Institution directory using canonical institution IDs.
-- Consolidated view of related complaints and cross-bureau activity.
-- Institution-level context for reviewing concurrent cases and regulatory actions.
-
-### 4. Case lifecycle and action history
-- Case registration, status updates, reassignment, escalation and reopening workflows.
-- Chronological action history and resolution information where recorded.
-- Related-case references and merge/unmerge support where enabled.
-- Persistence-first cloud writes with visible error handling rather than false success notifications.
-
-### 5. Search, filters and reports
-- Search and filter by case, institution, Bureau/Cell, region, category, status and supported date fields.
-- Dashboard analytics for workload, status, ageing and deadlines.
-- CSV export for supported reports.
-
-### 6. Coordination and accountability
-- Inter-Bureau Coordination Console for documenting review decisions and directives.
-- Designated lead Bureau/Cell and coordination notes.
-- Optional cross-reference links between involved cases.
-- Coordination is intended to help officials decide the appropriate course of action; an overlap alert must not automatically dispose of, merge or dismiss a complaint.
-
-### 7. Authentication and cloud persistence
-- Supabase Auth for configured official accounts.
-- Supabase PostgreSQL tables for institutions, cases, case actions, profiles and overlap alerts.
-- Row-Level Security (RLS) intended to enforce authorized access.
-- Local demo storage is supported for development/demo use; configured cloud mode should use Supabase as the source of truth.
-
-> **Prototype note:** This project is an academic demonstration. Validate permissions and every database workflow in the target environment before using real or sensitive complaint data. A deployed frontend does not, by itself, prove that every Supabase write path or RLS policy is correctly configured.
-
-## Technology stack
+## Technology
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 18, TypeScript, Vite |
+| UI | React 18, TypeScript, Vite |
 | Styling | Tailwind CSS |
-| Charts | Recharts |
-| Icons | Lucide React |
+| Charts & icons | Recharts, Lucide React |
 | Authentication & database | Supabase Auth, PostgreSQL, PostgREST |
-| Persistence architecture | Storage abstraction with Supabase and local demo implementations |
-| Testing | Vitest |
-| Hosting | Vercel |
+| Persistence | Storage abstraction with Supabase and local demo implementations |
+| Automated tests | Vitest |
+| Hosting configuration | Vercel |
 
-## Architecture at a glance
+## Architecture
 
-```text
-Authorized Official
-       |
-       v
-CONVERA React + TypeScript UI
-       |
-       v
-Case Context / Workflow & Intelligence Engines
-       |
-       v
-Storage Abstraction
-       |                         |
-       v                         v
-Supabase Cloud Mode        Local Demo Mode
-       |
-       v
-PostgreSQL + Auth + RLS
-  - profiles
-  - institutions
-  - cases
-  - case_actions
-  - overlap_alerts
+```mermaid
+flowchart TD
+    A[Authorized official] --> UI[React + TypeScript UI]
+    UI --> CTX[Auth and case workflow context]
+    CTX --> ENG[Urgency and overlap engines]
+    CTX --> STORE[Storage abstraction]
+    STORE --> CLOUD[Supabase cloud mode]
+    STORE --> DEMO[Local demo mode]
+    CLOUD --> AUTH[Supabase Auth]
+    CLOUD --> DB[(PostgreSQL + RLS)]
+    DB --> CASES[Cases, institutions, actions, profiles, overlap alerts]
 ```
 
-The overlap and urgency engines provide application-level decision support. Database permissions and RLS remain responsible for enforcing access to persisted records; hiding a UI control is not a security boundary.
+The application-level engines provide decision support. **Database permissions and Row-Level Security (RLS) must enforce access to persisted records**; hiding a UI control is not a security boundary. See [Architecture and data flow](./docs/ARCHITECTURE.md) for module responsibilities and deployment boundaries.
 
-## Live demo
-
-**URL:** https://convera-olvphbja7-kusoumya2006-netizens-projects.vercel.app/
-
-The deployed demo uses the environment variables configured in Vercel at build time. If the site is moved to another Vercel project or domain, configure the required variables and Supabase Auth redirect URLs for that environment.
-
-### Demo walkthrough
-
-1. Open the live demo and sign in with an account provisioned in the connected Supabase Auth project.
-2. Review the dashboard and active urgency queue.
-3. Open the overlap monitoring view and inspect cases associated with the same institution.
-4. Review the match explanation and open the Inter-Bureau Coordination Console.
-5. Record a coordination decision and, where appropriate, create case cross-references.
-6. Open the case registry and inspect the individual case history.
-7. Test an allowed status/action update and verify it persists after refreshing.
-8. Verify saved records in Supabase when validating cloud persistence.
-
-**Demo data:** Seed records are synthetic and intended for demonstration. Do not interpret sample cases, institutions, officers, deadlines or outcomes as actual AICTE records.
-
-## Local development
+## Quick start
 
 ### Prerequisites
+
 - Node.js 18 or later
 - npm 9 or later
 
@@ -155,96 +103,113 @@ npm install
 npm run dev
 ```
 
-Vite prints the local development URL in the terminal, commonly http://localhost:5173.
+Vite prints the local development URL in the terminal, commonly `http://localhost:5173`.
 
-### Environment variables
-
-Create a local `.env` file in the project root for cloud mode:
-
-```env
-VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
-VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
-```
-
-Use the Supabase **publishable key** (or legacy anon key if that is what the project is configured to use). These client keys are intended to be exposed to the browser; access must be restricted through appropriate RLS policies and database grants.
-
-**Never put a Supabase secret key, service-role key, database password, or other server credential in a `VITE_*` variable or commit it to Git.** Vite embeds `VITE_*` values in the client bundle.
-
-The repository's `.gitignore` excludes local environment files. Keep real values out of source control and use Vercel Project Settings → Environment Variables for deployed builds.
-
-### Database setup
-
-The repository includes SQL migrations under `supabase/migrations/`. Review the schema and policies, then apply migrations to the intended Supabase project in the documented order using the Supabase SQL Editor or Supabase CLI.
-
-Before applying migrations to an existing project:
-- Back up important data.
-- Review each migration and its assumptions.
-- Confirm that seed scripts use valid institution IDs.
-- Preserve RLS; do not resolve permission errors by disabling policies or granting unrestricted access.
-- Do not insert users directly into `auth.users` with ad hoc SQL. Provision accounts through supported Supabase Auth workflows and create the corresponding application profile as required.
-
-## Tests and production build
-
-Run the test suite:
+### Run tests and build
 
 ```bash
-npm test -- --run
-```
-
-Create the production build:
-
-```bash
+npm test
 npm run build
 ```
 
-The production assets are written to `dist/`.
+The build runs TypeScript checks before generating production assets in `dist/`. Test and build outcomes can change as the code evolves; use the output from your current checkout rather than relying on previously reported results.
 
-Test results can change as the project evolves. Run the commands against the current checkout and inspect the output rather than relying on a previously reported result.
+## Configure Supabase cloud mode
 
-## Deploying to Vercel
+1. Create or select the intended Supabase project.
+2. Copy `.env.example` to a local `.env` file.
+3. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to the project's URL and browser-safe publishable/anon key.
+4. Review the SQL migrations in `supabase/migrations/` in filename order before applying them.
+5. Configure Supabase Auth users, application profiles, redirect URLs, database grants and RLS policies for the target environment.
+6. Test the required read/write workflows with accounts representing the intended roles.
 
-The repository includes a root-level `vercel.json` for Vite SPA routing.
+```bash
+cp .env.example .env
+```
 
-1. Import the GitHub repository into Vercel.
-2. Confirm the Vite framework preset and root directory `./`.
+The local `.env` file is ignored by Git. **Never place a Supabase service-role/secret key, database password or other server credential in a `VITE_*` variable or commit it to the repository.** Vite embeds `VITE_*` values in the browser bundle. Client keys are not a substitute for correct RLS policies and database grants.
+
+Before applying migrations to an existing database, back up important data and review migration assumptions. Do not fix permission errors by disabling RLS or granting unrestricted access. See [Validation checklist](./docs/VALIDATION_CHECKLIST.md) for the minimum checks before a demo.
+
+## Repository map
+
+```text
+CONVERA-/
+├── public/                  # Static assets served as-is
+├── scripts/                 # Demo-data utilities
+├── src/
+│   ├── components/          # Auth, dashboard, cases, overlaps, reports and UI
+│   ├── context/             # Authentication and case workflow state
+│   ├── data/                # Synthetic demonstration seed data
+│   ├── engine/               # Urgency, overlap and action-history logic + tests
+│   ├── services/             # Auth, export and storage adapters + tests
+│   ├── types/                # Shared TypeScript types
+│   ├── App.tsx
+│   └── main.tsx
+├── supabase/migrations/     # Database schema, RLS and demo seed migrations
+├── docs/                    # Architecture, validation and contributor guidance
+├── .env.example             # Safe environment-variable template
+├── package.json
+├── vercel.json
+└── README.md
+```
+
+## Demo walkthrough
+
+Use an account provisioned in the connected Supabase Auth project if the deployed demo is configured for cloud mode.
+
+1. Review the dashboard and urgency queue.
+2. Open overlap monitoring and inspect cases associated with the same institution.
+3. Review the match explanation before opening the coordination workflow.
+4. Record a coordination decision where appropriate.
+5. Open a case and inspect its activity history.
+6. Make an allowed case update, refresh, and confirm the change persists.
+7. When validating cloud mode, verify the expected record and permissions in Supabase.
+
+Demo institutions, cases, officers, deadlines and outcomes are synthetic/fictional examples. Do not interpret them as actual AICTE records. The live deployment may require environment configuration and provisioned accounts.
+
+## Validation and security
+
+Before presenting a build as ready, verify more than the landing page:
+
+- [ ] `npm test` passes on the current commit.
+- [ ] `npm run build` completes without errors.
+- [ ] Login and protected-route behavior work for intended roles.
+- [ ] Case creation, updates, reassignment, escalation and reopening persist as expected.
+- [ ] Case history records the correct action, actor and timestamp.
+- [ ] Overlap alerts are explainable and never trigger automatic disposal or merging.
+- [ ] Cloud writes report success only after required persistence succeeds.
+- [ ] RLS and database grants are tested against allowed and denied operations.
+- [ ] Direct route refresh and deployment environment variables are checked.
+- [ ] The demo uses synthetic data and contains no secrets.
+
+The [validation checklist](./docs/VALIDATION_CHECKLIST.md) provides a repeatable evidence log. Do not claim a check passed unless it was actually run and its result was reviewed.
+
+## Deployment
+
+The repository includes a root-level `vercel.json` for the Vite single-page application.
+
+1. Import this repository into Vercel.
+2. Use the repository root as the project root.
 3. Set the build command to `npm run build` and output directory to `dist`.
-4. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for the intended deployment environment.
-5. Deploy, then test login, dashboard loading, direct route refresh, complaint creation, action history and coordination writes.
-6. Configure the production site URL and allowed redirect URLs in Supabase Auth.
+4. Add the required environment variables for the target environment.
+5. Configure the production URL and allowed redirect URLs in Supabase Auth.
+6. Test login, direct-route refresh, case writes and history against the deployed environment.
 
-Changes to Vite environment variables require a new deployment/build.
+Changing Vite environment variables requires a new build/deployment.
 
-## Security and operational considerations
+## Known limitations and roadmap
 
-- Supabase RLS and grants must be verified for every table and operation.
-- Test with accounts representing each intended Bureau and role.
-- Do not treat frontend role checks as a substitute for database authorization.
-- Ensure that case actions and coordination decisions report success only after required database writes succeed.
-- Check for partial-write conditions when a workflow performs multiple database operations.
-- Use only synthetic data in public demos unless the deployment is explicitly approved for real data.
-- Avoid publishing passwords or reusable demo credentials in this README. Provision demo accounts securely and share credentials only with intended evaluators through an appropriate channel.
-
-## Roadmap
-
-Potential future improvements, subject to problem-statement priorities and validation:
-
-- More granular cross-bureau overlap review and false-positive feedback.
-- Configurable SLA rules and notification delivery.
-- Stronger transactional handling for multi-step coordination writes.
-- Expanded region-wise and institution-wise reporting.
-- Supporting-document handling and secure attachment access.
-- Accessibility and responsive-layout refinements.
-- Additional automated RLS and end-to-end tests.
-
+CONVERA is an SIH prototype, not an official AICTE service. Before production use, the project needs environment-specific security review, permission testing, end-to-end workflow verification, monitoring and operational approval. Potential follow-up work includes more granular overlap feedback, configurable SLA rules and notification delivery, transactional handling of multi-step writes, expanded reporting, secure attachments, accessibility improvements and additional automated RLS/E2E coverage.
 
 ## Attribution
 
-The project has used an SVCE campus entrance image attributed to PlaneMad via Wikimedia Commons under the [Creative Commons Attribution-ShareAlike 3.0 license](https://creativecommons.org/licenses/by-sa/3.0/). See the [Wikimedia Commons file page](https://commons.wikimedia.org/wiki/File:SVCE_entrance_close_up.jpg) for the original attribution and license details.
+The project uses an SVCE campus entrance image attributed to PlaneMad via Wikimedia Commons under the [Creative Commons Attribution-ShareAlike 3.0 license](https://creativecommons.org/licenses/by-sa/3.0/). See the [original file page](https://commons.wikimedia.org/wiki/File:SVCE_entrance_close_up.jpg) for attribution and license details.
 
-## Disclaimer
+## License
 
-CONVERA is an academic prototype developed for Smart India Hackathon 2026 Problem Statement SIH26264. It is not affiliated with, endorsed by, or an official system of the All India Council for Technical Education (AICTE) or the Ministry of Education, Government of India. Institution names, complaint descriptions, officer profiles and demo records may be synthetic or fictional. Do not use this prototype to make official regulatory decisions or store sensitive real-world complaints without appropriate authorization, security review and operational approval.
+Distributed under the MIT License. See [LICENSE](./LICENSE).
 
 ---
 
-Built for coordinated institutional action: **One Institution. Connected Intelligence. Coordinated Action.**
+<p align="center"><strong>CONVERA · One Institution. Connected Intelligence. Coordinated Action.</strong></p>
